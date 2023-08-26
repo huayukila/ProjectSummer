@@ -8,14 +8,9 @@ public class TailControl : MonoBehaviour
     public GameObject tailPrefab;
     private int tailsCount;
     GameObject[] tails;
-    GameObject lr;
     // Start is called before the first frame update
     void Awake()
     {
-        lr = new GameObject("Line");
-        lr.transform.parent = transform;
-        lr.transform.localPosition = Vector3.zero;
-        lr.AddComponent<TailRender>();
         tails = new GameObject[50];
         tails[0] = gameObject;
         tailsCount++;
@@ -47,5 +42,10 @@ public class TailControl : MonoBehaviour
     public GameObject[] GetTailsObject()
     {
         return tails;
+    }
+
+    public GameObject GetTipTail()
+    {
+        return tails[tails.Length-1];
     }
 }

@@ -6,11 +6,17 @@ public class PlayerControl : Player
 {
     float movement;
     GameObject rootTail;
+    GameObject tipTail;
     public GameObject tailPrefab;
+
+    private void Awake()
+    {
+        SetTail();
+        tipTail.AddComponent<DropPointControl>();
+    }
     void Start()
     {
         movement = 0.0f;
-        SetRootTail();
     }
 
     // Update is called once per frame
@@ -45,16 +51,23 @@ public class PlayerControl : Player
         
     }
 
-    private void SetRootTail()
+    private void SetTail()
     {
         GameObject tail = Instantiate(tailPrefab, transform);
 
         tail.transform.localScale = Vector3.one * 0.2f;
         tail.transform.localRotation = transform.rotation;
         tail.transform.parent = transform;
-        tail.transform.localPosition = new Vector3(0.0f, 0.0f, -1.0f);
+        tail.transform.localPosition = new Vector3(0.0f, 0.0f, -0.5f);
 
         rootTail = tail;
+
+        TailControl temp = tail.GetComponent<TailControl>();
+        if(temp != null)
+        {
+            tipTail = temp.GetTipTail();
+        }
     }
+
 
 }

@@ -10,6 +10,7 @@ public class TailRender : MonoBehaviour
     void Start()
     {
         lr = gameObject.AddComponent<LineRenderer>();
+        SetRendererProperties();
     }
 
     // Update is called once per frame
@@ -29,12 +30,21 @@ public class TailRender : MonoBehaviour
         {
             GameObject[] temp = tempTails.GetTailsObject();
             points = new Vector3[temp.Length];
-            lr.positionCount = points.Length;
             for (int i = 0; i < temp.Length; ++i)
             {
                 points[i] = temp[i].transform.position;
             }
+            lr.positionCount = points.Length;
         }
         
+    }
+
+    private void SetRendererProperties()
+    {
+        lr.material = new Material(Shader.Find("Sprites/Default"));
+        lr.startColor = Color.red;
+        lr.endColor = Color.yellow;
+        lr.startWidth = 0.2f;
+        lr.endWidth = 0.5f;
     }
 }

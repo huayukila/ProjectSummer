@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 2699508956750268709}
   - component: {fileID: 130569966622627509}
   - component: {fileID: -6425217936517151560}
+  - component: {fileID: -8600044705238872690}
   m_Layer: 0
   m_Name: RootTail
-  m_TagString: Untagged
+  m_TagString: Tail
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -50,7 +51,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6254986990102302574}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -119,3 +120,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tailPrefab: {fileID: 5754750429702288608, guid: ef8f93f02439539478c59181ea1a19e8, type: 3}
+--- !u!114 &-8600044705238872690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6254986990102302574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98f9ac72a7e9b0541afd9fa784016746, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
