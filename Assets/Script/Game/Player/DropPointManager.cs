@@ -2,19 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DropPointManager : MonoBehaviour
+public class DropPointManager : Singleton<DropPointManager>
 {
     List<GameObject> points;
     LineRenderer lr;
     // Start is called before the first frame update
-    void Start()
+    protected override void Awake()
     {
+        base.Awake();
         points = new List<GameObject>();
         lr = gameObject.AddComponent<LineRenderer>();
-        if(lr != null)
-        {
-            SetRendererProperties();
-        }
+        SetRendererProperties();
     }
 
     // Update is called once per frame
@@ -45,20 +43,24 @@ public class DropPointManager : MonoBehaviour
 
     private void SetRendererProperties()
     {
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        lr.startColor = Color.red;
-        lr.endColor = Color.red;
-        lr.startWidth = 0.5f;
-        lr.endWidth = 0.5f;
+        if (lr != null)
+        {
+            lr.material = new Material(Shader.Find("Sprites/Default"));
+            lr.startColor = Color.red;
+            lr.endColor = Color.red;
+            lr.startWidth = 0.5f;
+            lr.endWidth = 0.5f;
+        }
     }
 
     private Vector3[] GameObjectToVector3()
     {
-        Vector3[] temp = new Vector3[points.Count];
-        for(int i = 0; i < points.Count; ++i)
+        var temp = points;
+        Vector3[] pos = new Vector3[temp.Count];
+        for(int i = 0; i < temp.Count; ++i)
         {
-            temp[i] = points[i].transform.position;
+            pos[i] = temp[i].transform.position;
         }
-        return temp;
+        return pos;
     }
 }

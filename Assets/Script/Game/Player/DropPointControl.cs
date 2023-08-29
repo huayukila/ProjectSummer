@@ -16,10 +16,7 @@ public class DropPointControl : MonoBehaviour
         dropInterval = 0.1f;
         dropTimer = 0.0f;
         GameObject temp = GameObject.Find("DropPointManager");
-        if(temp != null)
-        {
-            dpm = temp.GetComponent<DropPointManager>();
-        }
+        dpm = temp?.GetComponent<DropPointManager>();
     }
 
     // Update is called once per frame
@@ -28,8 +25,11 @@ public class DropPointControl : MonoBehaviour
         dropTimer += Time.deltaTime;
         if (dropTimer >= dropInterval)
         {
-            GameObject pt = Instantiate(pointPrefab,transform.position,transform.rotation);
-            dpm.AddPoint(pt);
+            if(dpm != null)
+            {
+                GameObject pt = Instantiate(pointPrefab,transform.position,transform.rotation);
+                dpm.AddPoint(pt);
+            }
             dropTimer = 0.0f;
         }
 

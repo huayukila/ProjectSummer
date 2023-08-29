@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerControl : Player
 {
-    float movement;
+    float currentMoveSpeed;
     GameObject rootTail;
     GameObject tipTail;
     public GameObject tailPrefab;
@@ -12,43 +12,37 @@ public class PlayerControl : Player
     private void Awake()
     {
         SetTail();
-        tipTail.AddComponent<DropPointControl>();
+        tipTail?.AddComponent<DropPointControl>();
     }
     void Start()
     {
-        movement = 0.0f;
+        currentMoveSpeed = 0.0f;
     }
 
     // Update is called once per frame
     void Update()
     {
-        bool turn;
-        turn = Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow);
-        float rotate = Input.GetAxis("Horizontal");
-        if (movement < 1.0f)
-        {
-            movement += acceleration * Time.deltaTime;
-        }
-        else
-        {
-            movement = 1.0f;
-        }
-       
-        Vector3 movementDirection = new Vector3(0.0f, 0.0f, movement);
-        transform.Translate(movementDirection * moveSpeed * Time.deltaTime);
-        if(movementDirection != Vector3.zero)
-        {
-            if(turn)
-            {
-                transform.Rotate(0.0f, rotate * rotationSpeed * Time.deltaTime, 0.0f);
-            }
-        }
+        
+
     }
 
 
     private void FixedUpdate()
     {
-        
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+
+        currentMoveSpeed = currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : currentMoveSpeed + acceleration * Time.deltaTime;
+
+        Vector3 movementDirection = Vector3.forward * currentMoveSpeed;
+        transform.Translate(movementDirection * Time.fixedDeltaTime);
+
+        Vector3 rotationDirection = new Vector3(horizontal, 0.0f, vertical);
+        if (rotationDirection != Vector3.zero)
+        {
+            Quaternion rotation = Quaternion.LookRotation(rotationDirection, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
+        }
     }
 
     private void SetTail()
@@ -59,14 +53,14 @@ public class PlayerControl : Player
         tail.transform.localRotation = transform.rotation;
         tail.transform.parent = transform;
         tail.transform.localPosition = new Vector3(0.0f, 0.0f, -0.5f);
+        tail.AddComponent<TailControl>();
+        tail.AddComponent<TailRender>();
 
         rootTail = tail;
 
-        TailControl temp = tail.GetComponent<TailControl>();
-        if(temp != null)
-        {
-            tipTail = temp.GetTipTail();
-        }
+        TailControl temp = rootTail.GetComponent<TailControl>();
+        tipTail = temp?.GetTipTail();
+
     }
 
 

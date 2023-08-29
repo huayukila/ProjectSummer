@@ -2,13 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TailRender : MonoBehaviour
+public class TailRender : Tail
 {
-    Vector3[] points;
+    List<Vector3> points;
     LineRenderer lr;
     // Start is called before the first frame update
     void Start()
     {
+        points = new List<Vector3>(MAX_TAIL_COUNT);
         lr = gameObject.AddComponent<LineRenderer>();
         SetRendererProperties();
     }
@@ -17,34 +18,34 @@ public class TailRender : MonoBehaviour
     void Update()
     {
         SetLRPoints();
-        if(lr != null)
-        {
-            lr.SetPositions(points);
-        }
+        lr?.SetPositions(points.ToArray());
     }
 
     private void SetLRPoints()
     {
-        TailControl tempTails = GetComponentInParent<TailControl>();
+        TailControl tempTails = GetComponent<TailControl>();
         if (tempTails != null)
         {
             GameObject[] temp = tempTails.GetTailsObject();
-            points = new Vector3[temp.Length];
+            points.Clear();
             for (int i = 0; i < temp.Length; ++i)
             {
-                points[i] = temp[i].transform.position;
+                points.Add(temp[i].transform.position);
             }
-            lr.positionCount = points.Length;
+            lr.positionCount = points.Count;
         }
         
     }
 
     private void SetRendererProperties()
     {
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        lr.startColor = Color.red;
-        lr.endColor = Color.yellow;
-        lr.startWidth = 0.2f;
-        lr.endWidth = 0.5f;
+        if (lr != null)
+        {
+            lr.material = new Material(Shader.Find("Sprites/Default"));
+            lr.startColor = Color.red;
+            lr.endColor = Color.yellow;
+            lr.startWidth = 0.2f;
+            lr.endWidth = 0.5f;
+        }
     }
 }

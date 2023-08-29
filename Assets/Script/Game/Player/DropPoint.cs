@@ -9,12 +9,11 @@ public class DropPoint : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        destroyInterval = 5.0f;
+        destroyInterval = 3.0f;
+
         GameObject temp = GameObject.Find("DropPointManager");
-        if(temp != null)
-        {
-            dpm = temp.GetComponent<DropPointManager>();
-        }
+        //temp‚ªnull‚¾‚Á‚½‚çŒã‚ëÀs‚µ‚Ü‚¹‚ñB
+        dpm = temp?.GetComponent<DropPointManager>();
 
     }
 
