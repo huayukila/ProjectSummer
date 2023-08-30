@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace PaintOnObject
 {
@@ -27,7 +24,7 @@ namespace PaintOnObject
 
             copyTexture = new RenderTexture(textureSize, textureSize, 0);
             copyTexture.filterMode = FilterMode.Bilinear;
-            PaintManager.Instance.ClearRT(copyTexture);
+            PolygonPaintManager.Instance.ClearRT(copyTexture);
 
             rend = GetComponent<Renderer>();
             rend.material.SetTexture(maskTextureID, copyTexture);
@@ -36,7 +33,7 @@ namespace PaintOnObject
 
             if (debugUV)
             {
-                PaintManager.Instance.InitUVMask(this);
+                PolygonPaintManager.Instance.InitUVMask(this);
             }
         }
 
