@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DropPointControl : MonoBehaviour
@@ -14,7 +12,6 @@ public class DropPointControl : MonoBehaviour
         pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
         dropInterval = 0.1f;
         dropTimer = 0.0f;
-        
     }
 
     // Update is called once per frame
