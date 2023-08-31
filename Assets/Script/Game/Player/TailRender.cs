@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TailRender : Tail
+public class TailRender : MonoBehaviour
 {
     List<Vector3> points;
     LineRenderer lr;
     // Start is called before the first frame update
     void Start()
     {
-        points = new List<Vector3>(MAX_TAIL_COUNT);
+        points = new List<Vector3>(Global.MAX_TAIL_COUNT);
         lr = gameObject.AddComponent<LineRenderer>();
         SetRendererProperties();
     }

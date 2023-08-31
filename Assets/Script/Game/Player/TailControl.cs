@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TailControl : Tail
+public class TailControl : MonoBehaviour
 {
     [SerializeField]GameObject tailPrefab;
     private int tailsCount;
@@ -11,7 +11,7 @@ public class TailControl : Tail
     void Awake()
     {
         tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
-        tails = new GameObject[MAX_TAIL_COUNT];
+        tails = new GameObject[Global.MAX_TAIL_COUNT];
         tails[0] = gameObject;
         ++tailsCount;
         GenerateTails();
@@ -21,7 +21,7 @@ public class TailControl : Tail
 
     private void GenerateTails()
     {
-        while(tailsCount < MAX_TAIL_COUNT)
+        while(tailsCount < Global.MAX_TAIL_COUNT)
         {
             GameObject tail = Instantiate(tailPrefab);
             tail.transform.localScale = Vector3.one * 0.2f;
@@ -34,7 +34,7 @@ public class TailControl : Tail
 
     private void FixedUpdate()
     {
-        for(int i = 1; i < MAX_TAIL_COUNT; ++i)
+        for(int i = 1; i < Global.MAX_TAIL_COUNT; ++i)
         {
             tails[^i].transform.position = tails[^(i+1)].transform.position;
             tails[^i].transform.rotation = tails[^(i+1)].transform.rotation;

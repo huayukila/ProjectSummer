@@ -547,7 +547,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxMoveSpeed: 8
   acceleration: 4
-  rotationSpeed: 5
+  rotationSpeed: 3
   tailPrefab: {fileID: 5754750429702288608, guid: ef8f93f02439539478c59181ea1a19e8, type: 3}
 --- !u!1 &1142179345
 GameObject:
