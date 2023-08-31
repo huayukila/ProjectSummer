@@ -8,8 +8,6 @@ public class ColorCheck : MonoBehaviour
     //public LayerMask checkLayer;
     //public RayCheck downCheck;
 
-    Vector2 centerUV = new Vector2(0.5f, 0.5f);
-
     private void Start()
     {
         //downCheck = new RayCheck();
@@ -28,12 +26,14 @@ public class ColorCheck : MonoBehaviour
             //if (downCheck.Shoot(transform.position, -transform.up, out hit))
             if (Physics.Raycast(ray, out hit))
             {
+                //マネージャーからマップのRTをもらう
                 RenderTexture mapMaskTexture = GameManager.Instance.mapMaskTexture;
+                //ヒットポイントの世界座標をuv座標に変換する
                 float uvX = hit.textureCoord.x;
                 float uvY = hit.textureCoord.y;
                 int x = Mathf.RoundToInt(uvX * mapMaskTexture.width);
                 int y = Mathf.RoundToInt(uvY * mapMaskTexture.height);
-                Debug.Log(x + "," + y);
+                //GPUにヒットポイントところの色判別結果を請求する。
                 AsyncGPUReadback.Request(mapMaskTexture, 0, x, 1, y, 1, 0, 1, TextureFormat.RGBA32,
                             (req) =>
                             {
@@ -43,7 +43,12 @@ public class ColorCheck : MonoBehaviour
             }
         }
     }
-
+    /// <summary>
+    /// 同じ色か？
+    /// </summary>
+    /// <param name="c1">目標色</param>
+    /// <param name="c2">輸入色</param>
+    /// <returns></returns>
     private bool IsSameColor(Color c1, Color c2)
     {
         return Mathf.Abs(c1.r - c2.r) + Mathf.Abs(c1.g - c2.g) + Mathf.Abs(c1.b - c2.b) < 0.1f;
