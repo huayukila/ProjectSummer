@@ -6,17 +6,17 @@ public class PolygonPainter : MonoBehaviour
 
     public Paintable p;
 
-    private List<Vector3> verts = new List<Vector3>();
+    public List<Vector3> verts = new List<Vector3>();
 
     private void Start()
     {
     }
     private void Update()
     {
-        transform.position = Input.mousePosition;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, 100.0f, checkLayer))
             {
