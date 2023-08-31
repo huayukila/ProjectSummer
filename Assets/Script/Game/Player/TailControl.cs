@@ -2,9 +2,10 @@ using UnityEngine;
 
 public class TailControl : MonoBehaviour
 {
-    [SerializeField]GameObject tailPrefab;
-    private int tailsCount;
+    GameObject tailPrefab;   
     GameObject[] tails;
+    int tailsCount;
+    LineRenderer lr;
     // Start is called before the first frame update
     void Awake()
     {
@@ -13,8 +14,9 @@ public class TailControl : MonoBehaviour
         tails[0] = gameObject;
         ++tailsCount;
         GenerateTails();
+        lr = gameObject.AddComponent<LineRenderer>();
+        SetRendererProperties();
 
-        
     }
 
     private void GenerateTails()
@@ -30,6 +32,10 @@ public class TailControl : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        SetLRPoints();
+    }
     private void FixedUpdate()
     {
         for(int i = 1; i < Global.MAX_TAIL_COUNT; ++i)
@@ -39,9 +45,29 @@ public class TailControl : MonoBehaviour
         }
     }
 
-    public GameObject[] GetTailsObject()
+    private void SetRendererProperties()
     {
-        return tails;
+        if (lr != null)
+        {
+            lr.material = new Material(Shader.Find("Sprites/Default"));
+            lr.startColor = Color.red;
+            lr.endColor = Color.yellow;
+            lr.startWidth = 0.2f;
+            lr.endWidth = 0.5f;
+            lr.positionCount = Global.MAX_TAIL_COUNT;
+        }
+    }
+
+    private void SetLRPoints()
+    {
+        Vector3[] points = new Vector3[Global.MAX_TAIL_COUNT];
+        for (int i = 0; i < Global.MAX_TAIL_COUNT; ++i)
+        {
+            points[i] = tails[i].transform.position;
+        }
+        lr.SetPositions(points);
+
+
     }
 
     public GameObject GetTipTail()

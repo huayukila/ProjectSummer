@@ -5,6 +5,7 @@ public class PlayerControl : Player
     float currentMoveSpeed;
     GameObject rootTail;
     GameObject tipTail;
+
     public GameObject tailPrefab;
 
     private void Awake()
@@ -52,7 +53,6 @@ public class PlayerControl : Player
         tail.transform.parent = transform;
         tail.transform.localPosition = new Vector3(0.0f, 0.0f, -0.5f);
         tail.AddComponent<TailControl>();
-        tail.AddComponent<TailRender>();
 
         rootTail = tail;
 
