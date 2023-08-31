@@ -22,25 +22,6 @@ Shader "Paint/PolygonPainter"
                 float2 uv : TEXCOORD0;
                 float4 worldPos : TEXCOORD1;
             };
-
-            //float mask(int max, float4 worldPosArray[100], float testx, float testy)
-            //{
-	           // int i, j;
-	           // float c=0.0f;
-	           // float vertx[100];
-	           // float verty[100];
-
-	           // for(int n=0;n<max;n++)
-	           // {
-	           //     vertx[n] = worldPosArray[n].x;
-	           //     verty[n] = worldPosArray[n].y;
-	           // }
-	           // for (i = 0, j = max-1; i < max; j = i++) {
-	           // if ( ((verty[i]>testy) != (verty[j]>testy)) && (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]) )
-	           //    c = 1.0f;
-	           // }
-	           // return c;
-            //}
             
             float mask(int max, float4 worldPosArray[100], float4 center)
             {
@@ -48,16 +29,16 @@ Shader "Paint/PolygonPainter"
                 int count=0;
 
                 for(int i=0;i<max;i++){
-                    float2 vertex1 = worldPosArray[i];
-                    float2 vertex2 = worldPosArray[(i + 1) % max];
-                    if ((vertex1.y > center.y) != (vertex2.y > center.y) && center.x < (vertex2.x - vertex1.x) * (center.y - vertex1.y) / (vertex2.y - vertex1.y) + vertex1.x)
+                    float4 vertex1=worldPosArray[i];
+                    float4 vertex2 = worldPosArray[(i + 1) % max];
+                    
+                        if ((vertex1.z > center.z) != (vertex2.z > center.z) && center.x < (vertex2.x - vertex1.x) * (center.z - vertex1.z) / (vertex2.z - vertex1.z) + vertex1.x)
                         {
                             count++;
                         }
                 }
                 return (count%2)==1?1.0f:0.0f;
             }
-
 
             sampler2D _MainTex;
 
