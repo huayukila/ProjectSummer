@@ -3,61 +3,25 @@ using UnityEngine;
 
 public class PlayerControl : Player
 {
-    float currentMoveSpeed;
-    GameObject rootTail;
-    GameObject tipTail;
+    float currentMoveSpeed;         // プレイヤーの現在速度
+    GameObject rootTail;            // 尻尾の頭
+    GameObject tipTail;             // 尻尾の尾
 
     public GameObject tailPrefab;
-    public Paintable p;
+    public Paintable p;             // 地面
 
-    bool isPainting;
-    float timer;
-
-    private void Awake()
-    {
-        isPainting = false;
-        timer = 0.0f;
-        SetTail();
-        tipTail?.AddComponent<DropPointControl>();
-    }
-    void Start()
-    {
-        currentMoveSpeed = 0.0f;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if(isPainting)
-        {
-            timer += Time.deltaTime;
-        }
-        if(timer >= 2.0f)
-        {
-            isPainting = false;
-            timer = 0.0f;
-        }
-    }
-
+    bool isPainting;                // 地面に描けるかどうかの信号
+    float timer;                    // 前回の描画が終わってからの経過時間
 
     private void FixedUpdate()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
 
-        currentMoveSpeed = currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : currentMoveSpeed + acceleration * Time.deltaTime;
-
-        Vector3 movementDirection = Vector3.forward * currentMoveSpeed;
-        transform.Translate(movementDirection * Time.fixedDeltaTime);
-
-        Vector3 rotationDirection = new Vector3(horizontal, 0.0f, vertical);
-        if (rotationDirection != Vector3.zero)
-        {
-            Quaternion rotation = Quaternion.LookRotation(rotationDirection, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
-        }
+        PlayerMovement();
     }
 
+    /// <summary>
+    /// 尻尾をインスタンス化する
+    /// </summary>
     private void SetTail()
     {
         GameObject tail = Instantiate(tailPrefab, transform);
@@ -77,9 +41,12 @@ public class PlayerControl : Player
 
     private void OnTriggerEnter(Collider other)
     {
+        // DropPointに当たったら
         if(other.gameObject.CompareTag("DropPoint") && !isPainting)
         {
             isPainting = true;
+
+            // 描画すべき領域の頂点を取得する
             List<Vector3> verts = DropPointManager.Instance.GetPaintablePointVector3(other.gameObject);
             if(verts != null)
             {
@@ -90,9 +57,68 @@ public class PlayerControl : Player
                     verts.Add(tails[^i].transform.position);
                 }
             }
-            PolygonPaintManager.Instance.Paint(p, verts.ToArray());
+            verts.Add(transform.position);
+
+            // 領域を描画する
+            PolygonPaintManager.Instance.Paint(p, verts?.ToArray());
+            // DropPointを消す
+            DropPointManager.Instance.Clear();
         }
     }
 
+    private void Awake()
+    {
+        isPainting = false;
+        timer = 0.0f;
+        currentMoveSpeed = 0.0f;
+        SetTail();
+        tipTail?.AddComponent<DropPointControl>();
+    }
 
+    // Update is called once per frame
+    private void Update()
+    {
+        // 描画を制限する（α版）
+        if (isPainting)
+        {
+            timer += Time.deltaTime;
+        }
+        if (timer >= 2.0f)
+        {
+            isPainting = false;
+            timer = 0.0f;
+        }
+    }
+
+    /// <summary>
+    /// プレイヤーの移動を制御する
+    /// </summary>
+    private void PlayerMovement()
+    {
+        // 加速運動をして、最大速度まで加速する
+        currentMoveSpeed = currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : currentMoveSpeed + acceleration * Time.deltaTime;
+
+        Vector3 movementDirection = Vector3.forward * currentMoveSpeed;
+        transform.Translate(movementDirection * Time.fixedDeltaTime);
+
+    }
+
+    /// <summary>
+    /// プレイヤーの回転を制御する
+    /// </summary>
+    private void PlayerRotation()
+    {
+        // 方向入力を取得する
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+
+        Vector3 rotationDirection = new Vector3(horizontal, 0.0f, vertical);
+        if (rotationDirection != Vector3.zero)
+        {
+            // 入力された方向へ回転する
+            Quaternion rotation = Quaternion.LookRotation(rotationDirection, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
+        }
+
+    }
 }

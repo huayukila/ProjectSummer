@@ -6,19 +6,10 @@ public class TailControl : MonoBehaviour
     GameObject[] tails;
     int tailsCount;
     LineRenderer lr;
-    // Start is called before the first frame update
-    void Awake()
-    {
-        tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
-        tails = new GameObject[Global.iMAX_TAIL_COUNT];
-        tails[0] = gameObject;
-        ++tailsCount;
-        GenerateTails();
-        lr = gameObject.AddComponent<LineRenderer>();
-        SetRendererProperties();
 
-    }
-
+    /// <summary>
+    /// 尻尾の節をインスタンス化する
+    /// </summary>
     private void GenerateTails()
     {
         while(tailsCount < Global.iMAX_TAIL_COUNT)
@@ -32,19 +23,9 @@ public class TailControl : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        SetLRPoints();
-    }
-    private void FixedUpdate()
-    {
-        for(int i = 1; i < Global.iMAX_TAIL_COUNT; ++i)
-        {
-            tails[^i].transform.position = tails[^(i+1)].transform.position;
-            tails[^i].transform.rotation = tails[^(i+1)].transform.rotation;
-        }
-    }
-
+    /// <summary>
+    /// LineRendererのプロパティを設定する
+    /// </summary>
     private void SetRendererProperties()
     {
         lr.material = new Material(Shader.Find("Sprites/Default"));
@@ -55,6 +36,9 @@ public class TailControl : MonoBehaviour
         lr.positionCount = Global.iMAX_TAIL_COUNT;
     }
 
+    /// <summary>
+    /// LineRendererの頂点を設定する
+    /// </summary>
     private void SetLRPoints()
     {
         Vector3[] points = new Vector3[Global.iMAX_TAIL_COUNT];
@@ -69,5 +53,31 @@ public class TailControl : MonoBehaviour
     public GameObject[] GetTails() => tails;
 
     public GameObject GetTipTail() => tails[tails.Length - 1];
+    void Awake()
+    {
+        tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
+        tails = new GameObject[Global.iMAX_TAIL_COUNT];
+        tails[0] = gameObject;
+        ++tailsCount;
+        GenerateTails();
+        lr = gameObject.AddComponent<LineRenderer>();
+        SetRendererProperties();
+
+    }
+    private void Update()
+    {
+        SetLRPoints();
+    }
+    private void FixedUpdate()
+    {
+        // 尻尾の後ろから全ての節のワールド座標を更新する
+        for(int i = 1; i < Global.iMAX_TAIL_COUNT; ++i)
+        {
+            tails[^i].transform.position = tails[^(i+1)].transform.position;
+            tails[^i].transform.rotation = tails[^(i+1)].transform.rotation;
+        }
+    }
+
+
 
 }
