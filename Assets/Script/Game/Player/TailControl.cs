@@ -10,11 +10,7 @@ public class TailControl : MonoBehaviour
     void Awake()
     {
         tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
-<<<<<<< Updated upstream
         tails = new GameObject[Global.MAX_TAIL_COUNT];
-=======
-        tails = new GameObject[Global.iMAX_TAIL_COUNT];
->>>>>>> Stashed changes
         tails[0] = gameObject;
         ++tailsCount;
         GenerateTails();
@@ -25,11 +21,7 @@ public class TailControl : MonoBehaviour
 
     private void GenerateTails()
     {
-<<<<<<< Updated upstream
         while(tailsCount < Global.MAX_TAIL_COUNT)
-=======
-        while(tailsCount < Global.iMAX_TAIL_COUNT)
->>>>>>> Stashed changes
         {
             GameObject tail = Instantiate(tailPrefab);
             tail.transform.localScale = Vector3.one * 0.2f;
@@ -46,11 +38,7 @@ public class TailControl : MonoBehaviour
     }
     private void FixedUpdate()
     {
-<<<<<<< Updated upstream
         for(int i = 1; i < Global.MAX_TAIL_COUNT; ++i)
-=======
-        for(int i = 1; i < Global.iMAX_TAIL_COUNT; ++i)
->>>>>>> Stashed changes
         {
             tails[^i].transform.position = tails[^(i+1)].transform.position;
             tails[^i].transform.rotation = tails[^(i+1)].transform.rotation;
@@ -66,7 +54,6 @@ public class TailControl : MonoBehaviour
             lr.endColor = Color.yellow;
             lr.startWidth = 0.2f;
             lr.endWidth = 0.5f;
-<<<<<<< Updated upstream
             lr.positionCount = Global.MAX_TAIL_COUNT;
         }
     }
@@ -81,26 +68,10 @@ public class TailControl : MonoBehaviour
         lr.SetPositions(points);
 
 
-=======
-            lr.positionCount = Global.iMAX_TAIL_COUNT;
-        }
->>>>>>> Stashed changes
     }
 
-    private void SetLRPoints()
+    public GameObject GetTipTail()
     {
-        Vector3[] points = new Vector3[Global.iMAX_TAIL_COUNT];
-        for (int i = 0; i < Global.iMAX_TAIL_COUNT; ++i)
-        {
-            points[i] = tails[i].transform.position;
-        }
-        lr.SetPositions(points);
-
-
+        return tails[tails.Length-1];
     }
-
-    public GameObject[] GetTails() => tails;
-
-    public GameObject GetTipTail() => tails[tails.Length - 1];
- 
 }
