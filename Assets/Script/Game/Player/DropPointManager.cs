@@ -9,7 +9,7 @@ public class DropPointManager : Singleton<DropPointManager>
     protected override void Awake()
     {
         base.Awake();
-        points = new List<GameObject>(100);
+        points = new List<GameObject>();
         lr = gameObject.AddComponent<LineRenderer>();
         SetRendererProperties();
     }
@@ -61,23 +61,5 @@ public class DropPointManager : Singleton<DropPointManager>
             pos[i] = temp[i].transform.position;
         }
         return pos;
-    }
-
-    public List<Vector3> GetPaintablePoints(GameObject pt)
-    {
-        List<Vector3> temp = new List<Vector3>();
-        foreach(GameObject ob in points)
-        {
-            if (ob != pt)
-            {
-                temp.Add(ob.transform.position);
-            }
-            else
-            {
-                break;
-            }            
-        }
-        
-        return temp;
     }
 }
