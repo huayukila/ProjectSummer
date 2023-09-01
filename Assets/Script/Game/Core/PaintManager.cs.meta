@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:Assets/Script/Game/Core/PaintManager.cs.meta
 guid: 79dc41b8a0467004892fb58be9a46fbe
+========
+guid: 7fcd7ee1a7728ff45967ab1ee05ec8f5
+>>>>>>>> Stashed changes:Assets/Script/Utils/Global.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
