@@ -371,35 +371,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1077949926}
-  - component: {fileID: 1077949925}
   - component: {fileID: 1077949927}
+  - component: {fileID: 1077949928}
   m_Layer: 0
-  m_Name: MousePainter
+  m_Name: Painter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1077949925
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1077949924}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54541a8f4c27a164a93ee8aaba3a3d95, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: {r: 1, g: 0, b: 0, a: 1}
-  radius: 1
-  strength: 1
-  hardness: 1
-  cam: {fileID: 519420031}
-  checkLayer:
-    serializedVersion: 2
-    m_Bits: 1
 --- !u!4 &1077949926
 Transform:
   m_ObjectHideFlags: 0
@@ -427,6 +407,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 830aa808232f2cc43ac7ad1e5de194e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1077949928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077949924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e3b961e99641364db07b01d34719fd3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  checkLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  p: {fileID: 1142179350}
 --- !u!1 &1134910603
 GameObject:
   m_ObjectHideFlags: 0
@@ -724,7 +720,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2079903017}
-  - component: {fileID: 2079903016}
+  - component: {fileID: 2079903018}
   m_Layer: 0
   m_Name: PaintManager
   m_TagString: Untagged
@@ -732,19 +728,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2079903016
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2079903015}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79dc41b8a0467004892fb58be9a46fbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  texturePaint: {fileID: 4800000, guid: 2ec6165a59449a642854dff8d828add4, type: 3}
 --- !u!4 &2079903017
 Transform:
   m_ObjectHideFlags: 0
@@ -760,6 +743,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2079903018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2079903015}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd7d4e8e7ce7d514e9a7c67277ced8e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  texturePaint: {fileID: 4800000, guid: 848d39d443743084990dd1b91b27ab6c, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-Shader "LSQ/Effect/Paint/Paintable"
+Shader "Paint/Paintable"
 {
     Properties
     {
