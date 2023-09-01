@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerControl : Player
@@ -7,9 +8,15 @@ public class PlayerControl : Player
     GameObject tipTail;
 
     public GameObject tailPrefab;
+    public Paintable p;
+
+    bool isPainting;
+    float timer;
 
     private void Awake()
     {
+        isPainting = false;
+        timer = 0.0f;
         SetTail();
         tipTail?.AddComponent<DropPointControl>();
     }
@@ -21,8 +28,15 @@ public class PlayerControl : Player
     // Update is called once per frame
     void Update()
     {
-        
-
+        if(isPainting)
+        {
+            timer += Time.deltaTime;
+        }
+        if(timer >= 2.0f)
+        {
+            isPainting = false;
+            timer = 0.0f;
+        }
     }
 
 
@@ -59,6 +73,25 @@ public class PlayerControl : Player
         TailControl temp = rootTail.GetComponent<TailControl>();
         tipTail = temp?.GetTipTail();
 
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.CompareTag("DropPoint") && !isPainting)
+        {
+            isPainting = true;
+            List<Vector3> verts = DropPointManager.Instance.GetPaintablePointVector3(other.gameObject);
+            if(verts != null)
+            {
+                TailControl tc = rootTail.GetComponent<TailControl>();
+                GameObject[] tails = tc?.GetTails();
+                for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1;++i)
+                {
+                    verts.Add(tails[^i].transform.position);
+                }
+            }
+            PolygonPaintManager.Instance.Paint(p, verts.ToArray());
+        }
     }
 
 

@@ -62,4 +62,22 @@ public class DropPointManager : Singleton<DropPointManager>
         }
         return pos;
     }
+
+    public List<Vector3> GetPaintablePointVector3(GameObject pt)
+    {
+        bool addFlag = false;
+        List<Vector3> ret = new List<Vector3>();
+        foreach(GameObject ob in points)
+        {
+            if(ob == pt)
+            {
+                addFlag = true;
+            }
+            if(addFlag)
+            {
+                ret.Add(ob.transform.position);
+            }
+        }
+        return ret;
+    }
 }
