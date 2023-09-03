@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -22,9 +23,10 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         Graphics.ExecuteCommandBuffer(command);
         command.Clear();
     }
-    
+
+    [Obsolete("この関数は既に廃棄された、新しい関数Paint(Vector3[],Color)を使ってください")]
     /// <summary>
-    /// 
+    /// ポリゴン描画関数
     /// </summary>
     /// <param name="paintable"></param>
     /// <param name="worldPosList">輸入の世界座標の点</param>
@@ -34,6 +36,44 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         RenderTexture mask = paintable.GetMask();
         RenderTexture copy = paintable.GetCopy();
         Renderer rend = paintable.GetRenderer();
+        //shaderは4次元の配列しか受けられないので、一応転換
+        Vector4[] posList = new Vector4[100];
+        for (int i = 0; i < worldPosList.Length; i++)
+        {
+            posList[i] = worldPosList[i];
+        }
+        //shader変数設置
+        paintMaterial.SetInt(maxVertNum, worldPosList.Length);
+        paintMaterial.SetVectorArray("_worldPosList", posList);
+        paintMaterial.SetColor(colorID, color ?? Color.red);
+        paintMaterial.SetTexture(textureID, copy);
+
+        //renderの目標をmaskに設定する
+        command.SetRenderTarget(mask);
+        //render開始
+        command.DrawRenderer(rend, paintMaterial, 0);
+
+        //目標をcopyに設定
+        command.SetRenderTarget(copy);
+        //maskの描画をcopyに加える
+        command.Blit(mask, copy);
+
+        //renderの命令を流れさせる
+        Graphics.ExecuteCommandBuffer(command);
+        //命令隊列クリア
+        command.Clear();
+    }
+    /// <summary>
+    /// ポリゴン描画関数
+    /// </summary>
+    /// <param name="worldPosList">輸入の世界座標の点</param>
+    /// <param name="color">描きたいの色</param>
+    public void Paint(Vector3[] worldPosList, Color? color = null)
+    {
+        Paintable mapPaintable=GameManager.Instance.mapPaintable;
+        RenderTexture mask = mapPaintable.GetMask();
+        RenderTexture copy = mapPaintable.GetCopy();
+        Renderer rend = mapPaintable.GetRenderer();
         //shaderは4次元の配列しか受けられないので、一応転換
         Vector4[] posList = new Vector4[100];
         for (int i = 0; i < worldPosList.Length; i++)
