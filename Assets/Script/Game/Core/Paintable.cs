@@ -14,9 +14,9 @@ public class Paintable : MonoBehaviour
     public Renderer GetRenderer() => rend;
     public RenderTexture GetMask() => maskTexture;
     public RenderTexture GetCopy() => copyTexture;
-
     void Start()
     {
+
         maskTexture = new RenderTexture(textureSize, textureSize, 0);
         maskTexture.filterMode = FilterMode.Bilinear;
 
@@ -33,6 +33,7 @@ public class Paintable : MonoBehaviour
         {
             PolygonPaintManager.Instance.InitUVMask(this);
         }
+        GameManager.Instance.mapPaintable = this;
     }
 
     void OnDisable()
