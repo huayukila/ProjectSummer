@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class DropPointManager : Singleton<DropPointManager>
 {
-    List<GameObject> points;
-    LineRenderer lr;            //Å¶Trail RendererÇ…ïœçXÇ∑ÇÈó\íË
+    List<GameObject> _points;
+    LineRenderer _lr;            //Å¶Trail RendererÇ…ïœçXÇ∑ÇÈó\íË
 
     /// <summary>
     /// DropPointÇÃGameObjectÇListÇ…í«â¡Ç∑ÇÈ
@@ -12,7 +12,7 @@ public class DropPointManager : Singleton<DropPointManager>
     /// <param name="ob"></param>
     public void AddPoint(GameObject ob)
     {
-        points.Add(ob);
+        _points.Add(ob);
     }
 
     /// <summary>
@@ -21,7 +21,7 @@ public class DropPointManager : Singleton<DropPointManager>
     /// <param name="ob"></param>
     public void DeletePoint(GameObject ob)
     {
-        points.Remove(ob);
+        _points.Remove(ob);
     }
 
     /// <summary>
@@ -29,13 +29,13 @@ public class DropPointManager : Singleton<DropPointManager>
     /// </summary>
     private void SetRendererProperties()
     {
-        if (lr != null)
+        if (_lr != null)
         {
-            lr.material = new Material(Shader.Find("Sprites/Default"));
-            lr.startColor = Color.red;
-            lr.endColor = Color.red;
-            lr.startWidth = 0.5f;
-            lr.endWidth = 0.5f;
+            _lr.material = new Material(Shader.Find("Sprites/Default"));
+            _lr.startColor = Color.red;
+            _lr.endColor = Color.red;
+            _lr.startWidth = 0.5f;
+            _lr.endWidth = 0.5f;
         }
     }
 
@@ -45,7 +45,7 @@ public class DropPointManager : Singleton<DropPointManager>
     /// <returns></returns>
     private Vector3[] GameObjectToVector3()
     {
-        var temp = points;
+        var temp = _points;
         Vector3[] pos = new Vector3[temp.Count];
         for(int i = 0; i < temp.Count; ++i)
         {
@@ -64,7 +64,7 @@ public class DropPointManager : Singleton<DropPointManager>
         bool addFlag = false;
         //ñﬂÇËílÇï€ë∂Ç∑ÇÈïœêî
         List<Vector3> ret = new List<Vector3>();
-        foreach(GameObject ob in points)
+        foreach(GameObject ob in _points)
         {
             if(ob == pt)
             {
@@ -84,23 +84,30 @@ public class DropPointManager : Singleton<DropPointManager>
     /// </summary>
     public void Clear()
     {
-        points.Clear();
+        foreach(GameObject ob in _points)
+        {
+            Destroy(ob.gameObject);
+        }
+        _points.Clear();
+        _lr.enabled = false;
     }    
     
     protected override void Awake()
     {
         base.Awake();
-        points = new List<GameObject>();
-        lr = gameObject.AddComponent<LineRenderer>();
+        _points = new List<GameObject>();
+        _lr = gameObject.AddComponent<LineRenderer>();
+        _lr.enabled = false;
         SetRendererProperties();
     }
     private void FixedUpdate()
     {
         //DropPointÇÃêîÇÕàÍÇ¬ÇÊÇËëÂÇ´Ç¢èÍçáÇÕlineRendererÇï`Ç≠
-        if (points.Count > 1)
+        if (_points.Count > 1)
         {
-            lr.positionCount = points.Count;
-            lr.SetPositions(GameObjectToVector3());
+            _lr.enabled = true;
+            _lr.positionCount = _points.Count;
+            _lr.SetPositions(GameObjectToVector3());
         }
 
     }

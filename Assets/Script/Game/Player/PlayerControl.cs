@@ -1,56 +1,50 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Playables;
 
 public class PlayerControl : Player
 {
-    float currentMoveSpeed;         // プレイヤーの現在速度
-    GameObject rootTail;            // 尻尾の頭
-    GameObject tipTail;             // 尻尾の尾
-
+    float _currentMoveSpeed;         // プレイヤーの現在速度
+    GameObject _rootTail;            // 尻尾の頭
+    GameObject _tipTail;             // 尻尾の尾
+    bool _isPainting;                // 地面に描けるかどうかの信号
+    float _timer;                    // 前回の描画が終わってからの経過時間
+    Rigidbody _rigidBody;   
+    
     public GameObject tailPrefab;
     public Paintable p;             // 地面
-
-    bool isPainting;                // 地面に描けるかどうかの信号
-    float timer;                    // 前回の描画が終わってからの経過時間
-
-    private void FixedUpdate()
-    {
-
-        PlayerMovement();
-    }
 
     /// <summary>
     /// 尻尾をインスタンス化する
     /// </summary>
     private void SetTail()
     {
-        GameObject tail = Instantiate(tailPrefab, transform);
+        GameObject tail = Instantiate(tailPrefab);
 
+        tail.name = gameObject.name + "Tail";
         tail.transform.localScale = Vector3.one * 0.2f;
         tail.transform.localRotation = transform.rotation;
-        tail.transform.parent = transform;
-        tail.transform.localPosition = new Vector3(0.0f, 0.0f, -0.5f);
+        tail.transform.position = transform.position;
         tail.AddComponent<TailControl>();
 
-        rootTail = tail;
+        _rootTail = tail;
 
-        TailControl temp = rootTail.GetComponent<TailControl>();
-        tipTail = temp?.GetTipTail();
+        TailControl tc = _rootTail.GetComponent<TailControl>();
+        _tipTail = tc?.GetTipTail();
 
     }
 
     private void OnTriggerEnter(Collider other)
     {
         // DropPointに当たったら
-        if(other.gameObject.CompareTag("DropPoint") && !isPainting)
+        if(other.gameObject.CompareTag("DropPoint") && !_isPainting)
         {
-            isPainting = true;
-
+            _isPainting = true;
             // 描画すべき領域の頂点を取得する
             List<Vector3> verts = DropPointManager.Instance.GetPaintablePointVector3(other.gameObject);
             if(verts != null)
             {
-                TailControl tc = rootTail.GetComponent<TailControl>();
+                TailControl tc = _rootTail.GetComponent<TailControl>();
                 GameObject[] tails = tc?.GetTails();
                 for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1;++i)
                 {
@@ -66,29 +60,55 @@ public class PlayerControl : Player
         }
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("DropPoint"))
+        {
+            SphereCollider temp = collision.collider.gameObject.GetComponent<SphereCollider>();
+            Debug.Log("DP");
+        }
+
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            Debug.Log("Wall");
+        }
+
+        if(collision.gameObject.CompareTag("Player"))
+        {
+            Debug.Log("BOOM!!!!!!!");
+        }
+    }
     private void Awake()
     {
-        isPainting = false;
-        timer = 0.0f;
-        currentMoveSpeed = 0.0f;
+        _isPainting = false;
+        _timer = 0.0f;
+        _currentMoveSpeed = 0.0f;
         SetTail();
-        tipTail?.AddComponent<DropPointControl>();
+        _tipTail?.AddComponent<DropPointControl>();
+        _rigidBody = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
     private void Update()
     {
         // 描画を制限する（α版）
-        if (isPainting)
+        if (_isPainting)
         {
-            timer += Time.deltaTime;
+            _timer += Time.deltaTime;
         }
-        if (timer >= 2.0f)
+        if (_timer >= 0.5f)
         {
-            isPainting = false;
-            timer = 0.0f;
+            _isPainting = false;
+            _timer = 0.0f;
         }
     }
+    private void FixedUpdate()
+    {
+        PlayerMovement();
+        PlayerRotation();
+        _rootTail.transform.position = transform.position;
+    }
+
 
     /// <summary>
     /// プレイヤーの移動を制御する
@@ -96,10 +116,11 @@ public class PlayerControl : Player
     private void PlayerMovement()
     {
         // 加速運動をして、最大速度まで加速する
-        currentMoveSpeed = currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : currentMoveSpeed + acceleration * Time.deltaTime;
+        _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.deltaTime;
 
-        Vector3 movementDirection = Vector3.forward * currentMoveSpeed;
-        transform.Translate(movementDirection * Time.fixedDeltaTime);
+        Vector3 movementDirection = transform.forward * _currentMoveSpeed * Time.deltaTime;
+
+        _rigidBody.velocity = movementDirection;
 
     }
 
@@ -109,8 +130,8 @@ public class PlayerControl : Player
     private void PlayerRotation()
     {
         // 方向入力を取得する
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        float horizontal = Input.GetAxis(name + "_Horizontal");
+        float vertical = Input.GetAxis(name + "_Vertical");
 
         Vector3 rotationDirection = new Vector3(horizontal, 0.0f, vertical);
         if (rotationDirection != Vector3.zero)
