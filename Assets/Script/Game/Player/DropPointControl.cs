@@ -1,32 +1,48 @@
 using UnityEngine;
 
-public class DropPointControl : MonoBehaviour
+public abstract class DropPointControl : MonoBehaviour
 {
-    
-    GameObject _pointPrefab;
+    protected TrailRenderer TR;
+    protected GameObject _pointPrefab;
     float _dropInterval;
     float _dropTimer;
     // Start is called before the first frame update
-    void Start()
-    {
-        _pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
-        _dropInterval = 0.1f;
-        _dropTimer = 0.0f;
-    }
 
-    // Update is called once per frame
-    void Update()
+    protected abstract void SetDropPoint();
+    protected abstract void SetTRProperties();
+
+    private void TryDropPoint()
     {
         _dropTimer += Time.deltaTime;
         if (_dropTimer >= _dropInterval)
         {
-            GameObject pt = Instantiate(_pointPrefab, transform.position,transform.rotation);
-            DropPointManager.Instance.AddPoint(pt);
+            SetDropPoint();
             _dropTimer = 0.0f;
         }
 
     }
 
+    private void Awake()
+    {
+        _pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
+        _dropInterval = 0.1f;
+        _dropTimer = 0.0f;
+        TR = gameObject.AddComponent<TrailRenderer>();
+        SetTRProperties();
+    }
+
+    // Update is called once per frame
+    private void Update()
+    {
+        TryDropPoint();
+    }
+
+    private void FixedUpdate() { }
+
+    public void ClearTrail()
+    {
+        TR.Clear();
+    }
 }
 
 

@@ -26,7 +26,7 @@ public class TailControl : MonoBehaviour
     /// <summary>
     /// LineRendererのプロパティを設定する
     /// </summary>
-    private void SetRendererProperties()
+    private void SetRendererProperties()    
     {
         _lr.material = new Material(Shader.Find("Sprites/Default"));
         _lr.startColor = Color.red;
@@ -57,6 +57,43 @@ public class TailControl : MonoBehaviour
         {
             t.transform.parent = tailParent.transform;
         }
+    }
+
+    private void ResetTransform(Vector3 pos)
+    {
+        foreach(GameObject t in _tails)
+        {
+            t.transform.position = pos;
+        }
+    }
+
+    public void SetTailsTag(string tag)
+    {
+        foreach(GameObject t in _tails)
+        {
+            t.tag = tag;
+        }
+    }
+
+    public void SetDeactive()
+    {
+        foreach (GameObject ob in _tails)
+        {
+            ob.SetActive(false);
+        }
+        _lr.enabled = false;
+    }
+
+    public void SetActive(Vector3 pos)
+    {
+        foreach (GameObject ob in _tails)
+        {
+            ob.SetActive(true);
+        }
+        ResetTransform(pos);
+        SetLRPoints();
+        _lr.enabled = true;
+
     }
     public GameObject[] GetTails() => _tails;
 

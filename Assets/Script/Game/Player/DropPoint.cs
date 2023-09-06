@@ -2,21 +2,28 @@ using UnityEngine;
 
 public class DropPoint : MonoBehaviour
 {
-    float destroyInterval;
+    float _destroyInterval;
     // Start is called before the first frame update
     void Start()
     {
-        destroyInterval = 3.0f;
+        _destroyInterval = 3.0f;
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        destroyInterval -= Time.deltaTime;
-        if(destroyInterval <= 0.0f)
+        _destroyInterval -= Time.deltaTime;
+        if(_destroyInterval <= 0.0f)
         {
-            DropPointManager.Instance.DeletePoint(gameObject);
+            if(gameObject.CompareTag("DropPoint1"))
+            {
+                DropPointManager.Instance.PlayerOneRemovePoint(gameObject);
+            }
+            else if (gameObject.CompareTag("DropPoint2"))
+            {
+                DropPointManager.Instance.PlayerTwoRemovePoint(gameObject);
+            }
             Destroy(gameObject);
         }
     }
