@@ -3,68 +3,65 @@ using UnityEngine;
 
 public class DropPointManager : Singleton<DropPointManager>
 {
-    List<GameObject> points;
-    LineRenderer lr;            //※Trail Rendererに変更する予定
-
-    /// <summary>
-    /// DropPointのGameObjectをListに追加する
-    /// </summary>
-    /// <param name="ob"></param>
-    public void AddPoint(GameObject ob)
-    {
-        points.Add(ob);
-    }
-
-    /// <summary>
-    /// DropPointのGameObjectをListから削除する
-    /// </summary>
-    /// <param name="ob"></param>
-    public void DeletePoint(GameObject ob)
-    {
-        points.Remove(ob);
-    }
-
-    /// <summary>
-    /// LineRendererのプロパティを設定する
-    /// </summary>
-    private void SetRendererProperties()
-    {
-        if (lr != null)
-        {
-            lr.material = new Material(Shader.Find("Sprites/Default"));
-            lr.startColor = Color.red;
-            lr.endColor = Color.red;
-            lr.startWidth = 0.5f;
-            lr.endWidth = 0.5f;
-        }
-    }
+    List<GameObject> _player1Points;
+    List<GameObject> _player2Points;
+    GameObject _p1pointGroup;
+    GameObject _p2pointGroup;
 
     /// <summary>
     /// Listにある全てのDropPointのワールド座標を返す
     /// </summary>
     /// <returns></returns>
-    private Vector3[] GameObjectToVector3()
+    private Vector3[] GameObjectToVector3(List<GameObject> l)
     {
-        var temp = points;
+        List<GameObject> temp = new List<GameObject>(l);
         Vector3[] pos = new Vector3[temp.Count];
-        for(int i = 0; i < temp.Count; ++i)
+        int index = 0;
+        foreach(GameObject ob in l)
         {
-            pos[i] = temp[i].transform.position;
+            pos[index++] = ob.transform.position;
         }
         return pos;
     }
 
     /// <summary>
-    /// プレイヤーが当たったDropPointから尻尾までのDropPointのワールド座標を返す
+    /// プレイヤー1が当たったDropPointから尻尾までのDropPointのワールド座標を返す
     /// </summary>
     /// <param name="pt">当たったDropPointのGameObject</param>
     /// <returns></returns>
-    public List<Vector3> GetPaintablePointVector3(GameObject pt)
+    public List<Vector3> GetPlayerOnePaintablePointVector3(GameObject pt)
     {
         bool addFlag = false;
         //戻り値を保存する変数
         List<Vector3> ret = new List<Vector3>();
-        foreach(GameObject ob in points)
+        List<GameObject> temp = new List<GameObject>(_player1Points);
+        foreach (GameObject ob in temp)
+        {
+            if (ob == pt)
+            {
+                addFlag = true;
+            }
+            //当たったDropPointからListの最後までのDropPointを戻り値の変数に入れる
+            if (addFlag)
+            {
+                ret.Add(ob.transform.position);
+            }
+        }
+        return ret;
+    }
+
+    /// <summary>
+    /// プレイヤー2が当たったDropPointから尻尾までのDropPointのワールド座標を返す
+    /// </summary>
+    /// <param name="pt">当たったDropPointのGameObject</param>
+    /// <returns></returns>
+    public List<Vector3> GetPlayerTwoPaintablePointVector3(GameObject pt)
+    {
+        bool addFlag = false;
+        //戻り値を保存する変数
+        List<Vector3> ret = new List<Vector3>();
+        List<GameObject> temp = new List<GameObject>(_player2Points);
+        foreach(GameObject ob in temp)
         {
             if(ob == pt)
             {
@@ -78,30 +75,57 @@ public class DropPointManager : Singleton<DropPointManager>
         }
         return ret;
     }
-
-    /// <summary>
-    /// 全てのDropPointを削除する
-    /// </summary>
-    public void Clear()
+    public void PlayerOneAddPoint(GameObject ob)
     {
-        points.Clear();
-    }    
-    
+        ob.transform.parent = _p1pointGroup.transform;
+        _player1Points.Add(ob);
+    }
+    public void PlayerTwoAddPoint(GameObject ob)
+    {
+        ob.transform.parent = _p2pointGroup.transform;
+        _player2Points.Add(ob);
+    }
+
+    public void PlayerOneRemovePoint(GameObject ob)
+    {
+        _player1Points.Remove(ob);
+    }
+
+    public void PlayerTwoRemovePoint(GameObject ob)
+    {
+        _player2Points.Remove(ob);
+    }
+    public void ClearPlayerOneDropPoints()
+    {
+        foreach(GameObject ob in _player1Points)
+        {
+            Destroy(ob);
+        }
+        _player1Points.Clear();
+    }
+    public void ClearPlayerTwoDropPoints()
+    {
+        foreach (GameObject ob in _player2Points)
+        {
+            Destroy(ob);
+        }
+        _player2Points.Clear();
+    }
+
+    public Vector3[] GetPlayerOneDropPoints() => GameObjectToVector3(_player1Points);
+
+    public Vector3[] GetPlayerTwoDropPoints() => GameObjectToVector3(_player2Points);
+
     protected override void Awake()
     {
         base.Awake();
-        points = new List<GameObject>();
-        lr = gameObject.AddComponent<LineRenderer>();
-        SetRendererProperties();
+        _player1Points = new List<GameObject>();
+        _player2Points = new List<GameObject>();
+        _p1pointGroup = new GameObject("Player1DropPointGroup");
+        _p2pointGroup = new GameObject("Player2DropPointGroup");
     }
     private void FixedUpdate()
     {
-        //DropPointの数は一つより大きい場合はlineRendererを描く
-        if (points.Count > 1)
-        {
-            lr.positionCount = points.Count;
-            lr.SetPositions(GameObjectToVector3());
-        }
 
     }
 
