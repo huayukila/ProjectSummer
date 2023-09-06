@@ -15,7 +15,7 @@ public class Player2Control : Player
         {
             // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
             Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
+            _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
         }
 
     }

@@ -16,7 +16,7 @@ public abstract class Player : MonoBehaviour
 
     protected bool _isPainting;                 // 地面に描けるかどうかの信号
     float _timer;                               // 前回の描画が終わってからの経過時間
-    protected Rigidbody _rigidBody;
+    protected Rigidbody _rigidbody;
 
     /// <summary>
     /// 尻尾をインスタンス化する
@@ -43,7 +43,7 @@ public abstract class Player : MonoBehaviour
         bool isCollision = collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Wall");
         if (isCollision)
         {
-            _rigidBody.Sleep();
+
             SetDeadStatus();
         }
 
@@ -55,7 +55,7 @@ public abstract class Player : MonoBehaviour
         _timer = 0.0f;
         _currentMoveSpeed = 0.0f;
         SetTail();
-        _rigidBody = GetComponent<Rigidbody>();
+        _rigidbody = GetComponent<Rigidbody>();
 
     }
 
@@ -87,22 +87,25 @@ public abstract class Player : MonoBehaviour
         // 加速運動をして、最大速度まで加速する
         _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.deltaTime;
         Vector3 moveDirection = transform.forward * _currentMoveSpeed * Time.fixedDeltaTime;
-        _rigidBody.velocity = moveDirection;
+        _rigidbody.velocity = moveDirection;
     }
 
     protected void SetDeadStatus()
     {
         gameObject.SetActive(false);
         _rootTail.GetComponent<TailControl>().SetDeactive();
-        _rigidBody.velocity = Vector3.zero;
+        _rigidbody.velocity = Vector3.zero;
+        _rigidbody.angularVelocity = Vector3.zero;
     }
     public virtual void Respawn()
     {
-
-        ResetPlayerTransform();
-        _rootTail.GetComponent<TailControl>().SetActive(transform.position);
-        gameObject.SetActive(true);
-        _rigidBody.WakeUp();
+        if(!gameObject.activeSelf)
+        {
+            _currentMoveSpeed = 0.0f;
+            ResetPlayerTransform();
+            _rootTail.GetComponent<TailControl>().SetActive(transform.position);
+            gameObject.SetActive(true);
+        }
     }
 
     /// <summary>

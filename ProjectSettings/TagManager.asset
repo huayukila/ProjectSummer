@@ -4,10 +4,11 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Tail
   - Wall
   - DropPoint1
   - DropPoint2
+  - Player1Tail
+  - Player2Tail
   layers:
   - Default
   - TransparentFX
