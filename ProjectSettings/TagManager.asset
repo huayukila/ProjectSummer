@@ -5,7 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Tail
-  - DropPoint
+  - Wall
+  - DropPoint1
+  - DropPoint2
   layers:
   - Default
   - TransparentFX
