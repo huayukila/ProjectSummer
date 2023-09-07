@@ -2,20 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ScoreCon : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-}
 public class ScoreSystem
 {
     private int player1Score;
@@ -31,16 +17,16 @@ public class ScoreSystem
     {
         if (playerNumber == 1)
         {
-            player1Score ++;
+            player1Score++;
         }
         else if (playerNumber == 2)
         {
-            player2Score ++;
+            player2Score++;
         }
     }
     public int GetPlayer1Score()
     {
-    
+
         return player1Score;
     }
     public int GetPlayer2Score()

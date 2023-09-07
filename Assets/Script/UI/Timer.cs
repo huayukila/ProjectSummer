@@ -3,21 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class TimerCon : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-}
 public class Timer
 {
     private float duration;
@@ -31,7 +16,7 @@ public class Timer
         callback = null;
     }
 
-    public void SetTimer(float duration,Action callback) //タイマーの時間とコールバックをセットする
+    public void SetTimer(float duration, Action callback) //タイマーの時間とコールバックをセットする
     {
         this.duration = duration;
         this.callback = callback;
@@ -39,11 +24,11 @@ public class Timer
     }
     public bool IsTimerFinished()　　　　　　　　　　　　//タイマーが終わるかどうかの判断
     {
-        if(callback == null)
+        if (callback == null)
         {
             return false;
         }
-        if (Time.time - startTime >= duration) 
+        if (Time.time - startTime >= duration)
         {
             callback.Invoke();
             return true;
@@ -56,5 +41,3 @@ public class Timer
         return remainingTime;
     }
 }
-
-

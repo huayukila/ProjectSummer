@@ -3,24 +3,25 @@ using UnityEngine;
 
 public class PlayerControl : Player
 {
-    float currentMoveSpeed;         // ƒvƒŒƒCƒ„[‚ÌŒ»İ‘¬“x
-    GameObject rootTail;            // K”ö‚Ì“ª
-    GameObject tipTail;             // K”ö‚Ì”ö
+    float currentMoveSpeed;         // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç¾åœ¨é€Ÿåº¦
+    GameObject rootTail;            // å°»å°¾ã®é ­
+    GameObject tipTail;             // å°»å°¾ã®å°¾
 
     public GameObject tailPrefab;
-    public Paintable p;             // ’n–Ê
+    public Paintable p;             // åœ°é¢
 
-    bool isPainting;                // ’n–Ê‚É•`‚¯‚é‚©‚Ç‚¤‚©‚ÌM†
-    float timer;                    // ‘O‰ñ‚Ì•`‰æ‚ªI‚í‚Á‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+    bool isPainting;                // åœ°é¢ã«æã‘ã‚‹ã‹ã©ã†ã‹ã®ä¿¡å·
+    float timer;                    // å‰å›ã®æç”»ãŒçµ‚ã‚ã£ã¦ã‹ã‚‰ã®çµŒéæ™‚é–“
 
     private void FixedUpdate()
     {
 
         PlayerMovement();
+        PlayerRotation();
     }
 
     /// <summary>
-    /// K”ö‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»‚·‚é
+    /// å°»å°¾ã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã™ã‚‹
     /// </summary>
     private void SetTail()
     {
@@ -41,12 +42,12 @@ public class PlayerControl : Player
 
     private void OnTriggerEnter(Collider other)
     {
-        // DropPoint‚É“–‚½‚Á‚½‚ç
+        // DropPointã«å½“ãŸã£ãŸã‚‰
         if(other.gameObject.CompareTag("DropPoint") && !isPainting)
         {
             isPainting = true;
 
-            // •`‰æ‚·‚×‚«—Ìˆæ‚Ì’¸“_‚ğæ“¾‚·‚é
+            // æç”»ã™ã¹ãé ˜åŸŸã®é ‚ç‚¹ã‚’å–å¾—ã™ã‚‹
             List<Vector3> verts = DropPointManager.Instance.GetPaintablePointVector3(other.gameObject);
             if(verts != null)
             {
@@ -59,9 +60,9 @@ public class PlayerControl : Player
             }
             verts.Add(transform.position);
 
-            // —Ìˆæ‚ğ•`‰æ‚·‚é
+            // é ˜åŸŸã‚’æç”»ã™ã‚‹
             PolygonPaintManager.Instance.Paint(p, verts?.ToArray());
-            // DropPoint‚ğÁ‚·
+            // DropPointã‚’æ¶ˆã™
             DropPointManager.Instance.Clear();
         }
     }
@@ -78,7 +79,7 @@ public class PlayerControl : Player
     // Update is called once per frame
     private void Update()
     {
-        // •`‰æ‚ğ§ŒÀ‚·‚éiƒ¿”Åj
+        // æç”»ã‚’åˆ¶é™ã™ã‚‹ï¼ˆÎ±ç‰ˆï¼‰
         if (isPainting)
         {
             timer += Time.deltaTime;
@@ -91,11 +92,11 @@ public class PlayerControl : Player
     }
 
     /// <summary>
-    /// ƒvƒŒƒCƒ„[‚ÌˆÚ“®‚ğ§Œä‚·‚é
+    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç§»å‹•ã‚’åˆ¶å¾¡ã™ã‚‹
     /// </summary>
     private void PlayerMovement()
     {
-        // ‰Á‘¬‰^“®‚ğ‚µ‚ÄAÅ‘å‘¬“x‚Ü‚Å‰Á‘¬‚·‚é
+        // åŠ é€Ÿé‹å‹•ã‚’ã—ã¦ã€æœ€å¤§é€Ÿåº¦ã¾ã§åŠ é€Ÿã™ã‚‹
         currentMoveSpeed = currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : currentMoveSpeed + acceleration * Time.deltaTime;
 
         Vector3 movementDirection = Vector3.forward * currentMoveSpeed;
@@ -104,18 +105,18 @@ public class PlayerControl : Player
     }
 
     /// <summary>
-    /// ƒvƒŒƒCƒ„[‚Ì‰ñ“]‚ğ§Œä‚·‚é
+    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å›è»¢ã‚’åˆ¶å¾¡ã™ã‚‹
     /// </summary>
     private void PlayerRotation()
     {
-        // •ûŒü“ü—Í‚ğæ“¾‚·‚é
+        // æ–¹å‘å…¥åŠ›ã‚’å–å¾—ã™ã‚‹
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Vector3 rotationDirection = new Vector3(horizontal, 0.0f, vertical);
         if (rotationDirection != Vector3.zero)
         {
-            // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
+            // å…¥åŠ›ã•ã‚ŒãŸæ–¹å‘ã¸å›è»¢ã™ã‚‹
             Quaternion rotation = Quaternion.LookRotation(rotationDirection, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
         }
