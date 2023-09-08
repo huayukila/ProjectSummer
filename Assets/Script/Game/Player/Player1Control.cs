@@ -15,8 +15,7 @@ public class Player1Control : Player
         {
             // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
             Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
-            
+            RotateRigidbody(rotation);          
         }
 
     }
@@ -28,14 +27,14 @@ public class Player1Control : Player
             SetDeadStatus();
         }
         // DropPoint‚É“–‚½‚Á‚½‚ç
-        if (other.gameObject.CompareTag("DropPoint1") && !_isPainting)
+        if (other.gameObject.CompareTag("DropPoint1") && !isPainting)
         {
-            _isPainting = true;
+            isPainting = true;
             // •`‰æ‚·‚×‚«—Ìˆæ‚Ì’¸“_‚ðŽæ“¾‚·‚é
             List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(other.gameObject);
             if (verts != null)
             {
-                TailControl tc = _rootTail.GetComponent<TailControl>();
+                TailControl tc = rootTail.GetComponent<TailControl>();
                 GameObject[] tails = tc?.GetTails();
                 for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
                 {
@@ -45,10 +44,10 @@ public class Player1Control : Player
             verts.Add(transform.position);
 
             // —Ìˆæ‚ð•`‰æ‚·‚é
-            PolygonPaintManager.Instance.Paint(verts.ToArray(), _areaColor);
+            PolygonPaintManager.Instance.Paint(verts.ToArray(), Global.PLAYER_ONE_AREA_COLOR);
             // DropPoint‚ðÁ‚·
             DropPointManager.Instance.ClearPlayerOneDropPoints();
-            _tipTail.GetComponent<Player1DropControl>().ClearTrail();
+            tipTail.GetComponent<Player1DropControl>().ClearTrail();
         }
 
     }
@@ -57,21 +56,13 @@ public class Player1Control : Player
     {
         base.Awake();
         PlayerManager.Instance.player1 = gameObject;
-        _rootTail.GetComponent<TailControl>().SetTailsTag("Player1Tail") ;
-        _tipTail.AddComponent<Player1DropControl>();
+        rootTail.GetComponent<TailControl>().SetTailsTag("Player1Tail") ;
+        tipTail.AddComponent<Player1DropControl>();
     }
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
         PlayerRotation();
-    }
-
-    public override void Respawn()
-    {
-        base.Respawn();
-        _tipTail.GetComponent<Player1DropControl>().ClearTrail();
-        DropPointManager.Instance.ClearPlayerOneDropPoints();
-
     }
 
     protected override void ResetPlayerTransform()
@@ -81,4 +72,27 @@ public class Player1Control : Player
         transform.forward = Vector3.forward;
     }
 
+    protected override void SetDeadStatus()
+    {
+        base.SetDeadStatus();
+        tipTail.GetComponent<Player1DropControl>().ClearTrail();
+        DropPointManager.Instance.ClearPlayerOneDropPoints();
+
+    }
+
+    protected override void GroundColorCheck()
+    {
+        if(colorCheck.IsSameColor(Global.PLAYER_ONE_AREA_COLOR))
+        {
+            SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
+        }
+        else if(colorCheck.IsSameColor(Global.PLAYER_TWO_AREA_COLOR))
+        {
+            SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
+        }
+        else
+        {
+            SetMoveSpeedCoefficient(1.0f);
+        }
+    }
 }

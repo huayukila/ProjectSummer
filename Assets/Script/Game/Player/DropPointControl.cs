@@ -4,29 +4,32 @@ public abstract class DropPointControl : MonoBehaviour
 {
     protected TrailRenderer TR;
     protected GameObject _pointPrefab;
-    float _dropInterval;
-    float _dropTimer;
-    // Start is called before the first frame update
+    Timer _dropTimer;
 
     protected abstract void SetDropPoint();
     protected abstract void SetTRProperties();
 
     private void TryDropPoint()
     {
-        _dropTimer += Time.deltaTime;
-        if (_dropTimer >= _dropInterval)
+        if(_dropTimer == null)
         {
-            SetDropPoint();
-            _dropTimer = 0.0f;
+            _dropTimer = new Timer();
+            _dropTimer.SetTimer(Global.DROP_POINT_INTERVAL,
+                () =>
+                {
+                    SetDropPoint();
+                }
+                );
         }
-
+        else if(_dropTimer.IsTimerFinished())
+        {
+            _dropTimer = null;
+        }
     }
 
     private void Awake()
     {
         _pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
-        _dropInterval = 0.1f;
-        _dropTimer = 0.0f;
         TR = gameObject.AddComponent<TrailRenderer>();
         SetTRProperties();
     }

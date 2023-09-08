@@ -15,7 +15,7 @@ public class Player2Control : Player
         {
             // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
             Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
+            RotateRigidbody(rotation);
         }
 
     }
@@ -27,14 +27,14 @@ public class Player2Control : Player
             SetDeadStatus();
         }
         // DropPoint‚É“–‚½‚Á‚½‚ç
-        if (other.gameObject.CompareTag("DropPoint2") && !_isPainting)
+        if (other.gameObject.CompareTag("DropPoint2") && !isPainting)
         {
-            _isPainting = true;
+            isPainting = true;
             // •`‰æ‚·‚×‚«—Ìˆæ‚Ì’¸“_‚ðŽæ“¾‚·‚é
             List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(other.gameObject);
             if (verts != null)
             {
-                TailControl tc = _rootTail.GetComponent<TailControl>();
+                TailControl tc = rootTail.GetComponent<TailControl>();
                 GameObject[] tails = tc?.GetTails();
                 for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
                 {
@@ -44,10 +44,10 @@ public class Player2Control : Player
             verts.Add(transform.position);
 
             // —Ìˆæ‚ð•`‰æ‚·‚é
-            PolygonPaintManager.Instance.Paint(verts.ToArray(), _areaColor);
+            PolygonPaintManager.Instance.Paint(verts.ToArray(), Global.PLAYER_TWO_AREA_COLOR);
             // DropPoint‚ðÁ‚·
             DropPointManager.Instance.ClearPlayerTwoDropPoints();
-            _tipTail.GetComponent<Player2DropControl>().ClearTrail();
+            tipTail.GetComponent<Player2DropControl>().ClearTrail();
         }
 
     }
@@ -56,20 +56,13 @@ public class Player2Control : Player
     {
         base.Awake();
         PlayerManager.Instance.player2 = gameObject;
-        _rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
-        _tipTail.AddComponent<Player2DropControl>();
+        rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
+        tipTail.AddComponent<Player2DropControl>();
     }
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
         PlayerRotation();
-    }
-    public override void Respawn()
-    {
-        base.Respawn();
-        _tipTail.GetComponent<Player2DropControl>().ClearTrail();
-        DropPointManager.Instance.ClearPlayerTwoDropPoints();
-
     }
 
     protected override void ResetPlayerTransform()
@@ -77,8 +70,29 @@ public class Player2Control : Player
         gameObject.transform.position = Global.PLAYER2_START_POSITION;
         gameObject.transform.localEulerAngles = new Vector3(0.0f,-1.0f,0.0f);
         transform.forward = Vector3.back;
-
     }
 
+    protected override void SetDeadStatus()
+    {
+        base.SetDeadStatus();
+        tipTail.GetComponent<Player2DropControl>().ClearTrail();
+        DropPointManager.Instance.ClearPlayerTwoDropPoints();
+    }
+
+    protected override void GroundColorCheck()
+    {
+        if (colorCheck.IsSameColor(Global.PLAYER_TWO_AREA_COLOR))
+        {
+            SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
+        }
+        else if (colorCheck.IsSameColor(Global.PLAYER_ONE_AREA_COLOR))
+        {
+            SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
+        }
+        else
+        {
+            SetMoveSpeedCoefficient(1.0f);
+        }
+    }
 
 }

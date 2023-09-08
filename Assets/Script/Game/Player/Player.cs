@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Player : MonoBehaviour
@@ -7,16 +6,18 @@ public abstract class Player : MonoBehaviour
     [Min(0.0f)] public float acceleration;
     [Min(0.0f)] public float rotationSpeed;    
     public GameObject tailPrefab;
-    public Color _areaColor;
 
     float _currentMoveSpeed;                    // プレイヤーの現在速度
 
-    protected GameObject _rootTail;             // 尻尾の頭
-    protected GameObject _tipTail;              // 尻尾の尾
+    protected GameObject rootTail;             // 尻尾の頭
+    protected GameObject tipTail;              // 尻尾の尾
 
-    protected bool _isPainting;                 // 地面に描けるかどうかの信号
+    protected bool isPainting;                 // 地面に描けるかどうかの信号
     float _timer;                               // 前回の描画が終わってからの経過時間
-    protected Rigidbody _rigidbody;
+    private Rigidbody _rigidbody;
+    protected ColorCheck colorCheck;
+
+    private float _moveSpeedCoefficient;
 
     /// <summary>
     /// 尻尾をインスタンス化する
@@ -30,10 +31,10 @@ public abstract class Player : MonoBehaviour
         tail.transform.position = transform.position;
         tail.AddComponent<TailControl>();
 
-        _rootTail = tail;
+        rootTail = tail;
 
-        TailControl tc = _rootTail.GetComponent<TailControl>();
-        _tipTail = tc.GetTipTail();
+        TailControl tc = rootTail.GetComponent<TailControl>();
+        tipTail = tc.GetTipTail();
 
     }
 
@@ -43,7 +44,6 @@ public abstract class Player : MonoBehaviour
         bool isCollision = collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Wall");
         if (isCollision)
         {
-
             SetDeadStatus();
         }
 
@@ -51,32 +51,34 @@ public abstract class Player : MonoBehaviour
 
     protected virtual void Awake()
     {
-        _isPainting = false;
+        isPainting = false;
         _timer = 0.0f;
         _currentMoveSpeed = 0.0f;
         SetTail();
         _rigidbody = GetComponent<Rigidbody>();
-
+        colorCheck = GetComponent<ColorCheck>();
+        _moveSpeedCoefficient = 1.0f;
     }
 
     private void Update()
     {
         // 描画を制限する（α版）
-        if (_isPainting)
+        if (isPainting)
         {
             _timer += Time.deltaTime;
         }
         if (_timer >= 0.5f)
         {
-            _isPainting = false;
+            isPainting = false;
             _timer = 0.0f;
         }
+        //GroundColorCheck();
 
     }
     protected virtual void FixedUpdate()
     {
         PlayerMovement();
-        _rootTail.transform.position = transform.position;
+        rootTail.transform.position = transform.position;
     }
 
     /// <summary>
@@ -86,32 +88,44 @@ public abstract class Player : MonoBehaviour
     {
         // 加速運動をして、最大速度まで加速する
         _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.deltaTime;
-        Vector3 moveDirection = transform.forward * _currentMoveSpeed * Time.fixedDeltaTime;
+        Vector3 moveDirection = transform.forward * _currentMoveSpeed * Time.fixedDeltaTime * _moveSpeedCoefficient;
         _rigidbody.velocity = moveDirection;
     }
 
-    protected void SetDeadStatus()
+    protected virtual void SetDeadStatus()
     {
         gameObject.SetActive(false);
-        _rootTail.GetComponent<TailControl>().SetDeactive();
+        rootTail.GetComponent<TailControl>().SetDeactive();
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
     }
-    public virtual void Respawn()
+    public void Respawn()
     {
         if(!gameObject.activeSelf)
         {
             _currentMoveSpeed = 0.0f;
             ResetPlayerTransform();
-            _rootTail.GetComponent<TailControl>().SetActive(transform.position);
+            rootTail.GetComponent<TailControl>().SetActive(transform.position);
             gameObject.SetActive(true);
         }
     }
-
+    protected void RotateRigidbody(Quaternion quaternion)
+    {
+        _rigidbody.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.fixedDeltaTime);
+    }    
+    
+    protected void SetMoveSpeedCoefficient(float coefficient)
+    {
+        _moveSpeedCoefficient = coefficient;
+    }
     /// <summary>
     /// プレイヤーの回転を制御する
     /// </summary>
     protected abstract void PlayerRotation();
 
     protected abstract void ResetPlayerTransform();
+
+    protected abstract void GroundColorCheck();
+
+
 }
