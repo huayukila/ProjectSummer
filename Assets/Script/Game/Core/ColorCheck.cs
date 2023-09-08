@@ -7,11 +7,13 @@ public class ColorCheck : MonoBehaviour
     public LayerMask layerMask;
     public float raycastDistance = 10.0f;
     private NativeArray<Color32> colorArray;
+
+    private Color _TargetColor = new Color();
+    private bool _isSameColor;
     void Update()
     {
         RaycastHit hit;
-        Vector3 position = Input.mousePosition;
-        if (Physics.Raycast(gameObject.transform.position,Vector3.down, out hit, raycastDistance, layerMask))
+        if (Physics.Raycast(gameObject.transform.position, Vector3.down, out hit, raycastDistance, layerMask))
         {
             //マネージャーからマップのRTをもらう
             RenderTexture mapMaskTexture = GameManager.Instance.mapMaskTexture;
@@ -25,15 +27,23 @@ public class ColorCheck : MonoBehaviour
                         (req) =>
                         {
                             colorArray = req.GetData<Color32>();
+                            _isSameColor = Check(_TargetColor);
                         });
         }
     }
     /// <summary>
     /// 同じ色か？
     /// </summary>
-    /// <param name="c1">目標色</param>
+    /// <param name="targetColor">目標色</param>
     /// <returns></returns>
-    public bool IsSameColor(Color c1)
+    public bool isTargetColor(Color targetColor)
+    {
+        _TargetColor = targetColor;
+        return _isSameColor;
+    }
+
+    //内部用関数
+    private bool Check(Color c1)
     {
         return Mathf.Abs(c1.r - colorArray[0].r) + Mathf.Abs(c1.g - colorArray[0].g) + Mathf.Abs(c1.b - colorArray[0].b) < 0.1f;
     }
