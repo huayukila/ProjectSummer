@@ -13,7 +13,7 @@ public abstract class Player : MonoBehaviour
     protected GameObject tipTail;              // 尻尾の尾
 
     protected bool isPainting;                 // 地面に描けるかどうかの信号
-    float _timer;                               // 前回の描画が終わってからの経過時間
+    Timer _timer;
     private Rigidbody _rigidbody;
     protected ColorCheck colorCheck;
 
@@ -52,7 +52,6 @@ public abstract class Player : MonoBehaviour
     protected virtual void Awake()
     {
         isPainting = false;
-        _timer = 0.0f;
         _currentMoveSpeed = 0.0f;
         SetTail();
         _rigidbody = GetComponent<Rigidbody>();
@@ -65,14 +64,22 @@ public abstract class Player : MonoBehaviour
         // 描画を制限する（α版）
         if (isPainting)
         {
-            _timer += Time.deltaTime;
+            if(_timer == null)
+            {
+                _timer = new Timer();
+                _timer.SetTimer(0.5f,
+                    () =>
+                    {
+                        isPainting = false;
+                    }
+                    );
+            }
+            if(_timer.IsTimerFinished())
+            {
+                _timer = null;
+            }
         }
-        if (_timer >= 0.5f)
-        {
-            isPainting = false;
-            _timer = 0.0f;
-        }
-        //GroundColorCheck();
+        GroundColorCheck();
 
     }
     protected virtual void FixedUpdate()
@@ -98,6 +105,12 @@ public abstract class Player : MonoBehaviour
         rootTail.GetComponent<TailControl>().SetDeactive();
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
+
+        if(ScoreItemManager.Instance.IsGotSilk(gameObject))
+        {
+            ScoreItemManager.Instance.DropGoldenSilk();
+        }
+
     }
     public void Respawn()
     {
@@ -107,6 +120,7 @@ public abstract class Player : MonoBehaviour
             ResetPlayerTransform();
             rootTail.GetComponent<TailControl>().SetActive(transform.position);
             gameObject.SetActive(true);
+            gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
         }
     }
     protected void RotateRigidbody(Quaternion quaternion)
@@ -127,5 +141,5 @@ public abstract class Player : MonoBehaviour
 
     protected abstract void GroundColorCheck();
 
-
+    protected abstract void PaintArea(GameObject @object);
 }

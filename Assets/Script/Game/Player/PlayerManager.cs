@@ -2,9 +2,6 @@ using UnityEngine;
 
 public class PlayerManager : Singleton<PlayerManager>
 {
-    public GameObject player1;
-    public GameObject player2;
-
     Timer _player1Timer;
     Timer _player2Timer;
 
@@ -20,7 +17,7 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private void RespawnCheck()
     {
-        if (!player1.activeSelf)
+        if (!GameManager.Instance.playerOne.activeSelf)
         {
             if (_player1Timer == null)
             {
@@ -37,7 +34,7 @@ public class PlayerManager : Singleton<PlayerManager>
                 _player1Timer = null;
             }
         }
-        if (!player2.activeSelf)
+        if (!GameManager.Instance.playerTwo.activeSelf)
         {
             if (_player2Timer == null)
             {
@@ -58,13 +55,12 @@ public class PlayerManager : Singleton<PlayerManager>
     
     private void RespawnPlayer1()
     {
-        player1.GetComponent<Player1Control>().Respawn();
+        GameManager.Instance.playerOne.GetComponent<Player1Control>().Respawn();
     }
 
     private void RespawnPlayer2()
     {
-        player2.GetComponent<Player2Control>().Respawn();
-
+        GameManager.Instance.playerTwo.GetComponent<Player2Control>().Respawn();
     }
 
 }

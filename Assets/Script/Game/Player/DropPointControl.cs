@@ -6,7 +6,7 @@ public abstract class DropPointControl : MonoBehaviour
     protected GameObject _pointPrefab;
     Timer _dropTimer;
 
-    protected abstract void SetDropPoint();
+    protected abstract void InstantiateDropPoint();
     protected abstract void SetTRProperties();
 
     private void TryDropPoint()
@@ -17,7 +17,7 @@ public abstract class DropPointControl : MonoBehaviour
             _dropTimer.SetTimer(Global.DROP_POINT_INTERVAL,
                 () =>
                 {
-                    SetDropPoint();
+                    InstantiateDropPoint();
                 }
                 );
         }

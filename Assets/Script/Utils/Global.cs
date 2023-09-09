@@ -8,10 +8,8 @@ public static class Global
 
     public static Color DEAD_COLOR = new Color(0.5f, 0.5f, 0.5f, 0.0f);
 
-    public static Color PLAYER_ONE_TRAIL_COLOR = Color.blue;
-    public static Color PLAYER_TWO_TRAIL_COLOR = Color.red;
-    public static Color PLAYER_ONE_AREA_COLOR = Color.yellow;
-    public static Color PLAYER_TWO_AREA_COLOR = Color.green;
+    public static Color PLAYER_ONE_COLOR = Color.blue;
+    public static Color PLAYER_TWO_COLOR = Color.green;
 
     public static float SPEED_DOWN_COEFFICIENT = 0.5f;
     public static float SPEED_UP_COEFFICIENT = 1.5f;

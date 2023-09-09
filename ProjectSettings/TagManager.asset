@@ -9,6 +9,8 @@ TagManager:
   - DropPoint2
   - Player1Tail
   - Player2Tail
+  - GoldenSilk
+  - Goal
   layers:
   - Default
   - TransparentFX

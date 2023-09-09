@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 public class Player1Control : Player
 {
@@ -29,25 +28,19 @@ public class Player1Control : Player
         // DropPointÇ…ìñÇΩÇ¡ÇΩÇÁ
         if (other.gameObject.CompareTag("DropPoint1") && !isPainting)
         {
-            isPainting = true;
-            // ï`âÊÇ∑Ç◊Ç´óÃàÊÇÃí∏ì_ÇéÊìæÇ∑ÇÈ
-            List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(other.gameObject);
-            if (verts != null)
+            PaintArea(other.gameObject);
+        }
+        if(other.gameObject.CompareTag("GoldenSilk"))
+        {
+            ScoreItemManager.Instance.SetGotSilkPlayer(gameObject);
+        }
+        if(other.gameObject.CompareTag("Goal"))
+        {
+            if(ScoreItemManager.Instance.IsGotSilk(gameObject))
             {
-                TailControl tc = rootTail.GetComponent<TailControl>();
-                GameObject[] tails = tc?.GetTails();
-                for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
-                {
-                    verts.Add(tails[^i].transform.position);
-                }
+                ScoreItemManager.Instance.SetReachGoalProperties();
+                gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
             }
-            verts.Add(transform.position);
-
-            // óÃàÊÇï`âÊÇ∑ÇÈ
-            PolygonPaintManager.Instance.Paint(verts.ToArray(), Global.PLAYER_ONE_AREA_COLOR);
-            // DropPointÇè¡Ç∑
-            DropPointManager.Instance.ClearPlayerOneDropPoints();
-            tipTail.GetComponent<Player1DropControl>().ClearTrail();
         }
 
     }
@@ -55,9 +48,13 @@ public class Player1Control : Player
     protected override void Awake()
     {
         base.Awake();
-        PlayerManager.Instance.player1 = gameObject;
         rootTail.GetComponent<TailControl>().SetTailsTag("Player1Tail") ;
         tipTail.AddComponent<Player1DropControl>();
+    }
+
+    private void Start()
+    {
+        GameManager.Instance.playerOne = gameObject;
     }
     protected override void FixedUpdate()
     {
@@ -82,11 +79,11 @@ public class Player1Control : Player
 
     protected override void GroundColorCheck()
     {
-        if(colorCheck.IsSameColor(Global.PLAYER_ONE_AREA_COLOR))
+        if(colorCheck.isTargetColor(Global.PLAYER_ONE_COLOR))
         {
             SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
         }
-        else if(colorCheck.IsSameColor(Global.PLAYER_TWO_AREA_COLOR))
+        else if(colorCheck.isTargetColor(Global.PLAYER_TWO_COLOR))
         {
             SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
         }
@@ -94,5 +91,29 @@ public class Player1Control : Player
         {
             SetMoveSpeedCoefficient(1.0f);
         }
+    }
+
+    protected override void PaintArea(GameObject ob)
+    {
+        isPainting = true;
+        // ï`âÊÇ∑Ç◊Ç´óÃàÊÇÃí∏ì_ÇéÊìæÇ∑ÇÈ
+        List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob.gameObject);
+        if (verts != null)
+        {
+            TailControl tc = rootTail.GetComponent<TailControl>();
+            GameObject[] tails = tc?.GetTails();
+            for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
+            {
+                verts.Add(tails[^i].transform.position);
+            }
+        }
+        verts.Add(transform.position);
+
+        // óÃàÊÇï`âÊÇ∑ÇÈ
+        PolygonPaintManager.Instance.Paint(verts.ToArray(), Global.PLAYER_ONE_COLOR);
+        // DropPointÇè¡Ç∑
+        DropPointManager.Instance.ClearPlayerOneDropPoints();
+        tipTail.GetComponent<Player1DropControl>().ClearTrail();
+
     }
 }
