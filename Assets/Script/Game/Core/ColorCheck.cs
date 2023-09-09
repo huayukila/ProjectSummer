@@ -7,9 +7,7 @@ public class ColorCheck : MonoBehaviour
     public LayerMask layerMask;
     public float raycastDistance = 10.0f;
     private NativeArray<Color32> colorArray;
-
-    private Color _TargetColor = new Color();
-    private bool _isSameColor;
+    private Color _CurrentColor=new Color();
     void Update()
     {
         RaycastHit hit;
@@ -27,9 +25,11 @@ public class ColorCheck : MonoBehaviour
                         (req) =>
                         {
                             colorArray = req.GetData<Color32>();
-                            _isSameColor = Check(_TargetColor);
+                            Debug.Log(colorArray[0]);
+                            _CurrentColor = colorArray[0];
                         });
         }
+        //Debug.Log(_CurrentColor);
     }
     /// <summary>
     /// ìØÇ∂êFÇ©ÅH
@@ -38,13 +38,10 @@ public class ColorCheck : MonoBehaviour
     /// <returns></returns>
     public bool isTargetColor(Color targetColor)
     {
-        _TargetColor = targetColor;
-        return _isSameColor;
-    }
-
-    //ì‡ïîópä÷êî
-    private bool Check(Color c1)
-    {
-        return Mathf.Abs(c1.r - colorArray[0].r) + Mathf.Abs(c1.g - colorArray[0].g) + Mathf.Abs(c1.b - colorArray[0].b) < 0.1f;
+        return 
+            Mathf.Abs(targetColor.r - _CurrentColor.r) +
+            Mathf.Abs(targetColor.g - _CurrentColor.g) + 
+            Mathf.Abs(targetColor.b - _CurrentColor.b) 
+            < 0.1f;
     }
 }
