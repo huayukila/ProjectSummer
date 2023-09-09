@@ -7,7 +7,7 @@ public class ColorCheck : MonoBehaviour
     public LayerMask layerMask;
     public float raycastDistance = 10.0f;
     private NativeArray<Color32> colorArray;
-    private Color _CurrentColor=new Color();
+    private Color32 _CurrentColor=new Color32();
     void Update()
     {
         RaycastHit hit;
@@ -29,14 +29,13 @@ public class ColorCheck : MonoBehaviour
                             _CurrentColor = colorArray[0];
                         });
         }
-        //Debug.Log(_CurrentColor);
     }
     /// <summary>
     /// 同じ色か？
     /// </summary>
     /// <param name="targetColor">目標色</param>
     /// <returns></returns>
-    public bool isTargetColor(Color targetColor)
+    public bool isTargetColor(Color32 targetColor)
     {
         return 
             Mathf.Abs(targetColor.r - _CurrentColor.r) +
