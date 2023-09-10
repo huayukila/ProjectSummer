@@ -57,7 +57,8 @@ public abstract class Player : MonoBehaviour
         _currentMoveSpeed = 0.0f;
         SetTail();
         _rigidbody = GetComponent<Rigidbody>();
-        colorCheck = GetComponent<ColorCheck>();
+        colorCheck = gameObject.AddComponent<ColorCheck>();
+        colorCheck.layerMask = LayerMask.GetMask("Ground");
         _moveSpeedCoefficient = 1.0f;
     }
 

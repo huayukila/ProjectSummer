@@ -33,12 +33,14 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             // player1 get 1 point
             Debug.Log("Player 1 get 1 point");
+            ScoreSystem.Instance.AddScore(1);
         }
         // ÉvÉåÉCÉÑÅ[2Ç™â^î¿ÇµÇΩÇÁ
         if (_gotSilkPlayer == GameManager.Instance.playerTwo)
         {
             // player2 get 1 point
             Debug.Log("Player 2 get 1 point");
+            ScoreSystem.Instance.AddScore(2);
         }
 
         inSpaceSilk.SetActive(false);
