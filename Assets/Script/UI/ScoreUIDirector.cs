@@ -9,8 +9,8 @@ public class ScoreUIDirector : MonoBehaviour
     GameObject P1ScoreUI;
     GameObject P2ScoreUI;
     GameObject TimeUI;
-    private ScoreSystem scoreSystem;　　　　　　　　　　//ScoreSystemを実例化
-    private Timer timer;
+    public ScoreSystem scoreSystem;　　　　　　　　　　//ScoreSystemを実例化
+    public Timer timer;
     public float setTheTimer = 60f;
     // Start is called before the first frame update
     void Start()
