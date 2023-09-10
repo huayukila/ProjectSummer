@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class DropPointManager : Singleton<DropPointManager>
 {
-    List<GameObject> _player1Points;
-    List<GameObject> _player2Points;
-    GameObject _p1pointGroup;
-    GameObject _p2pointGroup;
+    List<GameObject> _player1Points;            // プレイヤー1が落としたDropPointをまとめて管理するリスト
+    List<GameObject> _player2Points;            // プレイヤー2が落としたDropPointをまとめて管理するリスト
+    GameObject _p1pointGroup;                   // プレイヤー1の生成したDropPointをHierarchyでまとめる空っぽのGameObject
+    GameObject _p2pointGroup;                   // プレイヤー2の生成したDropPointをHierarchyでまとめる空っぽのGameObject
 
     /// <summary>
     /// Listにある全てのDropPointのワールド座標を返す
@@ -60,8 +60,8 @@ public class DropPointManager : Singleton<DropPointManager>
         bool addFlag = false;
         //戻り値を保存する変数
         List<Vector3> ret = new List<Vector3>();
-        List<GameObject> temp = new List<GameObject>(_player2Points);
-        foreach(GameObject ob in temp)
+        List<GameObject> currentPoints = new List<GameObject>(_player2Points);
+        foreach(GameObject ob in currentPoints)
         {
             if(ob == pt)
             {
@@ -75,26 +75,49 @@ public class DropPointManager : Singleton<DropPointManager>
         }
         return ret;
     }
+
+    /// <summary>
+    /// プレイヤー1が落としたDropPointをリストに加える
+    /// </summary>
+    /// <param name="ob"></param>
     public void PlayerOneAddPoint(GameObject ob)
     {
+        // グループに入れる
         ob.transform.parent = _p1pointGroup.transform;
         _player1Points.Add(ob);
     }
+
+    /// <summary>
+    /// プレイヤー2が落としたDropPointをリストに加える
+    /// </summary>
+    /// <param name="ob"></param>
     public void PlayerTwoAddPoint(GameObject ob)
     {
         ob.transform.parent = _p2pointGroup.transform;
         _player2Points.Add(ob);
     }
 
+    /// <summary>
+    /// プレイヤー1が落としたDropPointをリストから消す
+    /// </summary>
+    /// <param name="ob"></param>
     public void PlayerOneRemovePoint(GameObject ob)
     {
         _player1Points.Remove(ob);
     }
 
+    /// <summary>
+    /// プレイヤー2が落としたDropPointをリストから消す
+    /// </summary>
+    /// <param name="ob"></param>
     public void PlayerTwoRemovePoint(GameObject ob)
     {
         _player2Points.Remove(ob);
     }
+
+    /// <summary>
+    /// プレイヤー1が落としたDropPointを全て消す
+    /// </summary>
     public void ClearPlayerOneDropPoints()
     {
         foreach(GameObject ob in _player1Points)
@@ -103,6 +126,10 @@ public class DropPointManager : Singleton<DropPointManager>
         }
         _player1Points.Clear();
     }
+
+    /// <summary>
+    /// プレイヤー2が落としたDropPointを全て消す
+    /// </summary>
     public void ClearPlayerTwoDropPoints()
     {
         foreach (GameObject ob in _player2Points)
@@ -112,8 +139,16 @@ public class DropPointManager : Singleton<DropPointManager>
         _player2Points.Clear();
     }
 
+    /// <summary>
+    /// プレイヤー1のDropPointの全てのワールド座標を返す
+    /// </summary>
+    /// <returns></returns>
     public Vector3[] GetPlayerOneDropPoints() => GameObjectToVector3(_player1Points);
 
+    /// <summary>
+    /// プレイヤー2のDropPointの全てのワールド座標を返す
+    /// </summary>
+    /// <returns></returns>
     public Vector3[] GetPlayerTwoDropPoints() => GameObjectToVector3(_player2Points);
 
     protected override void Awake()
