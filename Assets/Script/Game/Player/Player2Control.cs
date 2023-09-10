@@ -19,9 +19,14 @@ public class Player2Control : Player
 
     }
 
+    /// <summary>
+    /// 当たったときの処理諸々
+    /// </summary>
+    /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.CompareTag("Player1Tail"))
+        // 別のプレイヤーの尻尾に当たったら
+        if (other.gameObject.CompareTag("Player1Tail"))
         {
             SetDeadStatus();
         }
@@ -30,35 +35,21 @@ public class Player2Control : Player
         {
             PaintArea(other.gameObject);
         }
+        // 金の網に当たったら
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
             ScoreItemManager.Instance.SetGotSilkPlayer(gameObject);
         }
+        // ゴールに当たったら
         if (other.gameObject.CompareTag("Goal"))
         {
+            // 自分が金の網を持っていたら
             if (ScoreItemManager.Instance.IsGotSilk(gameObject))
             {
                 ScoreItemManager.Instance.SetReachGoalProperties();
                 gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
             }
         }
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-        rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
-        tipTail.AddComponent<Player2DropControl>();
-    }
-
-    private void Start()
-    {
-        GameManager.Instance.playerTwo = gameObject;
-    }
-    protected override void FixedUpdate()
-    {
-        base.FixedUpdate();
-        PlayerRotation();
     }
 
     protected override void ResetPlayerTransform()
@@ -77,11 +68,13 @@ public class Player2Control : Player
 
     protected override void GroundColorCheck()
     {
-        if (colorCheck.isTargetColor(Global.PLAYER_TWO_COLOR))
+        // 自分の領域にいたら
+        if (colorCheck.isTargetColor(areaColor))
         {
             SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
         }
-        else if(colorCheck.isTargetColor(Global.PLAYER_ONE_COLOR))
+        // 別のプレイヤーの領域にいたら
+        else if (colorCheck.isTargetColor(GameManager.Instance.playerOne.GetComponent<Player1Control>().areaColor))
         {
             SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
         }
@@ -108,10 +101,28 @@ public class Player2Control : Player
         verts.Add(transform.position);
 
         // 領域を描画する
-        PolygonPaintManager.Instance.Paint(verts.ToArray(), Global.PLAYER_TWO_COLOR);
-        // DropPointを消す
+        PolygonPaintManager.Instance.Paint(verts.ToArray(), areaColor);
+        // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         tipTail.GetComponent<Player2DropControl>().ClearTrail();
 
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+        rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
+        tipTail.AddComponent<Player2DropControl>();
+    }
+
+    private void Start()
+    {
+        GameManager.Instance.playerTwo = gameObject;
+    }
+
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+        PlayerRotation();
     }
 }
