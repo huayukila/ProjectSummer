@@ -2,29 +2,35 @@ using UnityEngine;
 
 public class DropPoint : MonoBehaviour
 {
-    float _destroyInterval;
-    // Start is called before the first frame update
-    void Start()
-    {
-        _destroyInterval = 3.0f;
+    Timer timer;        // DropPointのタイマー
 
+    void Awake()
+    {
+        // タイマーを初期化する
+        timer = new Timer();
+        timer.SetTimer(Global.DROP_POINT_ALIVE_TIME,
+            () =>
+            {
+                // 時間が経ったらDropPointを消す
+                Destroy(gameObject);
+            }
+            );
     }
 
-    // Update is called once per frame
     void Update()
     {
-        _destroyInterval -= Time.deltaTime;
-        if(_destroyInterval <= 0.0f)
+        // タイマーが終わるまでチェック
+        if(timer.IsTimerFinished())
         {
+            // どのプレイヤーが落としたDropPointをチェック
             if(gameObject.CompareTag("DropPoint1"))
             {
                 DropPointManager.Instance.PlayerOneRemovePoint(gameObject);
             }
-            else if (gameObject.CompareTag("DropPoint2"))
+            else
             {
                 DropPointManager.Instance.PlayerTwoRemovePoint(gameObject);
             }
-            Destroy(gameObject);
         }
     }
 

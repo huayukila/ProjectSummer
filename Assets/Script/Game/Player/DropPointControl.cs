@@ -2,31 +2,49 @@ using UnityEngine;
 
 public abstract class DropPointControl : MonoBehaviour
 {
-    protected TrailRenderer TR;
-    protected GameObject _pointPrefab;
-    float _dropInterval;
-    float _dropTimer;
-    // Start is called before the first frame update
+    protected TrailRenderer TR;                 // DropPointが繋がっていることを表すTrailRenderer
+    protected GameObject _pointPrefab;          // DropPointのプレハブ
+    Timer _dropTimer;                           // DropPointのインスタンス化することを管理するタイマー
 
-    protected abstract void SetDropPoint();
+    /// <summary>
+    /// DropPointをインスタンス化する
+    /// </summary>
+    protected abstract void InstantiateDropPoint();
+
+    /// <summary>
+    /// TrailRendererの初期設定行う
+    /// </summary>
     protected abstract void SetTRProperties();
 
+    /// <summary>
+    /// DropPointを置く
+    /// </summary>    
     private void TryDropPoint()
     {
-        _dropTimer += Time.deltaTime;
-        if (_dropTimer >= _dropInterval)
+        // タイマーが null だったら
+        if(_dropTimer == null)
         {
-            SetDropPoint();
-            _dropTimer = 0.0f;
+            // 新しいタイマーを作る
+            _dropTimer = new Timer();
+            _dropTimer.SetTimer(Global.DROP_POINT_INTERVAL,
+                () =>
+                {
+                    // タイマーが終わったらDropPointを置く
+                    InstantiateDropPoint();
+                }
+                );
         }
-
+        // タイマーが終わったら
+        else if(_dropTimer.IsTimerFinished())
+        {
+            // タイマーを消す
+            _dropTimer = null;
+        }
     }
 
     private void Awake()
     {
         _pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
-        _dropInterval = 0.1f;
-        _dropTimer = 0.0f;
         TR = gameObject.AddComponent<TrailRenderer>();
         SetTRProperties();
     }
@@ -39,6 +57,9 @@ public abstract class DropPointControl : MonoBehaviour
 
     private void FixedUpdate() { }
 
+    /// <summary>
+    /// TrailRendererの全ての点を消す
+    /// </summary>
     public void ClearTrail()
     {
         TR.Clear();

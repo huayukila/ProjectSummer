@@ -2,24 +2,24 @@ using UnityEngine;
 
 public class TailControl : MonoBehaviour
 {
-    GameObject _tailPrefab;
-    GameObject[] _tails;
-    int _tailsCount;
-    LineRenderer _lr;
+    private GameObject _tailPrefab;         // 尻尾のプレハブ
+    private GameObject[] _tails;            // 尻尾の節を入れる配列
+    private LineRenderer _lr;               // 尻尾を描画するLineRenderer
 
     /// <summary>
     /// 尻尾の節をインスタンス化する
     /// </summary>
     private void GenerateTails()
     {
-        while (_tailsCount < Global.iMAX_TAIL_COUNT)
+        int tailsIndex = 1;
+        while (tailsIndex < Global.iMAX_TAIL_COUNT)
         {
             GameObject tail = Instantiate(_tailPrefab);
             tail.name = name;
             tail.transform.localScale = Vector3.one * 0.2f;
             tail.transform.rotation = transform.rotation;
             tail.transform.position = transform.position;
-            _tails[_tailsCount++] = tail;
+            _tails[tailsIndex++] = tail;
         }
     }
 
@@ -50,6 +50,9 @@ public class TailControl : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// 尻尾を空っぽのGameObjectに入れる（Hierarchyをきれいにするため）
+    /// </summary>
     private void SetTailsParent()
     {
         GameObject tailParent = new GameObject(name + "s");
@@ -59,6 +62,10 @@ public class TailControl : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 尻尾の位置をリセットする
+    /// </summary>
+    /// <param name="pos"></param>
     private void ResetTransform(Vector3 pos)
     {
         foreach(GameObject t in _tails)
@@ -67,6 +74,10 @@ public class TailControl : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 尻尾のTagを設定する
+    /// </summary>
+    /// <param name="tag"></param>
     public void SetTailsTag(string tag)
     {
         foreach(GameObject t in _tails)
@@ -75,7 +86,10 @@ public class TailControl : MonoBehaviour
         }
     }
 
-    public void SetDeactive()
+    /// <summary>
+    /// 尻尾を非アクティブに設定する
+    /// </summary>
+    public void SetDeactiveProperties()
     {
         foreach (GameObject ob in _tails)
         {
@@ -84,7 +98,11 @@ public class TailControl : MonoBehaviour
         _lr.enabled = false;
     }
 
-    public void SetActive(Vector3 pos)
+    /// <summary>
+    /// 尻尾をアクティブに設定する
+    /// </summary>
+    /// <param name="pos"></param>
+    public void SetActiveProperties(Vector3 pos)
     {
         foreach (GameObject ob in _tails)
         {
@@ -95,15 +113,23 @@ public class TailControl : MonoBehaviour
         _lr.enabled = true;
 
     }
+
+    /// <summary>
+    /// 尻尾の節を全部返す
+    /// </summary>
+    /// <returns></returns>
     public GameObject[] GetTails() => _tails;
 
+    /// <summary>
+    /// 尻尾の最後の節を返す
+    /// </summary>
+    /// <returns></returns>
     public GameObject GetTipTail() => _tails[_tails.Length - 1];
     private void Awake()
     {
         _tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
         _tails = new GameObject[Global.iMAX_TAIL_COUNT];
         _tails[0] = gameObject;
-        ++_tailsCount;
         _lr = gameObject.AddComponent<LineRenderer>();
 
         GenerateTails();

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,61 +14,42 @@ public class Player2Control : Player
         {
             // 入力された方向へ回転する
             Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.fixedDeltaTime);
+            RotateRigidbody(rotation);
         }
 
     }
 
+    /// <summary>
+    /// 当たったときの処理諸々
+    /// </summary>
+    /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.CompareTag("Player1Tail"))
+        // 別のプレイヤーの尻尾に当たったら
+        if (other.gameObject.CompareTag("Player1Tail"))
         {
             SetDeadStatus();
         }
         // DropPointに当たったら
-        if (other.gameObject.CompareTag("DropPoint2") && !_isPainting)
+        if (other.gameObject.CompareTag("DropPoint2") && !isPainting)
         {
-            _isPainting = true;
-            // 描画すべき領域の頂点を取得する
-            List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(other.gameObject);
-            if (verts != null)
-            {
-                TailControl tc = _rootTail.GetComponent<TailControl>();
-                GameObject[] tails = tc?.GetTails();
-                for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
-                {
-                    verts.Add(tails[^i].transform.position);
-                }
-            }
-            verts.Add(transform.position);
-
-            // 領域を描画する
-            PolygonPaintManager.Instance.Paint(verts.ToArray(), _areaColor);
-            // DropPointを消す
-            DropPointManager.Instance.ClearPlayerTwoDropPoints();
-            _tipTail.GetComponent<Player2DropControl>().ClearTrail();
+            PaintArea(other.gameObject);
         }
-
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-        PlayerManager.Instance.player2 = gameObject;
-        _rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
-        _tipTail.AddComponent<Player2DropControl>();
-    }
-    protected override void FixedUpdate()
-    {
-        base.FixedUpdate();
-        PlayerRotation();
-    }
-    public override void Respawn()
-    {
-        base.Respawn();
-        _tipTail.GetComponent<Player2DropControl>().ClearTrail();
-        DropPointManager.Instance.ClearPlayerTwoDropPoints();
-
+        // 金の網に当たったら
+        if (other.gameObject.CompareTag("GoldenSilk"))
+        {
+            ScoreItemManager.Instance.SetGotSilkPlayer(gameObject);
+        }
+        // ゴールに当たったら
+        if (other.gameObject.CompareTag("Goal"))
+        {
+            // 自分が金の網を持っていたら
+            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+            {
+                ScoreItemManager.Instance.SetReachGoalProperties();
+                gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
+            }
+        }
     }
 
     protected override void ResetPlayerTransform()
@@ -77,8 +57,72 @@ public class Player2Control : Player
         gameObject.transform.position = Global.PLAYER2_START_POSITION;
         gameObject.transform.localEulerAngles = new Vector3(0.0f,-1.0f,0.0f);
         transform.forward = Vector3.back;
+    }
+
+    protected override void SetDeadStatus()
+    {
+        base.SetDeadStatus();
+        tipTail.GetComponent<Player2DropControl>().ClearTrail();
+        DropPointManager.Instance.ClearPlayerTwoDropPoints();
+    }
+
+    protected override void GroundColorCheck()
+    {
+        // 自分の領域にいたら
+        if (colorCheck.isTargetColor(areaColor))
+        {
+            SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
+        }
+        // 別のプレイヤーの領域にいたら
+        else if (colorCheck.isTargetColor(GameManager.Instance.playerOne.GetComponent<Player1Control>().areaColor))
+        {
+            SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
+        }
+        else
+        {
+            SetMoveSpeedCoefficient(1.0f);
+        }
+    }
+
+    protected override void PaintArea(GameObject ob)
+    {
+        isPainting = true;
+        // 描画すべき領域の頂点を取得する
+        List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(ob.gameObject);
+        if (verts != null)
+        {
+            TailControl tc = rootTail.GetComponent<TailControl>();
+            GameObject[] tails = tc?.GetTails();
+            for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
+            {
+                verts.Add(tails[^i].transform.position);
+            }
+        }
+        verts.Add(transform.position);
+
+        // 領域を描画する
+        PolygonPaintManager.Instance.Paint(verts.ToArray(), areaColor);
+        // DropPointを全て消す
+        DropPointManager.Instance.ClearPlayerTwoDropPoints();
+        tipTail.GetComponent<Player2DropControl>().ClearTrail();
 
     }
 
+    protected override void Awake()
+    {
+        base.Awake();
+        rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
+        tipTail.AddComponent<Player2DropControl>();
+    }
 
+    private void Start()
+    {
+        GameManager.Instance.playerTwo = gameObject;
+    }
+
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+        PlayerRotation();
+    }
 }
