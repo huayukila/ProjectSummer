@@ -28,14 +28,10 @@ public class EventSystemTest : MonoBehaviour
         if(Input.GetMouseButtonDown(0))
         {
             KillEvent killEvent = new KillEvent();
-            killEvent.Name = "steven";
+            killEvent.Name = "mai";
             killEvent.Age = 18;
             //传递数据的写法
-            TypeEventSystem.Instance.Send<KillEvent>(new KillEvent
-            {
-                Name = "steven",
-                Age = 18
-            });
+            TypeEventSystem.Instance.Send<KillEvent>(killEvent);
             
             //只发送事件的写法
             //TypeEventSystem.Instance.Send<GameStartEvent>();

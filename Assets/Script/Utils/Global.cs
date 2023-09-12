@@ -11,7 +11,7 @@ public static class Global
 
 
     public static float DROP_POINT_INTERVAL = 0.1f;
-    public static float DROP_POINT_ALIVE_TIME = 3.0f;
+    public static float DROP_POINT_ALIVE_TIME = 2.5f;
 
     public static float RESPAWN_TIME = 5.0f;
 }

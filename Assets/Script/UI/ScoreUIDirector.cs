@@ -23,7 +23,7 @@ public class ScoreUIDirector : MonoBehaviour
     {
         int scoreplayer01 = ScoreSystem.Instance.GetPlayer1Score();　　　　　　　//プレイヤ０１のスコアを代入
         int scorePlayer02 = ScoreSystem.Instance.GetPlayer2Score();　　　　　　　//プレイヤ０２のスコアを代入
-        
+
         float timerRealTime = timer.GetTime();                          //タイマーのリアルタイムを代入
         
         this.p1ScoreUI.GetComponent<TextMeshProUGUI>().text = "RED SCORE:" + scoreplayer01.ToString();　   //テキストの内容
