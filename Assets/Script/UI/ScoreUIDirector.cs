@@ -28,7 +28,7 @@ public class ScoreUIDirector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        int scoreplayer01 = scoreSystem.GetPlayer1Score();　　　　　　　//プレイヤ０１のスコアを代入
+        int scoreplayer01 = ScoreSystem.Instance.GetPlayer1Score();　　　　　　　//プレイヤ０１のスコアを代入
         int scorePlayer02 = scoreSystem.GetPlayer2Score();　　　　　　　//プレイヤ０２のスコアを代入
         float timerRealTime = timer.GetTime();                          //タイマーのリアルタイムを代入
         this.P1ScoreUI.GetComponent<TextMeshProUGUI>().text = "RED SCORE:" + scoreplayer01.ToString();　   //テキストの内容

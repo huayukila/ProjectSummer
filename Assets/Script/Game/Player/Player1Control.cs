@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Player1Control : Player
 {
+    private Player1DropControl p1dc;
     protected override void PlayerRotation()
     {
         // •ûŒü“ü—Í‚ğæ“¾‚·‚é
@@ -35,6 +36,10 @@ public class Player1Control : Player
         {
             PaintArea(other.gameObject);
         }
+        if(other.gameObject.CompareTag("DropPoint2"))
+        {
+            SetDeadStatus();
+        }
         // ‹à‚Ì–Ô‚É“–‚½‚Á‚½‚ç
         if(other.gameObject.CompareTag("GoldenSilk"))
         {
@@ -63,8 +68,9 @@ public class Player1Control : Player
     {
         base.SetDeadStatus();
         // DropPoint‚ğ‘S‚ÄÁ‚·
-        tipTail.GetComponent<Player1DropControl>().ClearTrail();
+        //tipTail.GetComponent<Player1DropControl>().ClearTrail();
         DropPointManager.Instance.ClearPlayerOneDropPoints();
+        p1dc.ClearTrail();
     }
 
     protected override void GroundColorCheck()
@@ -90,7 +96,7 @@ public class Player1Control : Player
         isPainting = true;
         // •`‰æ‚·‚×‚«—Ìˆæ‚Ì’¸“_‚ğæ“¾‚·‚é
         List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob.gameObject);
-        if (verts != null)
+        /*if (verts != null)
         {
             TailControl tc = rootTail.GetComponent<TailControl>();
             GameObject[] tails = tc?.GetTails();
@@ -98,22 +104,22 @@ public class Player1Control : Player
             {
                 verts.Add(tails[^i].transform.position);
             }
-        }
+        }*/
         verts.Add(transform.position);
 
         // —Ìˆæ‚ğ•`‰æ‚·‚é
         PolygonPaintManager.Instance.Paint(verts.ToArray(), areaColor);
         // DropPoint‚ğ‘S‚ÄÁ‚·
         DropPointManager.Instance.ClearPlayerOneDropPoints();
-        tipTail.GetComponent<Player1DropControl>().ClearTrail();
-
+        //tipTail.GetComponent<Player1DropControl>().ClearTrail();
+        gameObject.GetComponent<Player1DropControl>().ClearTrail();
     }
 
     protected override void Awake()
     {
         base.Awake();
-        rootTail.GetComponent<TailControl>().SetTailsTag("Player1Tail");
-        tipTail.AddComponent<Player1DropControl>();
+        //rootTail.GetComponent<TailControl>().SetTailsTag("Player1Tail");
+        p1dc = gameObject.AddComponent<Player1DropControl>();
     }
 
     private void Start()

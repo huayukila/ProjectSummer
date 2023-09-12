@@ -35,6 +35,7 @@ public abstract class Player : MonoBehaviour
 
     }
 
+
     /// <summary>
     /// è’ìÀÇ™Ç†Ç¡ÇΩÇ∆Ç´èàóùÇ∑ÇÈ
     /// </summary>
@@ -52,10 +53,10 @@ public abstract class Player : MonoBehaviour
 
     protected virtual void Awake()
     {
-        _tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
+        //_tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
         isPainting = false;
         _currentMoveSpeed = 0.0f;
-        SetTail();
+        //SetTail();
         _rigidbody = GetComponent<Rigidbody>();
         colorCheck = gameObject.AddComponent<ColorCheck>();
         colorCheck.layerMask = LayerMask.GetMask("Ground");
@@ -88,7 +89,7 @@ public abstract class Player : MonoBehaviour
     protected virtual void FixedUpdate()
     {
         PlayerMovement();
-        rootTail.transform.position = transform.position;
+        //rootTail.transform.position = transform.position;
     }
 
     /// <summary>
@@ -108,7 +109,7 @@ public abstract class Player : MonoBehaviour
     protected virtual void SetDeadStatus()
     {
         gameObject.SetActive(false);
-        rootTail.GetComponent<TailControl>().SetDeactiveProperties();
+        //rootTail.GetComponent<TailControl>().SetDeactiveProperties();
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
 
@@ -127,7 +128,7 @@ public abstract class Player : MonoBehaviour
         {
             _currentMoveSpeed = 0.0f;
             ResetPlayerTransform();
-            rootTail.GetComponent<TailControl>().SetActiveProperties(transform.position);
+            //rootTail.GetComponent<TailControl>().SetActiveProperties(transform.position);
             gameObject.SetActive(true);
             gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
         }
