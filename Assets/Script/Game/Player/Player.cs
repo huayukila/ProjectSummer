@@ -7,8 +7,6 @@ public abstract class Player : MonoBehaviour
     [Min(0.0f)] public float rotationSpeed;     // プレイヤーの回転速度
     public Color32 areaColor;                   // 領域または移動した跡の色
 
-    protected GameObject rootTail;              // 尻尾の頭
-    protected GameObject tipTail;               // 尻尾の尾
     protected bool isPainting;                  // 地面に描けるかどうかの信号 
     private Rigidbody _rigidbody;               // プレイヤーのRigidbody
     protected ColorCheck colorCheck;            // カラーチェックコンポネント
@@ -16,25 +14,6 @@ public abstract class Player : MonoBehaviour
     private Timer _paintableTimer;              // 領域を描く間隔を管理するタイマー
     private float _currentMoveSpeed;            // プレイヤーの現在速度
     private float _moveSpeedCoefficient;        // プレイヤーの移動速度の係数
-    private GameObject _tailPrefab;             // 尻尾のプレハブ
-
-    /// <summary>
-    /// 尻尾をインスタンス化する
-    /// </summary>
-    private void SetTail()
-    {
-        GameObject tail = Instantiate(_tailPrefab);
-        tail.name = gameObject.name + "Tail";
-        tail.transform.localScale = Vector3.one * 0.2f;
-        tail.transform.localRotation = transform.rotation;
-        tail.transform.position = transform.position;
-        tail.AddComponent<TailControl>();
-        rootTail = tail;
-        TailControl tc = rootTail.GetComponent<TailControl>();
-        tipTail = tc.GetTipTail();
-
-    }
-
 
     /// <summary>
     /// 衝突があったとき処理する
@@ -43,20 +22,31 @@ public abstract class Player : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         // 他のプレイヤー　もしくは　壁と衝突したら
-        bool isCollision = collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Wall");
-        if (isCollision)
+        if (collision.gameObject.CompareTag("Player"))
         {
             SetDeadStatus();
+            // 死亡したプレイヤーは金の網を持っていたら
+            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+            {
+                ScoreItemManager.Instance.DropGoldenSilk();
+            }
+        }
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            SetDeadStatus();
+            // 死亡したプレイヤーは金の網を持っていたら
+            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+            {
+                ScoreItemManager.Instance.DropGoldenSilkAwayFromEdge();
+            }
         }
 
     }
 
     protected virtual void Awake()
     {
-        //_tailPrefab = (GameObject)Resources.Load("Prefabs/Tail");
         isPainting = false;
         _currentMoveSpeed = 0.0f;
-        //SetTail();
         _rigidbody = GetComponent<Rigidbody>();
         colorCheck = gameObject.AddComponent<ColorCheck>();
         colorCheck.layerMask = LayerMask.GetMask("Ground");
@@ -109,15 +99,8 @@ public abstract class Player : MonoBehaviour
     protected virtual void SetDeadStatus()
     {
         gameObject.SetActive(false);
-        //rootTail.GetComponent<TailControl>().SetDeactiveProperties();
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
-
-        // 死亡したプレイヤーは金の網を持っていたら
-        if(ScoreItemManager.Instance.IsGotSilk(gameObject))
-        {
-            ScoreItemManager.Instance.DropGoldenSilk();
-        }
 
     }
 
@@ -128,7 +111,6 @@ public abstract class Player : MonoBehaviour
         {
             _currentMoveSpeed = 0.0f;
             ResetPlayerTransform();
-            //rootTail.GetComponent<TailControl>().SetActiveProperties(transform.position);
             gameObject.SetActive(true);
             gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
         }

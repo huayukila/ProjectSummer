@@ -7,6 +7,9 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 {   
     private Timer _goldenSilkSpawnTimer;        // 金の網を生成することを管理するタイマー
     private GameObject _gotSilkPlayer;          // 金の網を持っているプレイヤー
+    private Vector3 _awayFromEdgeStartPos;
+    private Vector3 _awayFromEdgeEndPos;
+    private bool _isStartAwayFromEdge;
 
     public GameObject inSpaceSilk;              // 金の網
     public GameObject goalPoint;                // ゴール
@@ -70,6 +73,15 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     }
 
     /// <summary>
+    /// 金の網が落ちたときのステータスを設定する
+    /// </summary>
+    private void SetDropSilkStatus()
+    {
+        _gotSilkPlayer = null;
+        inSpaceSilk.SetActive(true);
+        goalPoint.SetActive(false);
+    }
+    /// <summary>
     /// 金の網を持っているプレイヤーの設定をする
     /// </summary>
     /// <param name="ob"></param>
@@ -90,12 +102,21 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// </summary>
     public void DropGoldenSilk()
     {
-        if(_gotSilkPlayer != null)
+        if( _gotSilkPlayer != null )
         {
             inSpaceSilk.transform.position = _gotSilkPlayer.transform.position;
-            _gotSilkPlayer = null;
-            inSpaceSilk.SetActive(true);
-            goalPoint.SetActive(false);
+            SetDropSilkStatus();
+        }
+    }
+
+    public void DropGoldenSilkAwayFromEdge()
+    {
+        if( _gotSilkPlayer != null )
+        {
+            _awayFromEdgeStartPos = _gotSilkPlayer.transform.position;
+            _awayFromEdgeEndPos = (_gotSilkPlayer.transform.position - new Vector3(0.0f, 0.64f, 0.0f)) * 0.8f + new Vector3(0.0f,0.32f,0.0f);
+            _isStartAwayFromEdge = true;
+            SetDropSilkStatus();
         }
     }
 
@@ -116,6 +137,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         _goldenSilkSpawnTimer.SetTimer(10.0f, () => { inSpaceSilk.SetActive(true); });
         inSpaceSilk.SetActive(false);
         goalPoint.SetActive(false);
+        _isStartAwayFromEdge = false;
     }
     private void Update()
     {
@@ -124,6 +146,20 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             if (_goldenSilkSpawnTimer.IsTimerFinished())
             {
                 _goldenSilkSpawnTimer = null;
+            }
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (_isStartAwayFromEdge)
+        {
+            Vector3 temp = Vector3.Lerp(_awayFromEdgeStartPos, _awayFromEdgeEndPos, 0.05f);
+            _awayFromEdgeStartPos = temp;
+            inSpaceSilk.transform.position = _awayFromEdgeStartPos;
+            if((_awayFromEdgeStartPos - _awayFromEdgeEndPos).magnitude <= 0.1f)
+            {
+                _isStartAwayFromEdge = false;
             }
         }
     }

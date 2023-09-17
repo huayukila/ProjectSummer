@@ -15,7 +15,7 @@ public class Player1DropControl : DropPointControl
         TR.endColor = Color.blue;
         TR.startWidth = 0.5f;
         TR.endWidth = 0.5f;
-        TR.time = 3.0f;
+        TR.time = Global.DROP_POINT_ALIVE_TIME;
     }
 
 }
