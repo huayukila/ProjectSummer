@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Player2Control : Player
 {
+    private Player2DropControl p2dc;
     protected override void PlayerRotation()
     {
         // •ûŒü“ü—Í‚ğæ“¾‚·‚é
@@ -35,6 +36,10 @@ public class Player2Control : Player
         {
             PaintArea(other.gameObject);
         }
+        if(other.gameObject.CompareTag("DropPoint1"))
+        {
+            SetDeadStatus();
+        }
         // ‹à‚Ì–Ô‚É“–‚½‚Á‚½‚ç
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
@@ -62,8 +67,9 @@ public class Player2Control : Player
     protected override void SetDeadStatus()
     {
         base.SetDeadStatus();
-        tipTail.GetComponent<Player2DropControl>().ClearTrail();
+        //tipTail.GetComponent<Player2DropControl>().ClearTrail();
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
+        p2dc.ClearTrail();
     }
 
     protected override void GroundColorCheck()
@@ -89,7 +95,7 @@ public class Player2Control : Player
         isPainting = true;
         // •`‰æ‚·‚×‚«—Ìˆæ‚Ì’¸“_‚ğæ“¾‚·‚é
         List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(ob.gameObject);
-        if (verts != null)
+        /*if (verts != null)
         {
             TailControl tc = rootTail.GetComponent<TailControl>();
             GameObject[] tails = tc?.GetTails();
@@ -97,22 +103,24 @@ public class Player2Control : Player
             {
                 verts.Add(tails[^i].transform.position);
             }
-        }
+        }*/
         verts.Add(transform.position);
 
         // —Ìˆæ‚ğ•`‰æ‚·‚é
         PolygonPaintManager.Instance.Paint(verts.ToArray(), areaColor);
         // DropPoint‚ğ‘S‚ÄÁ‚·
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
-        tipTail.GetComponent<Player2DropControl>().ClearTrail();
+        //tipTail.GetComponent<Player2DropControl>().ClearTrail();
+        p2dc.ClearTrail();
 
     }
 
     protected override void Awake()
     {
         base.Awake();
-        rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
-        tipTail.AddComponent<Player2DropControl>();
+        //rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
+        //tipTail.AddComponent<Player2DropControl>();
+        p2dc = gameObject.AddComponent<Player2DropControl>();
     }
 
     private void Start()

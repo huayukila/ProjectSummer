@@ -47,6 +47,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         goalPoint.SetActive(false);
         _gotSilkPlayer = null;
 
+        _gotSilkPlayer = null;
         // 新しいタイマーを生成する
         _goldenSilkSpawnTimer = new Timer();
         _goldenSilkSpawnTimer.SetTimer(10.0f, 

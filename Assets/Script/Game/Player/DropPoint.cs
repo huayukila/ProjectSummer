@@ -3,7 +3,7 @@ using UnityEngine;
 public class DropPoint : MonoBehaviour
 {
     Timer timer;        // DropPointのタイマー
-
+    Timer _collidoractivetimer;
     void Awake()
     {
         // タイマーを初期化する
@@ -13,6 +13,13 @@ public class DropPoint : MonoBehaviour
             {
                 // 時間が経ったらDropPointを消す
                 Destroy(gameObject);
+            }
+            );
+        _collidoractivetimer = new Timer();
+        _collidoractivetimer.SetTimer(0.5f,
+            () =>
+            {
+                gameObject.GetComponent<Collider>().enabled = true;
             }
             );
     }
@@ -31,6 +38,10 @@ public class DropPoint : MonoBehaviour
             {
                 DropPointManager.Instance.PlayerTwoRemovePoint(gameObject);
             }
+        }
+        if(_collidoractivetimer?.IsTimerFinished() == true)
+        {
+            _collidoractivetimer = null;
         }
     }
 

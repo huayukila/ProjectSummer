@@ -16,6 +16,7 @@ public class ScoreSystem:Singleton<ScoreSystem>
         if (playerNumber == 1)
         {
             player1Score++;
+
         }
         else if (playerNumber == 2)
         {
