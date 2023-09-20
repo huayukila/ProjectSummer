@@ -8,17 +8,22 @@ public class Paintable : MonoBehaviour
     private Renderer rend;
     private RenderTexture maskTexture;
     private RenderTexture copyTexture;
+    private RenderTexture areaTexture;
 
     private int maskTextureID = Shader.PropertyToID("_MaskTex");
 
     public Renderer GetRenderer() => rend;
     public RenderTexture GetMask() => maskTexture;
     public RenderTexture GetCopy() => copyTexture;
+    public RenderTexture GetArea() => areaTexture;
     void Start()
     {
 
         maskTexture = new RenderTexture(textureSize, textureSize, 0);
         maskTexture.filterMode = FilterMode.Bilinear;
+
+        areaTexture = new RenderTexture(textureSize, textureSize, 0);
+        areaTexture.filterMode = FilterMode.Bilinear;
 
         copyTexture = new RenderTexture(textureSize, textureSize, 0);
         copyTexture.filterMode = FilterMode.Bilinear;
