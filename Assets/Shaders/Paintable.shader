@@ -4,17 +4,17 @@ Shader "Paint/Paintable"
     {
         [Head(Render)]
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
-        _Color ("Color", Color) = (1,1,1,1)
+        _Color ("Color", Color) = (1, 1, 1, 1)
         _BumpMap ("Normal", 2D) = "white" {} 
 
         [Head(Paint)]
         _MaskTex ("Mask (RGB)", 2D) = "black" {}
-        _AreaTex("Area(RGB)",2D)="black"{}
-        _Emission ("Emission", Range(0,1)) = 0.0
+        _AreaMaskTex ("Area (RGB)", 2D) = "black" {}
+        _Emission ("Emission", Range(0, 1)) = 0.0
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType" = "Opaque" }
         LOD 200
 
         Pass
@@ -62,15 +62,18 @@ Shader "Paint/Paintable"
 
             CustomSurfaceOutput frag (v2f i) : SV_Target
             {
-                fixed4 c = tex2D(_MainTex, i.uv) * _Color;
-                fixed4 mask = tex2D(_MaskTex, i.uv);
+                half4 mask = tex2D(_MaskTex, i.uv);
+                half4 areaMask = tex2D(_AreaMaskTex, i.uv);
 
                 CustomSurfaceOutput o;
-                o.Albedo = lerp(c.rgb, mask.rgb, mask.a);
+                half3 mixedColor = lerp(mask.rgb, areaMask.rgb, areaMask.a);
+    
+                fixed4 c = tex2D(_MainTex, i.uv) * _Color;
+                o.Albedo = lerp(c.rgb, mixedColor, mask.a);
+
                 o.Normal = UnpackNormal(tex2D(_BumpMap, i.uv));
                 o.Emission = _Emission;
-
-                return o;
+               return o;
             }
             ENDCG
         }

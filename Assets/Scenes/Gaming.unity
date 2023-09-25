@@ -2345,9 +2345,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   texturePaint: {fileID: 4800000, guid: 848d39d443743084990dd1b91b27ab6c, type: 3}
-  areaPaint: {fileID: 0}
-  playerAreaTexture: {fileID: 0}
-  playerBreaTexture: {fileID: 0}
+  areaPaint: {fileID: 4800000, guid: bffacadb33e22964b8dd2a92cad97a1e, type: 3}
+  player1AreaTexture: {fileID: 0}
+  player2AreaTexture: {fileID: 0}
   mapPaintable: {fileID: 1142179350}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
