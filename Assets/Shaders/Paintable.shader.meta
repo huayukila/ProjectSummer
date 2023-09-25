@@ -6,6 +6,7 @@ ShaderImporter:
   - _MainTex: {instanceID: 0}
   - _BumpMap: {instanceID: 0}
   - _MaskTex: {instanceID: 0}
+  - _AreaTex: {instanceID: 0}
   nonModifiableTextures: []
   userData: 
   assetBundleName: 

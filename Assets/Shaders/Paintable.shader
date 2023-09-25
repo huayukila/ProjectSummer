@@ -4,11 +4,12 @@ Shader "Paint/Paintable"
     {
         [Head(Render)]
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
-        _Color ("Color", Color) = (1,1,1,1) // Define _Color as a Color property
+        _Color ("Color", Color) = (1,1,1,1)
         _BumpMap ("Normal", 2D) = "white" {} 
 
         [Head(Paint)]
         _MaskTex ("Mask (RGB)", 2D) = "black" {}
+        _AreaTex("Area(RGB)",2D)="black"{}
         _Emission ("Emission", Range(0,1)) = 0.0
     }
     SubShader
@@ -38,8 +39,9 @@ Shader "Paint/Paintable"
             sampler2D _MainTex;
             sampler2D _BumpMap;
             sampler2D _MaskTex;
+            sampler2D _AreaTex;
 
-            half4 _Color; // Declare _Color as a variable
+            half4 _Color;
 
             half _Emission;
 
@@ -55,19 +57,18 @@ Shader "Paint/Paintable"
             {
                 half3 Albedo;
                 half3 Normal;
-                half3 Emission; // Custom emission property
+                half3 Emission;
             };
 
             CustomSurfaceOutput frag (v2f i) : SV_Target
             {
-                // Albedo comes from a texture tinted by color
-                fixed4 c = tex2D(_MainTex, i.uv) * _Color; // Use _Color
+                fixed4 c = tex2D(_MainTex, i.uv) * _Color;
                 fixed4 mask = tex2D(_MaskTex, i.uv);
 
                 CustomSurfaceOutput o;
                 o.Albedo = lerp(c.rgb, mask.rgb, mask.a);
                 o.Normal = UnpackNormal(tex2D(_BumpMap, i.uv));
-                o.Emission = _Emission; // Set the custom emission property
+                o.Emission = _Emission;
 
                 return o;
             }
