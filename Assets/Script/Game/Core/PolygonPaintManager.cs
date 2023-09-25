@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,6 +13,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
 
     CommandBuffer command;
     private Material paintMaterial;
+    private Material areaMaterial;
     int colorID = Shader.PropertyToID("_Color");
     int textureID = Shader.PropertyToID("_MainTex");
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
@@ -39,7 +39,6 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     {
         RenderTexture mask = mapPaintable.GetMask();
         RenderTexture copy = mapPaintable.GetCopy();
-        RenderTexture area= mapPaintable.GetArea();
         Renderer rend = mapPaintable.GetRenderer();
 
         //shaderは4次元の配列しか受けられないので、一応転換
@@ -69,6 +68,39 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         //命令隊列クリア
         command.Clear();
     }
+
+    public void PaintArea(Vector3[] worldPosList)
+    {
+        RenderTexture areaMask = mapPaintable.GetAreaMask();
+        RenderTexture areaCopy=mapPaintable.GetAreaCopy();
+        Renderer rend = mapPaintable.GetRenderer();
+
+        Vector4[] posList = new Vector4[100];
+        for (int i = 0; i < worldPosList.Length; i++)
+        {
+            posList[i] = worldPosList[i];
+        }
+        //shader変数設置
+        areaMaterial.SetInt(maxVertNum, worldPosList.Length);
+        areaMaterial.SetVectorArray("_worldPosList", posList);
+        areaMaterial.SetTexture(textureID, playerAreaTexture);
+
+        //renderの目標をmaskに設定する
+        command.SetRenderTarget(areaMask);
+        //render開始
+        command.DrawRenderer(rend, areaMaterial, 0);
+
+        //目標をcopyに設定
+        command.SetRenderTarget(areaCopy);
+        //maskの描画をcopyに加える
+        command.Blit(areaMask, areaCopy);
+
+        //renderの命令を流れさせる
+        Graphics.ExecuteCommandBuffer(command);
+        //命令隊列クリア
+        command.Clear();
+    }
+
     /// <summary>
     /// debug用関数
     /// </summary>
@@ -90,6 +122,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     {
         base.Awake();
         paintMaterial = new Material(texturePaint);
+        areaMaterial = new Material(areaPaint);
+
         command = new CommandBuffer();
         command.name = "CommmandBuffer - " + gameObject.name;
     }

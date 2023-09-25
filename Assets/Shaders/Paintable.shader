@@ -39,7 +39,7 @@ Shader "Paint/Paintable"
             sampler2D _MainTex;
             sampler2D _BumpMap;
             sampler2D _MaskTex;
-            sampler2D _AreaTex;
+            sampler2D _AreaMaskTex;
 
             half4 _Color;
 
