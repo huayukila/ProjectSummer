@@ -9,6 +9,7 @@ Shader "Paint/AreaPainter"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #include "UnityCG.cginc"
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -40,7 +41,8 @@ Shader "Paint/AreaPainter"
                 return (count % 2) == 1;
             }
 
-            sampler2D _AreaText;
+            sampler2D _PlayerAreaText;
+            sampler2D _MainTex;
 
             vector _worldPosList[100];
             int _MaxVertNum;
@@ -56,14 +58,15 @@ Shader "Paint/AreaPainter"
                 return o;
             }
 
-            half4 frag (v2f i) : SV_Target
+            fixed4 frag (v2f i) : SV_Target
             {
-                if (mask(_MaxVertNum, _worldPosList, i.worldPos))
+                bool isMasked = mask(_MaxVertNum, _worldPosList, i.worldPos);
+                if (isMasked)
                 {
-                    half4 texColor = tex2D(_AreaText, i.uv);
-                    return texColor;
+                    fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, i.uv);
+                    return playerAreaTextColor;
                 }
-                return half4(0, 0, 0, 0);
+                    return tex2D(_MainTex,i.uv);
             }
             ENDCG
         }
