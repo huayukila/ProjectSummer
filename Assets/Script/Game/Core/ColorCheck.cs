@@ -15,24 +15,25 @@ public class ColorCheck : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(gameObject.transform.position, Vector3.down, out hit, raycastDistance, layerMask))
         {
-            //マネージャーからマップのRTをもらう
             if (mapMaskTexture == null)
             {
-                mapMaskTexture = hit.transform.gameObject.GetComponent<Paintable>().GetMask();
+                mapMaskTexture = hit.transform.gameObject.GetComponent<Paintable>().GetCopy();
             }
-            //ヒットポイントの世界座標をuv座標に変換する
-            float uvX = hit.textureCoord.x;
-            float uvY = hit.textureCoord.y;
-            int x = Mathf.RoundToInt(uvX * mapMaskTexture.width);
-            int y = Mathf.RoundToInt(uvY * mapMaskTexture.height);
-            //GPUにヒットポイントところの色判別結果を請求する。
-            AsyncGPUReadback.Request(mapMaskTexture, 0, x, 1, y, 1, 0, 1, TextureFormat.RGBA32,
-                        (req) =>
-                        {
-                            colorArray = req.GetData<Color32>();
-                            Debug.Log(colorArray[0]);
-                            _CurrentColor = colorArray[0];
-                        });
+            else
+            {
+                //ヒットポイントの世界座標をuv座標に変換する
+                float uvX = hit.textureCoord.x;
+                float uvY = hit.textureCoord.y;
+                int x = Mathf.RoundToInt(uvX * mapMaskTexture.width);
+                int y = Mathf.RoundToInt(uvY * mapMaskTexture.height);
+                //GPUにヒットポイントところの色判別結果を請求する。
+                AsyncGPUReadback.Request(mapMaskTexture, 0, x, 1, y, 1, 0, 1, TextureFormat.RGBA32,
+                            (req) =>
+                            {
+                                colorArray = req.GetData<Color32>();
+                                _CurrentColor = colorArray[0];
+                            });
+            }
         }
     }
     /// <summary>
@@ -47,5 +48,6 @@ public class ColorCheck : MonoBehaviour
             Mathf.Abs(targetColor.g - _CurrentColor.g) +
             Mathf.Abs(targetColor.b - _CurrentColor.b)
             < 0.1f;
+
     }
 }
