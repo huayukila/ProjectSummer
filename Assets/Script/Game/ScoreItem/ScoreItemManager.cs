@@ -15,7 +15,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
     public GameObject inSpaceSilk;              // 金の網
     public GameObject goalPoint;                // ゴール
-    public Material goldMaterial;               // 金の網の材質
 
 
     /// <summary>
@@ -26,7 +25,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private Vector3 GetInSpaceRandomPosition()
     {
         // temp pos
-        return new Vector3(-55.0f,0.64f,36.0f);
+        return new Vector3(0.0f,0.64f,0.0f);
     }
 
     /// <summary>
@@ -46,7 +45,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private void SetGoalPoint()
     {
         // temp pos
-        goalPoint.transform.position = new Vector3(-39.0f,0.64f,46.0f);
+        goalPoint.transform.position = new Vector3(35.0f,0.64f,15.0f);
         goalPoint.SetActive(true);
     }
 
@@ -84,7 +83,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             _gotSilkPlayer = ob;
         }
         // 持っているプレイヤーの材質を変える（区別するため）
-        _gotSilkPlayer.GetComponent<Renderer>().material = goldMaterial;
+        _gotSilkPlayer.GetComponent<Renderer>().material.color = Color.yellow;
         inSpaceSilk.SetActive(false);
         SetGoalPoint();
     }
@@ -135,6 +134,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         base.Awake();
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
+        inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
+        inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {

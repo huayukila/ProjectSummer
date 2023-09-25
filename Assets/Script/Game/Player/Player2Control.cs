@@ -56,7 +56,7 @@ public class Player2Control : Player
                     playerID = 2
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
-                gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
+                gameObject.GetComponent<Renderer>().material.color = Color.black;
             }
         }
     }

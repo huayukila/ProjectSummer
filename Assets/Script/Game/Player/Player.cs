@@ -57,6 +57,7 @@ public abstract class Player : MonoBehaviour
         {
             player = gameObject
         };
+        gameObject.GetComponent<Renderer>().material.color = Color.black;
     }
 
     private void Update()
@@ -117,7 +118,7 @@ public abstract class Player : MonoBehaviour
             _currentMoveSpeed = 0.0f;
             ResetPlayerTransform();
             gameObject.SetActive(true);
-            gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
+            gameObject.GetComponent<Renderer>().material.color = Color.black;
         }
     }
 

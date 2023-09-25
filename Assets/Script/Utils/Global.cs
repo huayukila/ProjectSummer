@@ -2,8 +2,8 @@ using UnityEngine;
 
 public static class Global
 {
-    public static Vector3 PLAYER1_START_POSITION = new Vector3(-55.6f, 0.64f, 3.5f);
-    public static Vector3 PLAYER2_START_POSITION = new Vector3(-55.6f, 0.64f, 80.0f);
+    public static Vector3 PLAYER1_START_POSITION = new Vector3(0.0f, 0.64f, -40.0f);
+    public static Vector3 PLAYER2_START_POSITION = new Vector3(0.0f, 0.64f, 37.0f);
 
     public static float SPEED_DOWN_COEFFICIENT = 0.5f;
     public static float SPEED_UP_COEFFICIENT = 1.25f;
