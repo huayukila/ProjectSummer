@@ -5,11 +5,13 @@ public abstract class Player : MonoBehaviour
     public float maxMoveSpeed;                  // プレイヤーの最大速度
     [Min(0.0f)] public float acceleration;      // プレイヤーの加速度
     [Min(0.0f)] public float rotationSpeed;     // プレイヤーの回転速度
-    public Color32 areaColor;                   // 領域または移動した跡の色
+    [SerializeField]Color32 _areaColor;         // 領域または移動した跡の色
 
     protected bool isPainting;                  // 地面に描けるかどうかの信号 
     private Rigidbody _rigidbody;               // プレイヤーのRigidbody
     protected ColorCheck colorCheck;            // カラーチェックコンポネント
+    protected DropSilkEvent dropSilkEvent;
+    protected PickSilkEvent pickSilkEvent;
 
     private Timer _paintableTimer;              // 領域を描く間隔を管理するタイマー
     private float _currentMoveSpeed;            // プレイヤーの現在速度
@@ -21,24 +23,17 @@ public abstract class Player : MonoBehaviour
     /// <param name="collision"></param>
     private void OnCollisionEnter(Collision collision)
     {
-        // 他のプレイヤー　もしくは　壁と衝突したら
-        if (collision.gameObject.CompareTag("Player"))
+        // 衝突したら死亡状態に設定する
+        SetDeadStatus();
+        // 死亡したプレイヤーは金の網を持っていたら
+        if (ScoreItemManager.Instance.IsGotSilk(gameObject))
         {
-            SetDeadStatus();
-            // 死亡したプレイヤーは金の網を持っていたら
-            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+            if (collision.gameObject.CompareTag("Wall"))
             {
-                ScoreItemManager.Instance.DropGoldenSilk();
+                dropSilkEvent.dropMode = DropMode.Edge;
             }
-        }
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            SetDeadStatus();
-            // 死亡したプレイヤーは金の網を持っていたら
-            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
-            {
-                ScoreItemManager.Instance.DropGoldenSilkAwayFromEdge();
-            }
+            TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
+
         }
 
     }
@@ -51,6 +46,17 @@ public abstract class Player : MonoBehaviour
         colorCheck = gameObject.AddComponent<ColorCheck>();
         colorCheck.layerMask = LayerMask.GetMask("Ground");
         _moveSpeedCoefficient = 1.0f;
+        maxMoveSpeed = Global.PLAYER_MAXMOVESPEED;
+        acceleration = Global.PLAYER_ACCELERATION;
+        rotationSpeed = Global.PLAYER_ROTATIONSPEED;
+        dropSilkEvent = new DropSilkEvent()
+        {
+            dropMode = DropMode.Standard
+        };
+        pickSilkEvent = new PickSilkEvent()
+        {
+            player = gameObject
+        };
     }
 
     private void Update()
@@ -79,7 +85,6 @@ public abstract class Player : MonoBehaviour
     protected virtual void FixedUpdate()
     {
         PlayerMovement();
-        //rootTail.transform.position = transform.position;
     }
 
     /// <summary>
@@ -116,6 +121,12 @@ public abstract class Player : MonoBehaviour
         }
     }
 
+    public Color32 GetAreaColor() => _areaColor;
+
+    public void SetAreaColor(Color32 color)
+    {
+        _areaColor = color;
+    }
     /// <summary>
     /// プレイヤーのリジッドボディを回転させる
     /// </summary>

@@ -26,24 +26,24 @@ public class Player1Control : Player
     /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
-        // 別のプレイヤーの尻尾に当たったら
-        if(other.gameObject.CompareTag("Player2Tail"))
+        // 別のプレイヤーのDropPointに当たったら
+        if(other.gameObject.CompareTag("DropPoint2"))
         {
             SetDeadStatus();
+            if(ScoreItemManager.Instance.IsGotSilk(gameObject))
+            {
+                TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
+            }
         }
         // 自分のDropPointに当たったら
         if (other.gameObject.CompareTag("DropPoint1") && !isPainting)
         {
             PaintArea(other.gameObject);
         }
-        if(other.gameObject.CompareTag("DropPoint2"))
-        {
-            SetDeadStatus();
-        }
         // 金の網に当たったら
         if(other.gameObject.CompareTag("GoldenSilk"))
         {
-            ScoreItemManager.Instance.SetGotSilkPlayer(gameObject);
+            TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
         // ゴールに当たったら
         if(other.gameObject.CompareTag("Goal"))
@@ -51,7 +51,11 @@ public class Player1Control : Player
             // 自分が金の網を持っていたら
             if(ScoreItemManager.Instance.IsGotSilk(gameObject))
             {
-                ScoreItemManager.Instance.SetReachGoalProperties();
+                AddScoreEvent AddScoreEvent = new AddScoreEvent()
+                {
+                    playerID = 1
+                };
+                TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
                 gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
             }
         }
@@ -60,7 +64,6 @@ public class Player1Control : Player
     protected override void ResetPlayerTransform()
     {
         transform.position = Global.PLAYER1_START_POSITION;
-        transform.localEulerAngles = new Vector3(0.0f,0.0f,0.0f);
         transform.forward = Vector3.forward;
     }
 
@@ -75,12 +78,12 @@ public class Player1Control : Player
     protected override void GroundColorCheck()
     {
         // 自分の領域にいたら
-        if(colorCheck.isTargetColor(areaColor))
+        if(colorCheck.isTargetColor(GetAreaColor()))
         {
             SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
         }
         // 別のプレイヤーの領域にいたら
-        else if(colorCheck.isTargetColor(GameManager.Instance.playerTwo.GetComponent<Player2Control>().areaColor))
+        else if(colorCheck.isTargetColor(GameManager.Instance.playerTwo.GetComponent<Player2Control>().GetAreaColor()))
         {
             SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
         }
@@ -97,7 +100,7 @@ public class Player1Control : Player
         List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob.gameObject);
         verts.Add(transform.position);
         // 領域を描画する
-        PolygonPaintManager.Instance.Paint(verts.ToArray(), areaColor);
+        PolygonPaintManager.Instance.Paint(verts.ToArray(), GetAreaColor());
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerOneDropPoints();
         gameObject.GetComponent<Player1DropControl>().ClearTrail();

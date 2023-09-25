@@ -1,8 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.VersionControl;
 using UnityEngine;
 
+public enum DropMode
+{
+    Standard,
+    Edge
+};
 public class ScoreItemManager : Singleton<ScoreItemManager>
 {   
     private Timer _goldenSilkSpawnTimer;        // 金の網を生成することを管理するタイマー
@@ -14,6 +16,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     public GameObject inSpaceSilk;              // 金の網
     public GameObject goalPoint;                // ゴール
     public Material goldMaterial;               // 金の網の材質
+
 
     /// <summary>
     /// 金の網の生成位置を決める関数
@@ -29,36 +32,11 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// <summary>
     /// 金の網はゴールまで運搬された時の操作をする
     /// </summary>
-    public void SetReachGoalProperties()
+    public void SetReachGoalProperties(int ID)
     {
-        // プレイヤー1が運搬したら
-        if(_gotSilkPlayer == GameManager.Instance.playerOne)
-        {
-            // player1 get 1 point
-            Debug.Log("Player 1 get 1 point");
-            ScoreSystem.Instance.AddScore(1);
-        }
-        // プレイヤー2が運搬したら
-        if (_gotSilkPlayer == GameManager.Instance.playerTwo)
-        {
-            // player2 get 1 point
-            Debug.Log("Player 2 get 1 point");
-            ScoreSystem.Instance.AddScore(2);
-        }
-
-        inSpaceSilk.SetActive(false);
-        goalPoint.SetActive(false);
-        _gotSilkPlayer = null;
-
-        _gotSilkPlayer = null;
-        // 新しいタイマーを生成する
-        _goldenSilkSpawnTimer = new Timer();
-        _goldenSilkSpawnTimer.SetTimer(10.0f, 
-            () => 
-            {   inSpaceSilk.transform.position = GetInSpaceRandomPosition();
-                inSpaceSilk.SetActive(true); 
-            }
-            );
+        ScoreSystem.Instance.AddScore(ID);
+        // 新しい金の網を生成する
+        GenerateNewSilk();
     }
 
     /// <summary>
@@ -72,6 +50,20 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         goalPoint.SetActive(true);
     }
 
+    private void GenerateNewSilk()
+    {
+        _goldenSilkSpawnTimer = new Timer();
+        _goldenSilkSpawnTimer.SetTimer(10.0f,
+            () =>
+            {
+                inSpaceSilk.transform.position = GetInSpaceRandomPosition();
+                inSpaceSilk.SetActive(true);
+            }
+            );
+        inSpaceSilk.SetActive(false);
+        goalPoint.SetActive(false);
+        _gotSilkPlayer = null;
+    }
     /// <summary>
     /// 金の網が落ちたときのステータスを設定する
     /// </summary>
@@ -100,22 +92,30 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// <summary>
     /// 金の網を持っていたプレイヤーが死んだら金の網をドロップする
     /// </summary>
-    public void DropGoldenSilk()
+    public void DropGoldenSilk(DropMode mode)
     {
         if( _gotSilkPlayer != null )
         {
-            inSpaceSilk.transform.position = _gotSilkPlayer.transform.position;
-            SetDropSilkStatus();
-        }
-    }
+            switch(mode)
+            {
+                case DropMode.Standard:
+                    {
+                        inSpaceSilk.transform.position = _gotSilkPlayer.transform.position;
+                        break;
+                    }
+                case DropMode.Edge: 
+                    {
+                        _awayFromEdgeStartPos = _gotSilkPlayer.transform.position;
+                        _awayFromEdgeEndPos = (_gotSilkPlayer.transform.position - new Vector3(0.0f, 0.64f, 0.0f)) * 0.8f + new Vector3(0.0f, 0.64f, 0.0f) * 0.2f;
+                        _isStartAwayFromEdge = true;
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }                
+            }
 
-    public void DropGoldenSilkAwayFromEdge()
-    {
-        if( _gotSilkPlayer != null )
-        {
-            _awayFromEdgeStartPos = _gotSilkPlayer.transform.position;
-            _awayFromEdgeEndPos = (_gotSilkPlayer.transform.position - new Vector3(0.0f, 0.64f, 0.0f)) * 0.8f + new Vector3(0.0f,0.32f,0.0f);
-            _isStartAwayFromEdge = true;
             SetDropSilkStatus();
         }
     }
@@ -133,11 +133,9 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     protected override void Awake()
     {
         base.Awake();
-        _goldenSilkSpawnTimer = new Timer();
-        _goldenSilkSpawnTimer.SetTimer(10.0f, () => { inSpaceSilk.SetActive(true); });
-        inSpaceSilk.SetActive(false);
-        goalPoint.SetActive(false);
+        GenerateNewSilk();
         _isStartAwayFromEdge = false;
+
     }
     private void Update()
     {

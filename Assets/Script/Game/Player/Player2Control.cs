@@ -26,24 +26,24 @@ public class Player2Control : Player
     /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
-        // 別のプレイヤーの尻尾に当たったら
-        if (other.gameObject.CompareTag("Player1Tail"))
+        // 別のプレイヤーのDropPointに当たったら
+        if (other.gameObject.CompareTag("DropPoint1"))
         {
             SetDeadStatus();
+            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+            {
+                TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
+            }
         }
         // DropPointに当たったら
         if (other.gameObject.CompareTag("DropPoint2") && !isPainting)
         {
             PaintArea(other.gameObject);
         }
-        if(other.gameObject.CompareTag("DropPoint1"))
-        {
-            SetDeadStatus();
-        }
         // 金の網に当たったら
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
-            ScoreItemManager.Instance.SetGotSilkPlayer(gameObject);
+            TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
         // ゴールに当たったら
         if (other.gameObject.CompareTag("Goal"))
@@ -51,7 +51,11 @@ public class Player2Control : Player
             // 自分が金の網を持っていたら
             if (ScoreItemManager.Instance.IsGotSilk(gameObject))
             {
-                ScoreItemManager.Instance.SetReachGoalProperties();
+                AddScoreEvent AddScoreEvent = new AddScoreEvent()
+                {
+                    playerID = 2
+                };
+                TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
                 gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
             }
         }
@@ -59,15 +63,13 @@ public class Player2Control : Player
 
     protected override void ResetPlayerTransform()
     {
-        gameObject.transform.position = Global.PLAYER2_START_POSITION;
-        gameObject.transform.localEulerAngles = new Vector3(0.0f,-1.0f,0.0f);
+        transform.position = Global.PLAYER2_START_POSITION;
         transform.forward = Vector3.back;
     }
 
     protected override void SetDeadStatus()
     {
         base.SetDeadStatus();
-        //tipTail.GetComponent<Player2DropControl>().ClearTrail();
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();
     }
@@ -75,12 +77,12 @@ public class Player2Control : Player
     protected override void GroundColorCheck()
     {
         // 自分の領域にいたら
-        if (colorCheck.isTargetColor(areaColor))
+        if (colorCheck.isTargetColor(GetAreaColor()))
         {
             SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
         }
         // 別のプレイヤーの領域にいたら
-        else if (colorCheck.isTargetColor(GameManager.Instance.playerOne.GetComponent<Player1Control>().areaColor))
+        else if (colorCheck.isTargetColor(GameManager.Instance.playerOne.GetComponent<Player1Control>().GetAreaColor()))
         {
             SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
         }
@@ -95,22 +97,11 @@ public class Player2Control : Player
         isPainting = true;
         // 描画すべき領域の頂点を取得する
         List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(ob.gameObject);
-        /*if (verts != null)
-        {
-            TailControl tc = rootTail.GetComponent<TailControl>();
-            GameObject[] tails = tc?.GetTails();
-            for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
-            {
-                verts.Add(tails[^i].transform.position);
-            }
-        }*/
         verts.Add(transform.position);
-
         // 領域を描画する
-        PolygonPaintManager.Instance.Paint(verts.ToArray(), areaColor);
+        PolygonPaintManager.Instance.Paint(verts.ToArray(), GetAreaColor());
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
-        //tipTail.GetComponent<Player2DropControl>().ClearTrail();
         p2dc.ClearTrail();
 
     }
@@ -118,8 +109,6 @@ public class Player2Control : Player
     protected override void Awake()
     {
         base.Awake();
-        //rootTail.GetComponent<TailControl>().SetTailsTag("Player2Tail");
-        //tipTail.AddComponent<Player2DropControl>();
         p2dc = gameObject.AddComponent<Player2DropControl>();
     }
 
