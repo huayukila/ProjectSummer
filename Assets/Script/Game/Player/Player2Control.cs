@@ -98,8 +98,8 @@ public class Player2Control : Player
         // •`‰æ‚·‚×‚«—Ìˆæ‚Ì’¸“_‚ğæ“¾‚·‚é
         List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(ob.gameObject);
         verts.Add(transform.position);
-        // —Ìˆæ‚ğ•`‰æ‚·‚é
-        PolygonPaintManager.Instance.Paint(verts.ToArray(), GetAreaColor());
+        // —Ìˆæ‚ğ•`‰æ‚·‚é@¦‚Q‚ÍƒvƒŒƒCƒ„[‚Q‚ğw‚·
+        PolygonPaintManager.Instance.Paint(verts.ToArray(),2,GetAreaColor());
         // DropPoint‚ğ‘S‚ÄÁ‚·
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();

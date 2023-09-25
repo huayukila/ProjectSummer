@@ -99,8 +99,8 @@ public class Player1Control : Player
         // •`‰æ‚·‚×‚«—Ìˆæ‚Ì’¸“_‚ğæ“¾‚·‚é
         List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob.gameObject);
         verts.Add(transform.position);
-        // —Ìˆæ‚ğ•`‰æ‚·‚é
-        PolygonPaintManager.Instance.Paint(verts.ToArray(), GetAreaColor());
+        // —Ìˆæ‚ğ•`‰æ‚·‚é@¦‚P‚ÍƒvƒŒƒCƒ„[‚P‚ğw‚·
+        PolygonPaintManager.Instance.Paint(verts.ToArray(),1,GetAreaColor());
         // DropPoint‚ğ‘S‚ÄÁ‚·
         DropPointManager.Instance.ClearPlayerOneDropPoints();
         gameObject.GetComponent<Player1DropControl>().ClearTrail();

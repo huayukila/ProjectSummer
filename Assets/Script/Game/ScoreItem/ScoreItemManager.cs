@@ -108,11 +108,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
                         _awayFromEdgeEndPos = (_gotSilkPlayer.transform.position - new Vector3(0.0f, 0.64f, 0.0f)) * 0.8f + new Vector3(0.0f, 0.64f, 0.0f) * 0.2f;
                         _isStartAwayFromEdge = true;
                         break;
-                    }
-                default:
-                    {
-                        break;
-                    }                
+                    }        
             }
 
             SetDropSilkStatus();
@@ -135,7 +131,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
         inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
-        inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
+        goalPoint.GetComponent<Renderer>().material.color = Color.yellow;
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {

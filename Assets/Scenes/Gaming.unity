@@ -1145,7 +1145,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inSpaceSilk: {fileID: 938304983}
   goalPoint: {fileID: 1338334516}
-  goldMaterial: {fileID: 2100000, guid: 4164b4e61727c2244aab468f047f1d8b, type: 2}
 --- !u!4 &771831067
 Transform:
   m_ObjectHideFlags: 0
@@ -1265,7 +1264,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4164b4e61727c2244aab468f047f1d8b, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1304,7 +1303,7 @@ Transform:
   m_GameObject: {fileID: 938304983}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.33, y: 0.64, z: 0.1}
+  m_LocalPosition: {x: 0, y: 0.64, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1625,7 +1624,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4164b4e61727c2244aab468f047f1d8b, type: 2}
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2042,8 +2041,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   texturePaint: {fileID: 4800000, guid: 848d39d443743084990dd1b91b27ab6c, type: 3}
   areaPaint: {fileID: 4800000, guid: bffacadb33e22964b8dd2a92cad97a1e, type: 3}
-  player1AreaTexture: {fileID: 0}
-  player2AreaTexture: {fileID: 0}
+  player1AreaTexture: {fileID: 21300000, guid: ac1e7b15c5fe0c041ba195e5696a89e0, type: 3}
+  player2AreaTexture: {fileID: 21300000, guid: a19652eb4ace55346af51f2dcf1eebed, type: 3}
   mapPaintable: {fileID: 1142179350}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
