@@ -4,7 +4,7 @@ public class PlayerManager : Singleton<PlayerManager>
 {
     Timer _player1Timer;        // プレイヤー1の待機タイマー
     Timer _player2Timer;        // プレイヤー2の待機タイマー
-
+    GameObject _playerPrefab;
     /// <summary>
     /// プレイヤーの復活タイミングをチェックする
     /// </summary>
@@ -70,7 +70,14 @@ public class PlayerManager : Singleton<PlayerManager>
 
     protected override void Awake()
     {
-        base.Awake();
+        _playerPrefab = (GameObject)Resources.Load("Prefabs/Player");
+        GameObject player1 = Instantiate(_playerPrefab, Global.PLAYER1_START_POSITION, Quaternion.identity);
+        player1.AddComponent<Player1Control>().SetAreaColor(Global.PLAYER_ONE_AREA_COLOR);
+        player1.name = "Player1";
+        GameObject player2 = Instantiate(_playerPrefab, Global.PLAYER2_START_POSITION, Quaternion.identity);
+        player2.AddComponent<Player2Control>().SetAreaColor(Global.PLAYER_TWO_AREA_COLOR);
+        player2.transform.forward = Vector3.back;
+        player2.name = "Player2";
     }
 
     private void Update()
