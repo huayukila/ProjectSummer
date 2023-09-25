@@ -58,9 +58,8 @@ Shader "Paint/PolygonPainter"
             }
 
             fixed4 frag (v2f i) : SV_Target
-            {  
+            {
                 float4 col = tex2D(_MainTex, i.uv);
-                //float f = mask(_MaxVertNum, _worldPosList,i.worldPos.x,i.worldPos.y);
                 float f = mask(_MaxVertNum, _worldPosList,i.worldPos);
                 return lerp(col, _Color, f);
             }

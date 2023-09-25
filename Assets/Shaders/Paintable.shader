@@ -4,53 +4,75 @@ Shader "Paint/Paintable"
     {
         [Head(Render)]
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
-        _Color ("Color", Color) = (1,1,1,1)
+        _Color ("Color", Color) = (1,1,1,1) // Define _Color as a Color property
         _BumpMap ("Normal", 2D) = "white" {} 
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Metallic ("Metallic", Range(0,1)) = 0.0
 
         [Head(Paint)]
         _MaskTex ("Mask (RGB)", 2D) = "black" {}
+        _Emission ("Emission", Range(0,1)) = 0.0
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
         LOD 200
 
-        CGPROGRAM
-        // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows
-
-        // Use shader model 3.0 target, to get nicer looking lighting
-        #pragma target 3.0
-
-        sampler2D _MainTex;
-        sampler2D _BumpMap;
-        sampler2D _MaskTex;
-
-        struct Input
+        Pass
         {
-            float2 uv_MainTex;
-            float2 uv_MaskTex;
-        };
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "UnityCG.cginc"
 
-        half _Glossiness;
-        half _Metallic;
-        fixed4 _Color;
+            struct appdata_t
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
 
-        void surf (Input IN, inout SurfaceOutputStandard o)
-        {
-            // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            fixed4 mask = tex2D (_MaskTex, IN.uv_MaskTex);
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+            };
 
-            o.Albedo = lerp(c.rgb, mask.rgb, mask.a);
-            o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_MainTex));
-            // Metallic and smoothness come from slider variables
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
+            sampler2D _MainTex;
+            sampler2D _BumpMap;
+            sampler2D _MaskTex;
+
+            half4 _Color; // Declare _Color as a variable
+
+            half _Emission;
+
+            v2f vert (appdata_t v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = v.uv;
+                return o;
+            }
+
+            struct CustomSurfaceOutput
+            {
+                half3 Albedo;
+                half3 Normal;
+                half3 Emission; // Custom emission property
+            };
+
+            CustomSurfaceOutput frag (v2f i) : SV_Target
+            {
+                // Albedo comes from a texture tinted by color
+                fixed4 c = tex2D(_MainTex, i.uv) * _Color; // Use _Color
+                fixed4 mask = tex2D(_MaskTex, i.uv);
+
+                CustomSurfaceOutput o;
+                o.Albedo = lerp(c.rgb, mask.rgb, mask.a);
+                o.Normal = UnpackNormal(tex2D(_BumpMap, i.uv));
+                o.Emission = _Emission; // Set the custom emission property
+
+                return o;
+            }
+            ENDCG
         }
-        ENDCG
     }
     FallBack "Diffuse"
 }
