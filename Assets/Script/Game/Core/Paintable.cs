@@ -11,6 +11,7 @@ public class Paintable : MonoBehaviour
     private RenderTexture areaTexture;
 
     private int maskTextureID = Shader.PropertyToID("_MaskTex");
+    private int areaTextureID = Shader.PropertyToID("_AreaTex");
 
     public Renderer GetRenderer() => rend;
     public RenderTexture GetMask() => maskTexture;
@@ -28,22 +29,23 @@ public class Paintable : MonoBehaviour
         copyTexture = new RenderTexture(textureSize, textureSize, 0);
         copyTexture.filterMode = FilterMode.Bilinear;
         PolygonPaintManager.Instance.ClearRT(copyTexture);
+        PolygonPaintManager.Instance.ClearRT(areaTexture);
 
         rend = GetComponent<Renderer>();
         rend.material.SetTexture(maskTextureID, copyTexture);
-
-        GameManager.Instance.mapMaskTexture = copyTexture;
+        rend.material.SetTexture(areaTextureID, areaTexture);
 
         if (debugUV)
         {
             PolygonPaintManager.Instance.InitUVMask(this);
         }
-        GameManager.Instance.mapPaintable = this;
+        PolygonPaintManager.Instance.mapPaintable = this;
     }
 
     void OnDisable()
     {
         maskTexture.Release();
         copyTexture.Release();
+        areaTexture.Release();
     }
 }

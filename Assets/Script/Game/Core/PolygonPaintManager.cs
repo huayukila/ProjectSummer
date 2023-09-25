@@ -5,6 +5,13 @@ using UnityEngine.Rendering;
 public class PolygonPaintManager : Singleton<PolygonPaintManager>
 {
     public Shader texturePaint;
+    public Shader areaPaint;
+
+    public RenderTexture playerAreaTexture;
+    public RenderTexture playerBreaTexture;
+
+    public Paintable mapPaintable;
+
     CommandBuffer command;
     private Material paintMaterial;
     int colorID = Shader.PropertyToID("_Color");
@@ -30,10 +37,11 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     /// <param name="color">•`‚«‚½‚¢‚ÌF</param>
     public void Paint(Vector3[] worldPosList, Color? color = null)
     {
-        Paintable mapPaintable=GameManager.Instance.mapPaintable;
         RenderTexture mask = mapPaintable.GetMask();
         RenderTexture copy = mapPaintable.GetCopy();
+        RenderTexture area= mapPaintable.GetArea();
         Renderer rend = mapPaintable.GetRenderer();
+
         //shader‚Í4ŸŒ³‚Ì”z—ñ‚µ‚©ó‚¯‚ç‚ê‚È‚¢‚Ì‚ÅAˆê‰“]Š·
         Vector4[] posList = new Vector4[100];
         for (int i = 0; i < worldPosList.Length; i++)
