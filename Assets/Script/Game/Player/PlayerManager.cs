@@ -78,22 +78,6 @@ public class PlayerManager : Singleton<PlayerManager>
         player2.AddComponent<Player2Control>().SetAreaColor(Global.PLAYER_TWO_AREA_COLOR);
         player2.transform.forward = Vector3.back;
         player2.name = "Player2";
-        TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
-        {
-            ScoreItemManager.Instance.SetReachGoalProperties(e.playerID);
-
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
-
-        TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
-        {
-            ScoreItemManager.Instance.DropGoldenSilk(e.dropMode);
-
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
-        TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
-        {
-            ScoreItemManager.Instance.SetGotSilkPlayer(e.player);
-
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
     }
 
     private void Update()

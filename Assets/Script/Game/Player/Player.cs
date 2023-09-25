@@ -46,9 +46,9 @@ public abstract class Player : MonoBehaviour
         colorCheck = gameObject.AddComponent<ColorCheck>();
         colorCheck.layerMask = LayerMask.GetMask("Ground");
         _moveSpeedCoefficient = 1.0f;
-        maxMoveSpeed = Global.PLAYER_MAXMOVESPEED;
+        maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
         acceleration = Global.PLAYER_ACCELERATION;
-        rotationSpeed = Global.PLAYER_ROTATIONSPEED;
+        rotationSpeed = Global.PLAYER_ROTATION_SPEED;
         dropSilkEvent = new DropSilkEvent()
         {
             dropMode = DropMode.Standard

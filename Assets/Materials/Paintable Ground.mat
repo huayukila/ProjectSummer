@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Paintable Ground
-  m_Shader: {fileID: 4800000, guid: 4d4fb67d9239158409f0326bc224c5f8, type: 3}
+  m_Shader: {fileID: 4800000, guid: 848d39d443743084990dd1b91b27ab6c, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

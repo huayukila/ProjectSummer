@@ -26,13 +26,13 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private Vector3 GetInSpaceRandomPosition()
     {
         // temp pos
-        return new Vector3(0.0f,0.64f,5.0f);
+        return new Vector3(-55.0f,0.64f,36.0f);
     }
 
     /// <summary>
     /// 金の網はゴールまで運搬された時の操作をする
     /// </summary>
-    public void SetReachGoalProperties(int ID)
+    private void SetReachGoalProperties(int ID)
     {
         ScoreSystem.Instance.AddScore(ID);
         // 新しい金の網を生成する
@@ -46,7 +46,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private void SetGoalPoint()
     {
         // temp pos
-        goalPoint.transform.position = new Vector3(10.0f,0.64f,10.0f);
+        goalPoint.transform.position = new Vector3(-39.0f,0.64f,46.0f);
         goalPoint.SetActive(true);
     }
 
@@ -77,7 +77,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// 金の網を持っているプレイヤーの設定をする
     /// </summary>
     /// <param name="ob"></param>
-    public void SetGotSilkPlayer(GameObject ob)
+    private void SetGotSilkPlayer(GameObject ob)
     {
         if(_gotSilkPlayer == null)
         {
@@ -92,7 +92,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// <summary>
     /// 金の網を持っていたプレイヤーが死んだら金の網をドロップする
     /// </summary>
-    public void DropGoldenSilk(DropMode mode)
+    private void DropGoldenSilk(DropMode mode)
     {
         if( _gotSilkPlayer != null )
         {
@@ -135,6 +135,24 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         base.Awake();
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
+
+        TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
+        {
+            SetReachGoalProperties(e.playerID);
+
+        }).UnregisterWhenGameObjectDestroyde(gameObject);
+
+        TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
+        {
+           DropGoldenSilk(e.dropMode);
+
+        }).UnregisterWhenGameObjectDestroyde(gameObject);
+        TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
+        {
+            SetGotSilkPlayer(e.player);
+
+        }).UnregisterWhenGameObjectDestroyde(gameObject);
+
 
     }
     private void Update()
