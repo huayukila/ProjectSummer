@@ -40,7 +40,7 @@ public class TitleSceneUIDirector : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Return))          //MenuScene‚ÖØ‚è‘Ö‚¦
         {
-            SceneManager.LoadScene("MenuScene");
+            TypeEventSystem.Instance.Send<MenuSceneSwitch>();
         }
     }
 }

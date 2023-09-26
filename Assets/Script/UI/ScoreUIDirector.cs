@@ -16,6 +16,7 @@ public class ScoreUIDirector : MonoBehaviour
     {
         timer = new Timer();
         timer.SetTimer(timerSetting, () => { Debug.Log("Timer finished!"); });
+        TypeEventSystem.Instance.Register<GameOver>(e => { });
     }
 
     // Update is called once per frame
@@ -25,14 +26,15 @@ public class ScoreUIDirector : MonoBehaviour
         int scorePlayer02 = ScoreSystem.Instance.GetPlayer2Score();　　　　　　　//プレイヤ０２のスコアを代入
 
         float timerRealTime = timer.GetTime();                          //タイマーのリアルタイムを代入
-        
+
         this.p1ScoreUI.GetComponent<TextMeshProUGUI>().text = "RED SCORE:" + scoreplayer01.ToString();　   //テキストの内容
         this.p2ScoreUI.GetComponent<TextMeshProUGUI>().text = "YELLOW SCORE:" + scorePlayer02.ToString();　//テキストの内容
-        this.timeUI.GetComponent<TextMeshProUGUI>().text = "TIME:" + timerRealTime.ToString("F2");　　　　 //タイマーのテキストの内容
-        
+        this.timeUI.GetComponent<TextMeshProUGUI>().text = "TIME:" + timerRealTime.ToString("F2");     //タイマーのテキストの内容
+
         if (timer.IsTimerFinished())                                    //タイマーが０になるとENDシーンに切り替える
         {
-            SceneManager.LoadScene("End");
+            TypeEventSystem.Instance.Send<GameOver>();                 //GameOver命令を発送
+            TypeEventSystem.Instance.Send<EndSceneSwitch>();　　　　　 //EndSceneへ切り替え
         }
     }
 }
