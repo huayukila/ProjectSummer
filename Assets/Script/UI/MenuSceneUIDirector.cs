@@ -7,9 +7,9 @@ public class MenuSceneUIDirector : MonoBehaviour
 {
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Return))　　　　　　　　　　//GamingSceneへ切り替え
         {
-            SceneManager.LoadScene("Gaming");
+            TypeEventSystem.Instance.Send<GamingSceneSwitch>();
         }
     }
 }
