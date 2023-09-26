@@ -26,24 +26,24 @@ public class Player1Control : Player
     /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
-        // 別のプレイヤーの尻尾に当たったら
-        if(other.gameObject.CompareTag("Player2Tail"))
+        // 別のプレイヤーのDropPointに当たったら
+        if(other.gameObject.CompareTag("DropPoint2"))
         {
             SetDeadStatus();
+            if(ScoreItemManager.Instance.IsGotSilk(gameObject))
+            {
+                TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
+            }
         }
         // 自分のDropPointに当たったら
         if (other.gameObject.CompareTag("DropPoint1") && !isPainting)
         {
             PaintArea(other.gameObject);
         }
-        if(other.gameObject.CompareTag("DropPoint2"))
-        {
-            SetDeadStatus();
-        }
         // 金の網に当たったら
         if(other.gameObject.CompareTag("GoldenSilk"))
         {
-            ScoreItemManager.Instance.SetGotSilkPlayer(gameObject);
+            TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
         // ゴールに当たったら
         if(other.gameObject.CompareTag("Goal"))
@@ -51,8 +51,12 @@ public class Player1Control : Player
             // 自分が金の網を持っていたら
             if(ScoreItemManager.Instance.IsGotSilk(gameObject))
             {
-                ScoreItemManager.Instance.SetReachGoalProperties();
-                gameObject.GetComponent<Renderer>().material = new Material(Shader.Find("Sprites/Default"));
+                AddScoreEvent AddScoreEvent = new AddScoreEvent()
+                {
+                    playerID = 1
+                };
+                TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
+                gameObject.GetComponent<Renderer>().material.color = Color.black;
             }
         }
     }
@@ -60,7 +64,6 @@ public class Player1Control : Player
     protected override void ResetPlayerTransform()
     {
         transform.position = Global.PLAYER1_START_POSITION;
-        transform.localEulerAngles = new Vector3(0.0f,0.0f,0.0f);
         transform.forward = Vector3.forward;
     }
 
@@ -68,7 +71,6 @@ public class Player1Control : Player
     {
         base.SetDeadStatus();
         // DropPointを全て消す
-        //tipTail.GetComponent<Player1DropControl>().ClearTrail();
         DropPointManager.Instance.ClearPlayerOneDropPoints();
         p1dc.ClearTrail();
     }
@@ -76,12 +78,12 @@ public class Player1Control : Player
     protected override void GroundColorCheck()
     {
         // 自分の領域にいたら
-        if(colorCheck.isTargetColor(areaColor))
+        if(colorCheck.isTargetColor(GetAreaColor()))
         {
             SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
         }
         // 別のプレイヤーの領域にいたら
-        else if(colorCheck.isTargetColor(GameManager.Instance.playerTwo.GetComponent<Player2Control>().areaColor))
+        else if(colorCheck.isTargetColor(GameManager.Instance.playerTwo.GetComponent<Player2Control>().GetAreaColor()))
         {
             SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
         }
@@ -96,29 +98,17 @@ public class Player1Control : Player
         isPainting = true;
         // 描画すべき領域の頂点を取得する
         List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob.gameObject);
-        /*if (verts != null)
-        {
-            TailControl tc = rootTail.GetComponent<TailControl>();
-            GameObject[] tails = tc?.GetTails();
-            for (int i = 1; i < Global.iMAX_TAIL_COUNT + 1; ++i)
-            {
-                verts.Add(tails[^i].transform.position);
-            }
-        }*/
         verts.Add(transform.position);
-
-        // 領域を描画する
-        PolygonPaintManager.Instance.Paint(verts.ToArray(), areaColor);
+        // 領域を描画する　※１はプレイヤー１を指す
+        PolygonPaintManager.Instance.Paint(verts.ToArray(),1,GetAreaColor());
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerOneDropPoints();
-        //tipTail.GetComponent<Player1DropControl>().ClearTrail();
         gameObject.GetComponent<Player1DropControl>().ClearTrail();
     }
 
     protected override void Awake()
     {
         base.Awake();
-        //rootTail.GetComponent<TailControl>().SetTailsTag("Player1Tail");
         p1dc = gameObject.AddComponent<Player1DropControl>();
     }
 
