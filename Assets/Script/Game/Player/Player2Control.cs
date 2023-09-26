@@ -4,21 +4,7 @@ using UnityEngine;
 public class Player2Control : Player
 {
     private Player2DropControl p2dc;
-    protected override void PlayerRotation()
-    {
-        // •ûŒü“ü—Í‚ğæ“¾‚·‚é
-        float horizontal = Input.GetAxis("Player2_Horizontal");
-        float vertical = Input.GetAxis("Player2_Vertical");
-
-        Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
-        if (rotateDirection != Vector3.zero)
-        {
-            // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
-            Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            RotateRigidbody(rotation);
-        }
-
-    }
+    
 
     /// <summary>
     /// “–‚½‚Á‚½‚Æ‚«‚Ìˆ—”X
@@ -60,12 +46,21 @@ public class Player2Control : Player
             }
         }
     }
+    protected override void PlayerRotation()
+        {
+            // •ûŒü“ü—Í‚ğæ“¾‚·‚é
+            float horizontal = Input.GetAxis("Player2_Horizontal");
+            float vertical = Input.GetAxis("Player2_Vertical");
 
-    protected override void ResetPlayerTransform()
-    {
-        transform.position = Global.PLAYER2_START_POSITION;
-        transform.forward = Vector3.back;
-    }
+            Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
+            if (rotateDirection != Vector3.zero)
+            {
+                // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
+                Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
+                RotateRigidbody(rotation);
+            }
+
+        }
 
     protected override void SetDeadStatus()
     {
@@ -73,7 +68,6 @@ public class Player2Control : Player
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();
     }
-
     protected override void GroundColorCheck()
     {
         // ©•ª‚Ì—Ìˆæ‚É‚¢‚½‚ç
@@ -91,7 +85,6 @@ public class Player2Control : Player
             SetMoveSpeedCoefficient(1.0f);
         }
     }
-
     protected override void PaintArea(GameObject ob)
     {
         isPainting = true;

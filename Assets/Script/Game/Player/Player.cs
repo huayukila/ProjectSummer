@@ -2,20 +2,20 @@ using UnityEngine;
 
 public abstract class Player : MonoBehaviour
 {
-    public float maxMoveSpeed;                  // プレイヤーの最大速度
-    [Min(0.0f)] public float acceleration;      // プレイヤーの加速度
-    [Min(0.0f)] public float rotationSpeed;     // プレイヤーの回転速度
-    [SerializeField]Color32 _areaColor;         // 領域または移動した跡の色
+    [SerializeField]float maxMoveSpeed;                 // プレイヤーの最大速度
+    [Min(0.0f)][SerializeField]float acceleration;      // プレイヤーの加速度
+    [Min(0.0f)][SerializeField]float rotationSpeed;     // プレイヤーの回転速度
+    [SerializeField]Color32 _areaColor;                 // 領域または移動した跡の色
 
-    protected bool isPainting;                  // 地面に描けるかどうかの信号 
-    private Rigidbody _rigidbody;               // プレイヤーのRigidbody
-    protected ColorCheck colorCheck;            // カラーチェックコンポネント
-    protected DropSilkEvent dropSilkEvent;
-    protected PickSilkEvent pickSilkEvent;
+    protected bool isPainting;                          // 地面に描けるかどうかの信号   
+    protected ColorCheck colorCheck;                    // カラーチェックコンポネント
+    protected DropSilkEvent dropSilkEvent;              // 金の網を落とすイベント
+    protected PickSilkEvent pickSilkEvent;              // 金の網を拾うイベント
 
-    private Timer _paintableTimer;              // 領域を描く間隔を管理するタイマー
-    private float _currentMoveSpeed;            // プレイヤーの現在速度
-    private float _moveSpeedCoefficient;        // プレイヤーの移動速度の係数
+    private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
+    private float _currentMoveSpeed;                    // プレイヤーの現在速度
+    private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
+    private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
 
     /// <summary>
     /// 衝突があったとき処理する
@@ -107,21 +107,17 @@ public abstract class Player : MonoBehaviour
         gameObject.SetActive(false);
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
-
-    }
-
-    // プレイヤーを復活させる
-    public void Respawn()
-    {
-        if(!gameObject.activeSelf)
+        PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
         {
-            _currentMoveSpeed = 0.0f;
-            ResetPlayerTransform();
-            gameObject.SetActive(true);
-            gameObject.GetComponent<Renderer>().material.color = Color.black;
-        }
+            player = gameObject
+        };
+        TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
     }
 
+    public void ResetPlayerSpeed()
+    {
+        _currentMoveSpeed = 0.0f;
+    }
     public Color32 GetAreaColor() => _areaColor;
 
     public void SetAreaColor(Color32 color)
@@ -149,11 +145,6 @@ public abstract class Player : MonoBehaviour
     /// プレイヤーの回転を制御する
     /// </summary>
     protected abstract void PlayerRotation();
-
-    /// <summary>
-    /// プレイヤーの位置をリセットする
-    /// </summary>
-    protected abstract void ResetPlayerTransform();
 
     /// <summary>
     /// 地面の色をチェックする

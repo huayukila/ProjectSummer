@@ -64,6 +64,11 @@ public abstract class DropPointControl : MonoBehaviour
     {
         TR.Clear();
     }
+
+    private void OnDestroy()
+    {
+        Resources.UnloadUnusedAssets();
+    }
 }
 
 

@@ -4,21 +4,6 @@ using UnityEngine;
 public class Player1Control : Player
 {
     private Player1DropControl p1dc;
-    protected override void PlayerRotation()
-    {
-        // •ûŒü“ü—Í‚ğæ“¾‚·‚é
-        float horizontal = Input.GetAxis("Player1_Horizontal");
-        float vertical = Input.GetAxis("Player1_Vertical");
-
-        Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
-        if (rotateDirection != Vector3.zero)
-        {
-            // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
-            Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            RotateRigidbody(rotation);          
-        }
-
-    }
 
     /// <summary>
     /// “–‚½‚Á‚½‚Æ‚«‚Ìˆ—”X
@@ -61,10 +46,20 @@ public class Player1Control : Player
         }
     }
 
-    protected override void ResetPlayerTransform()
+    protected override void PlayerRotation()
     {
-        transform.position = Global.PLAYER1_START_POSITION;
-        transform.forward = Vector3.forward;
+        // •ûŒü“ü—Í‚ğæ“¾‚·‚é
+        float horizontal = Input.GetAxis("Player1_Horizontal");
+        float vertical = Input.GetAxis("Player1_Vertical");
+
+        Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
+        if (rotateDirection != Vector3.zero)
+        {
+            // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
+            Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
+            RotateRigidbody(rotation);
+        }
+
     }
 
     protected override void SetDeadStatus()

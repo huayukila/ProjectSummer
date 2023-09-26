@@ -13,3 +13,8 @@ public struct DropSilkEvent
 {
     public DropMode dropMode { get; set; }
 }
+
+public class PlayerRespawnEvent
+{
+    public GameObject player { get; set; }
+}

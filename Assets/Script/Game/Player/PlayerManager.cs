@@ -10,8 +10,21 @@ public class PlayerManager : Singleton<PlayerManager>
     /// </summary>
     private void RespawnCheck()
     {
-        // プレイヤー1が死んだら
-        if (!GameManager.Instance.playerOne.activeSelf)
+        // player1のタイマーの待機時間が終わったら
+        if (_player1Timer != null && _player1Timer.IsTimerFinished())
+        {
+            _player1Timer = null;
+        }
+        // player2のタイマーの待機時間が終わったら
+        if (_player2Timer != null && _player2Timer.IsTimerFinished())
+        {
+            _player2Timer = null;
+        }       
+    }    
+    
+    private void RespawnPlayer(GameObject player)
+    {
+        if(player == GameManager.Instance.playerOne)
         {
             // 新しいタイマーを生成する
             if (_player1Timer == null)
@@ -24,14 +37,9 @@ public class PlayerManager : Singleton<PlayerManager>
                     }
                     );
             }
-            // 待機時間が終わったら
-            else if (_player1Timer.IsTimerFinished())
-            {
-                _player1Timer = null;
-            }
+
         }
-        // プレイヤー2が死んだら
-        if (!GameManager.Instance.playerTwo.activeSelf)
+        else if(player == GameManager.Instance.playerTwo)
         {
             // 新しいタイマーを生成する
             if (_player2Timer == null)
@@ -44,20 +52,20 @@ public class PlayerManager : Singleton<PlayerManager>
                     }
                     );
             }
-            // 待機時間が終わったら
-            else if (_player2Timer.IsTimerFinished())
-            {
-                _player2Timer = null;
-            }
+
         }
-    }    
-    
+    }
     /// <summary>
     /// プレイヤー1を復活させる
     /// </summary>
     private void RespawnPlayer1()
     {
-        GameManager.Instance.playerOne.GetComponent<Player1Control>().Respawn();
+        GameObject respawnPlayer = GameManager.Instance.playerOne;
+        respawnPlayer.GetComponent<Player>().ResetPlayerSpeed();
+        respawnPlayer.transform.position = Global.PLAYER1_START_POSITION;
+        respawnPlayer.transform.forward = Vector3.forward;
+        respawnPlayer.SetActive(true);
+        respawnPlayer.GetComponent<Renderer>().material.color = Color.black;
     }
 
     /// <summary>
@@ -65,7 +73,12 @@ public class PlayerManager : Singleton<PlayerManager>
     /// </summary>
     private void RespawnPlayer2()
     {
-        GameManager.Instance.playerTwo.GetComponent<Player2Control>().Respawn();
+        GameObject respawnPlayer = GameManager.Instance.playerTwo;
+        respawnPlayer.GetComponent<Player>().ResetPlayerSpeed();
+        respawnPlayer.transform.position = Global.PLAYER2_START_POSITION;
+        respawnPlayer.transform.forward = Vector3.back;
+        respawnPlayer.SetActive(true);
+        respawnPlayer.GetComponent<Renderer>().material.color = Color.black;
     }
 
     protected override void Awake()
@@ -78,11 +91,20 @@ public class PlayerManager : Singleton<PlayerManager>
         player2.AddComponent<Player2Control>().SetAreaColor(Global.PLAYER_TWO_AREA_COLOR);
         player2.transform.forward = Vector3.back;
         player2.name = "Player2";
+        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
+        {
+            RespawnPlayer(e.player);
+        }).UnregisterWhenGameObjectDestroyde(gameObject);
     }
 
     private void Update()
     {
         RespawnCheck();
+    }
+
+    private void OnDestroy()
+    {
+        Resources.UnloadUnusedAssets();
     }
 }
 

@@ -153,7 +153,6 @@ public class DropPointManager : Singleton<DropPointManager>
 
     protected override void Awake()
     {
-        base.Awake();
         _player1Points = new List<GameObject>();
         _player2Points = new List<GameObject>();
         _p1pointGroup = new GameObject("Player1DropPointGroup");

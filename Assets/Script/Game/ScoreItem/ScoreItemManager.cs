@@ -67,10 +67,10 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// 金の網が落ちたときのステータスを設定する
     /// </summary>
     private void SetDropSilkStatus()
-    {
-        _gotSilkPlayer = null;
+    {       
         inSpaceSilk.SetActive(true);
         goalPoint.SetActive(false);
+        _gotSilkPlayer = null;
     }
     /// <summary>
     /// 金の網を持っているプレイヤーの設定をする
@@ -82,7 +82,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             _gotSilkPlayer = ob;
         }
-        // 持っているプレイヤーの材質を変える（区別するため）
+        // 持っているプレイヤーの色を変える（区別するため）
         _gotSilkPlayer.GetComponent<Renderer>().material.color = Color.yellow;
         inSpaceSilk.SetActive(false);
         SetGoalPoint();
@@ -120,14 +120,10 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// </summary>
     /// <param name="ob">プレイヤー</param>
     /// <returns>持っていたらtrueを返す、それ以外はfalseを返す</returns>
-    public bool IsGotSilk(GameObject ob)
-    {
-        return _gotSilkPlayer == ob;
-    }
+    public bool IsGotSilk(GameObject ob) => _gotSilkPlayer == ob;
 
     protected override void Awake()
     {
-        base.Awake();
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
         inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
@@ -141,7 +137,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
         TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
         {
-           DropGoldenSilk(e.dropMode);
+            DropGoldenSilk(e.dropMode);
 
         }).UnregisterWhenGameObjectDestroyde(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
@@ -149,7 +145,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             SetGotSilkPlayer(e.player);
 
         }).UnregisterWhenGameObjectDestroyde(gameObject);
-
 
     }
     private void Update()
