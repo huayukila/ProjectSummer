@@ -13,8 +13,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private Vector3 _awayFromEdgeEndPos;
     private bool _isStartAwayFromEdge;
 
-    public GameObject inSpaceSilk;              // 金の網
-    public GameObject goalPoint;                // ゴール
+    private GameObject _inSpaceSilk;            // 金の網
+    private GameObject _goalPoint;              // ゴール
 
 
     /// <summary>
@@ -45,8 +45,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private void SetGoalPoint()
     {
         // temp pos
-        goalPoint.transform.position = new Vector3(35.0f,0.64f,15.0f);
-        goalPoint.SetActive(true);
+        _goalPoint.transform.position = new Vector3(35.0f,0.64f,15.0f);
+        _goalPoint.SetActive(true);
     }
 
     private void GenerateNewSilk()
@@ -55,21 +55,21 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         _goldenSilkSpawnTimer.SetTimer(10.0f,
             () =>
             {
-                inSpaceSilk.transform.position = GetInSpaceRandomPosition();
-                inSpaceSilk.SetActive(true);
+                _inSpaceSilk.transform.position = GetInSpaceRandomPosition();
+                _inSpaceSilk.SetActive(true);
             }
             );
-        inSpaceSilk.SetActive(false);
-        goalPoint.SetActive(false);
+        _inSpaceSilk.SetActive(false);
+        _goalPoint.SetActive(false);
         _gotSilkPlayer = null;
     }
     /// <summary>
     /// 金の網が落ちたときのステータスを設定する
     /// </summary>
     private void SetDropSilkStatus()
-    {       
-        inSpaceSilk.SetActive(true);
-        goalPoint.SetActive(false);
+    {
+        _inSpaceSilk.SetActive(true);
+        _goalPoint.SetActive(false);
         _gotSilkPlayer = null;
     }
     /// <summary>
@@ -84,7 +84,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }
         // 持っているプレイヤーの色を変える（区別するため）
         _gotSilkPlayer.GetComponent<Renderer>().material.color = Color.yellow;
-        inSpaceSilk.SetActive(false);
+        _inSpaceSilk.SetActive(false);
         SetGoalPoint();
     }
 
@@ -99,7 +99,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             {
                 case DropMode.Standard:
                     {
-                        inSpaceSilk.transform.position = _gotSilkPlayer.transform.position;
+                        _inSpaceSilk.transform.position = _gotSilkPlayer.transform.position;
                         break;
                     }
                 case DropMode.Edge: 
@@ -124,10 +124,11 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
     protected override void Awake()
     {
+        Init();
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
-        inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
-        goalPoint.GetComponent<Renderer>().material.color = Color.yellow;
+        _inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
+        _goalPoint.GetComponent<Renderer>().material.color = Color.yellow;
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {
@@ -147,6 +148,23 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }).UnregisterWhenGameObjectDestroyde(gameObject);
 
     }
+
+    private void Init()
+    {
+        if(_inSpaceSilk == null)
+        {
+            GameObject silkPrefab = (GameObject)Resources.Load("Prefabs/GoldenSilk");
+            _inSpaceSilk = Instantiate(silkPrefab, GetInSpaceRandomPosition(),Quaternion.identity);
+            _inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
+        }
+        if(_goalPoint == null)
+        {
+            GameObject goalPrefab = (GameObject)Resources.Load("Prefabs/Goal");
+            _goalPoint = Instantiate(goalPrefab, new Vector3(35.0f, 0.64f, 15.0f), Quaternion.identity);
+            _goalPoint.GetComponent<Renderer>().material.color = Color.yellow;
+        }
+
+    }
     private void Update()
     {
         if (_goldenSilkSpawnTimer != null)
@@ -164,7 +182,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             Vector3 temp = Vector3.Lerp(_awayFromEdgeStartPos, _awayFromEdgeEndPos, 0.05f);
             _awayFromEdgeStartPos = temp;
-            inSpaceSilk.transform.position = _awayFromEdgeStartPos;
+            _inSpaceSilk.transform.position = _awayFromEdgeStartPos;
             if((_awayFromEdgeStartPos - _awayFromEdgeEndPos).magnitude <= 0.1f)
             {
                 _isStartAwayFromEdge = false;

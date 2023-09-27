@@ -107,4 +107,3 @@ public class PlayerManager : Singleton<PlayerManager>
         Resources.UnloadUnusedAssets();
     }
 }
-
