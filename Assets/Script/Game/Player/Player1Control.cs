@@ -47,10 +47,23 @@ public class Player1Control : Player
     }
 
     protected override void PlayerRotation()
-    {
+    {   
+        
+        float horizontal = 0.0f;
+        float vertical = 0.0f;
+        var controller = Input.GetJoystickNames()[0];
+        if (!string.IsNullOrEmpty(controller))
+        { 
+            horizontal = Input.GetAxis("1L_Joystick_H");
+            vertical = Input.GetAxis("1L_Joystick_V");
+        }
+        else
+        {
+            horizontal = Input.GetAxis("Player1_Horizontal");
+            vertical = Input.GetAxis("Player1_Vertical");
+
+        }
         // •ûŒü“ü—Í‚ðŽæ“¾‚·‚é
-        float horizontal = Input.GetAxis("Player1_Horizontal");
-        float vertical = Input.GetAxis("Player1_Vertical");
 
         Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
         if (rotateDirection != Vector3.zero)

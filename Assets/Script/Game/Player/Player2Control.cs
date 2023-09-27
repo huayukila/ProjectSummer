@@ -47,20 +47,30 @@ public class Player2Control : Player
         }
     }
     protected override void PlayerRotation()
+    {
+        float horizontal = 0.0f;
+        float vertical = 0.0f;
+        var controller = Input.GetJoystickNames()[1];
+        if (!string.IsNullOrEmpty(controller))
+        {
+            horizontal = Input.GetAxis("2L_Joystick_H");
+            vertical = Input.GetAxis("2L_Joystick_V");
+        }
+        else
         {
             // •ûŒü“ü—Í‚ðŽæ“¾‚·‚é
-            float horizontal = Input.GetAxis("Player2_Horizontal");
-            float vertical = Input.GetAxis("Player2_Vertical");
-
-            Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
-            if (rotateDirection != Vector3.zero)
-            {
-                // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
-                Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-                RotateRigidbody(rotation);
-            }
-
+            horizontal = Input.GetAxis("Player2_Horizontal");
+            vertical = Input.GetAxis("Player2_Vertical");
         }
+        Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
+        if (rotateDirection != Vector3.zero)
+        {
+            // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
+            Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
+            RotateRigidbody(rotation);
+        }
+
+    }
 
     protected override void SetDeadStatus()
     {
