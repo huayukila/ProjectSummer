@@ -15,11 +15,13 @@ public class Player2Control : Player
         // 別のプレイヤーのDropPointに当たったら
         if (other.gameObject.CompareTag("DropPoint1"))
         {
-            SetDeadStatus();
-            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+
+            if (IsGotSilk)
             {
+                dropSilkEvent.pos = transform.position;
                 TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
             }
+            SetDeadStatus();
         }
         // DropPointに当たったら
         if (other.gameObject.CompareTag("DropPoint2") && !isPainting)
@@ -29,13 +31,15 @@ public class Player2Control : Player
         // 金の網に当たったら
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
+            gameObject.GetComponent<Renderer>().material.color = Color.yellow;
+            IsGotSilk = true;
             TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
         // ゴールに当たったら
         if (other.gameObject.CompareTag("Goal"))
         {
             // 自分が金の網を持っていたら
-            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+            if (IsGotSilk)
             {
                 AddScoreEvent AddScoreEvent = new AddScoreEvent()
                 {
@@ -43,6 +47,7 @@ public class Player2Control : Player
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
                 gameObject.GetComponent<Renderer>().material.color = Color.black;
+                IsGotSilk = false;
             }
         }
     }
@@ -50,18 +55,9 @@ public class Player2Control : Player
     {
         float horizontal = 0.0f;
         float vertical = 0.0f;
-        var controller = Input.GetJoystickNames()[1];
-        if (!string.IsNullOrEmpty(controller))
-        {
-            horizontal = Input.GetAxis("2L_Joystick_H");
-            vertical = Input.GetAxis("2L_Joystick_V");
-        }
-        else
-        {
-            // 方向入力を取得する
-            horizontal = Input.GetAxis("Player2_Horizontal");
-            vertical = Input.GetAxis("Player2_Vertical");
-        }
+        // 方向入力を取得する
+        horizontal = Input.GetAxis("Player2_Horizontal");
+        vertical = Input.GetAxis("Player2_Vertical");
         Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
         if (rotateDirection != Vector3.zero)
         {

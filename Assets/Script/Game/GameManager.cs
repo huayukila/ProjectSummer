@@ -119,7 +119,6 @@ public class GameManager : Singleton<GameManager>
     private void RespawnPlayer1()
     {
         GameObject respawnPlayer = GameManager.Instance.playerOne;
-        respawnPlayer.GetComponent<Player>().ResetPlayerSpeed();
         respawnPlayer.transform.position = Global.PLAYER1_START_POSITION;
         respawnPlayer.transform.forward = Vector3.forward;
         respawnPlayer.SetActive(true);
@@ -132,7 +131,6 @@ public class GameManager : Singleton<GameManager>
     private void RespawnPlayer2()
     {
         GameObject respawnPlayer = GameManager.Instance.playerTwo;
-        respawnPlayer.GetComponent<Player>().ResetPlayerSpeed();
         respawnPlayer.transform.position = Global.PLAYER2_START_POSITION;
         respawnPlayer.transform.forward = Vector3.back;
         respawnPlayer.SetActive(true);

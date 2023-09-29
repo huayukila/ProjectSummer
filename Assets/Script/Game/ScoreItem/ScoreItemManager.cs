@@ -8,7 +8,6 @@ public enum DropMode
 public class ScoreItemManager : Singleton<ScoreItemManager>
 {   
     private Timer _goldenSilkSpawnTimer;        // 金の網を生成することを管理するタイマー
-    private GameObject _gotSilkPlayer;          // 金の網を持っているプレイヤー
     private Vector3 _awayFromEdgeStartPos;
     private Vector3 _awayFromEdgeEndPos;
     private bool _isStartAwayFromEdge;
@@ -44,6 +43,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// </summary>
     private void SetGoalPoint()
     {
+        _inSpaceSilk.SetActive(false);
         // temp pos
         _goalPoint.transform.position = new Vector3(35.0f,0.64f,15.0f);
         _goalPoint.SetActive(true);
@@ -61,7 +61,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             );
         _inSpaceSilk.SetActive(false);
         _goalPoint.SetActive(false);
-        _gotSilkPlayer = null;
     }
     /// <summary>
     /// 金の網が落ちたときのステータスを設定する
@@ -70,57 +69,26 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     {
         _inSpaceSilk.SetActive(true);
         _goalPoint.SetActive(false);
-        _gotSilkPlayer = null;
-    }
-    /// <summary>
-    /// 金の網を持っているプレイヤーの設定をする
-    /// </summary>
-    /// <param name="ob"></param>
-    private void SetGotSilkPlayer(GameObject ob)
-    {
-        if(_gotSilkPlayer == null)
-        {
-            _gotSilkPlayer = ob;
-        }
-        // 持っているプレイヤーの色を変える（区別するため）
-        _gotSilkPlayer.GetComponent<Renderer>().material.color = Color.yellow;
-        _inSpaceSilk.SetActive(false);
-        SetGoalPoint();
     }
 
     /// <summary>
     /// 金の網を持っていたプレイヤーが死んだら金の網をドロップする
     /// </summary>
-    private void DropGoldenSilk(DropMode mode)
+    private void DropGoldenSilk(DropMode mode , Vector3 pos)
     {
-        if( _gotSilkPlayer != null )
+        switch(mode)
         {
-            switch(mode)
-            {
-                case DropMode.Standard:
-                    {
-                        _inSpaceSilk.transform.position = _gotSilkPlayer.transform.position;
-                        break;
-                    }
-                case DropMode.Edge: 
-                    {
-                        _awayFromEdgeStartPos = _gotSilkPlayer.transform.position;
-                        _awayFromEdgeEndPos = (_gotSilkPlayer.transform.position - new Vector3(0.0f, 0.64f, 0.0f)) * 0.8f + new Vector3(0.0f, 0.64f, 0.0f) * 0.2f;
-                        _isStartAwayFromEdge = true;
-                        break;
-                    }        
-            }
-
-            SetDropSilkStatus();
+            case DropMode.Standard:
+                _inSpaceSilk.transform.position = pos;
+                break;
+            case DropMode.Edge: 
+                _awayFromEdgeStartPos = pos;
+                _awayFromEdgeEndPos = (pos - new Vector3(0.0f, 0.64f, 0.0f)) * 0.8f + new Vector3(0.0f, 0.64f, 0.0f) * 0.2f;
+                _isStartAwayFromEdge = true;
+                break;      
         }
+        SetDropSilkStatus();
     }
-
-    /// <summary>
-    /// プレイヤーが金の網を持っているかどうかをチェックする
-    /// </summary>
-    /// <param name="ob">プレイヤー</param>
-    /// <returns>持っていたらtrueを返す、それ以外はfalseを返す</returns>
-    public bool IsGotSilk(GameObject ob) => _gotSilkPlayer == ob;
 
     protected override void Awake()
     {
@@ -138,12 +106,12 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
         TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
         {
-            DropGoldenSilk(e.dropMode);
+            DropGoldenSilk(e.dropMode,e.pos);
 
         }).UnregisterWhenGameObjectDestroyde(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
         {
-            SetGotSilkPlayer(e.player);
+            SetGoalPoint();
 
         }).UnregisterWhenGameObjectDestroyde(gameObject);
 

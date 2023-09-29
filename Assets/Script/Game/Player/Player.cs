@@ -16,6 +16,7 @@ public abstract class Player : MonoBehaviour
     private float _currentMoveSpeed;                    // プレイヤーの現在速度
     private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
     private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
+    public bool IsGotSilk { get; protected set; }
 
     /// <summary>
     /// 衝突があったとき処理する
@@ -24,18 +25,18 @@ public abstract class Player : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         // 衝突したら死亡状態に設定する
-        SetDeadStatus();
+
         // 死亡したプレイヤーは金の網を持っていたら
-        if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+        if (IsGotSilk)
         {
+            dropSilkEvent.pos = transform.position;
             if (collision.gameObject.CompareTag("Wall"))
             {
-                dropSilkEvent.dropMode = DropMode.Edge;
+                dropSilkEvent.dropMode = DropMode.Edge; 
             }
             TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
-
         }
-
+        SetDeadStatus();
     }
 
     protected virtual void Awake()
@@ -51,13 +52,12 @@ public abstract class Player : MonoBehaviour
         rotationSpeed = Global.PLAYER_ROTATION_SPEED;
         dropSilkEvent = new DropSilkEvent()
         {
-            dropMode = DropMode.Standard
+            dropMode = DropMode.Standard,
         };
-        pickSilkEvent = new PickSilkEvent()
-        {
-            player = gameObject
-        };
+        pickSilkEvent = new PickSilkEvent();
+
         gameObject.GetComponent<Renderer>().material.color = Color.black;
+        IsGotSilk = false;
     }
 
     private void Update()
@@ -107,17 +107,16 @@ public abstract class Player : MonoBehaviour
         gameObject.SetActive(false);
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
+        _currentMoveSpeed = 0.0f;
+        IsGotSilk = false;
         PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
         {
             player = gameObject
         };
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
+
     }
 
-    public void ResetPlayerSpeed()
-    {
-        _currentMoveSpeed = 0.0f;
-    }
     public Color32 GetAreaColor() => _areaColor;
 
     public void SetAreaColor(Color32 color)
