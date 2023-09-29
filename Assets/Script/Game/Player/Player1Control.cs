@@ -53,7 +53,7 @@ public class Player1Control : Player
         float vertical = 0.0f;
         var controller = Input.GetJoystickNames()[0];
         if (!string.IsNullOrEmpty(controller))
-        { 
+        {
             horizontal = Input.GetAxis("1L_Joystick_H");
             vertical = Input.GetAxis("1L_Joystick_V");
         }
