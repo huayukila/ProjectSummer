@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(TrailRenderer))]
 public abstract class DropPointControl : MonoBehaviour
 {
     protected TrailRenderer TR;                 // DropPointが繋がっていることを表すTrailRenderer
@@ -42,10 +43,18 @@ public abstract class DropPointControl : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// TrailRendererの全ての点を消す
+    /// </summary>
+    public void ClearTrail()
+    {
+        TR.Clear();
+    }
+
     private void Awake()
     {
         _pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
-        TR = gameObject.AddComponent<TrailRenderer>();
+        TR = gameObject.GetComponent<TrailRenderer>();
         SetTRProperties();
     }
 
@@ -56,14 +65,6 @@ public abstract class DropPointControl : MonoBehaviour
     }
 
     private void FixedUpdate() { }
-
-    /// <summary>
-    /// TrailRendererの全ての点を消す
-    /// </summary>
-    public void ClearTrail()
-    {
-        TR.Clear();
-    }
 
     private void OnDestroy()
     {

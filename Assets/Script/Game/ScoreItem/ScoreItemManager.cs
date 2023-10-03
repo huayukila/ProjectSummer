@@ -23,8 +23,11 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// <returns></returns>
     private Vector3 GetInSpaceRandomPosition()
     {
-        // temp pos
-        return new Vector3(0.0f,0.64f,0.0f);
+        float spawnAreaLength = Global.STAGE_LENGTH / 2.5f;
+        float spawnAreaWidth = Global.STAGE_WIDTH / 2.5f;
+        float posX = Random.Range(-spawnAreaLength,spawnAreaLength);
+        float posZ = Random.Range(-spawnAreaWidth, spawnAreaWidth);
+        return new Vector3(posX,0.64f,posZ);
     }
 
     /// <summary>
@@ -41,10 +44,10 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// ゴールの位置を生成する
     /// 未完成のため、固定位置に生成している
     /// </summary>
-    private void SetGoalPoint()
+    private void SetGoalPoint(Vector3 pos)
     {
         _inSpaceSilk.SetActive(false);
-        // temp pos
+        //todo temp pos
         _goalPoint.transform.position = new Vector3(35.0f,0.64f,15.0f);
         _goalPoint.SetActive(true);
     }
@@ -83,7 +86,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
                 break;
             case DropMode.Edge: 
                 _awayFromEdgeStartPos = pos;
-                _awayFromEdgeEndPos = (pos - new Vector3(0.0f, 0.64f, 0.0f)) * 0.8f + new Vector3(0.0f, 0.64f, 0.0f) * 0.2f;
+                _awayFromEdgeEndPos = (pos - new Vector3(0.0f, 0.64f, 0.0f)) * 0.7f + new Vector3(0.0f, 0.64f, 0.0f) * 0.3f;
                 _isStartAwayFromEdge = true;
                 break;      
         }
@@ -97,6 +100,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         _isStartAwayFromEdge = false;
         _inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
         _goalPoint.GetComponent<Renderer>().material.color = Color.yellow;
+        System.Random rand = new System.Random((int)Time.time);
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {
@@ -111,7 +115,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }).UnregisterWhenGameObjectDestroyde(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
         {
-            SetGoalPoint();
+            SetGoalPoint(_inSpaceSilk.transform.position);
 
         }).UnregisterWhenGameObjectDestroyde(gameObject);
 
@@ -154,6 +158,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             if((_awayFromEdgeStartPos - _awayFromEdgeEndPos).magnitude <= 0.1f)
             {
                 _isStartAwayFromEdge = false;
+                _awayFromEdgeStartPos = Vector3.zero;
+                _awayFromEdgeEndPos = Vector3.zero;
             }
         }
     }

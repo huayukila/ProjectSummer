@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Player1DropControl))]
 public class Player1Control : Player
 {
     private Player1DropControl p1dc;
@@ -52,41 +53,24 @@ public class Player1Control : Player
         }
     }
 
-    protected override void PlayerRotation()
-    {   
-        float horizontal = 0.0f;
-        float vertical = 0.0f;
-        // 方向入力を取得する
-        horizontal = Input.GetAxis("Player1_Horizontal");
-        vertical = Input.GetAxis("Player1_Vertical");
-        
-        Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
-        if (rotateDirection != Vector3.zero)
-        {
-            // 入力された方向へ回転する
-            Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            RotateRigidbody(rotation);
-        }
-
-    }
-
     protected override void SetDeadStatus()
     {
         base.SetDeadStatus();
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerOneDropPoints();
         p1dc.ClearTrail();
+        transform.position = Global.PLAYER1_START_POSITION * 100.0f;
     }
 
     protected override void GroundColorCheck()
     {
         // 自分の領域にいたら
-        if(colorCheck.isTargetColor(GetAreaColor()))
+        if(colorCheck.isTargetColor(Global.PLAYER_ONE_TRACE_COLOR))
         {
             SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
         }
         // 別のプレイヤーの領域にいたら
-        else if(colorCheck.isTargetColor(GameManager.Instance.playerTwo.GetComponent<Player2Control>().GetAreaColor()))
+        else if (colorCheck.isTargetColor(Global.PLAYER_TWO_TRACE_COLOR))
         {
             SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
         }
@@ -112,18 +96,18 @@ public class Player1Control : Player
     protected override void Awake()
     {
         base.Awake();
-        p1dc = gameObject.AddComponent<Player1DropControl>();
+        GameManager.Instance.playerOne = gameObject;
+        p1dc = GetComponent<Player1DropControl>();
     }
 
     private void Start()
     {
-        GameManager.Instance.playerOne = gameObject;
+
     }
 
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
-        PlayerRotation();
     }
 
 }

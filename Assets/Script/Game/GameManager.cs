@@ -1,4 +1,8 @@
+using System;
 using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class GameManager : Singleton<GameManager>
@@ -9,15 +13,15 @@ public class GameManager : Singleton<GameManager>
 
     Timer _player1Timer;        // プレイヤー1の待機タイマー
     Timer _player2Timer;        // プレイヤー2の待機タイマー
-    GameObject _playerPrefab;
+    GameObject _player1Prefab;
+    GameObject _player2Prefab;
 
     protected override void Awake()
     {
         base.Awake();
         //各システムの実例化と初期化
-        itemSystem=ItemSystem.Instance;
+        itemSystem = ItemSystem.Instance;
         itemSystem.Init();
-
         //シーンの移行命令を受け
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
         TypeEventSystem.Instance.Register<MenuSceneSwitch>(e => { MenuSceneSwitch(); });
@@ -25,16 +29,64 @@ public class GameManager : Singleton<GameManager>
         TypeEventSystem.Instance.Register<EndSceneSwitch>(e => { EndSceneSwitch(); });
         TypeEventSystem.Instance.Register<GameOver>(e => { EndSceneSwitch(); });
 
-        _playerPrefab = (GameObject)Resources.Load("Prefabs/Player");
+        _player1Prefab = (GameObject)Resources.Load("Prefabs/Player1");
+        _player2Prefab = (GameObject)Resources.Load("Prefabs/Player2");
 
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
-
             RespawnPlayer(e.player);
 
         }).UnregisterWhenGameObjectDestroyde(gameObject);
 
         SceneManager.sceneLoaded += SceneLoaded;
+
+        InputSystem.onDeviceChange += (device, change) =>
+        {
+            switch (change)
+            {
+                case InputDeviceChange.Added:
+                    if (device is Keyboard)
+                    {
+
+                    }
+                    else if (device is Gamepad)
+                    {
+                        for (int i = 0; i < PlayerInput.all.Count; ++i)
+                        {
+                            if (PlayerInput.all[i].GetDevice<InputDevice>() is not Gamepad)
+                            {
+                                PlayerInput.all[i].SwitchCurrentControlScheme(
+                                "Gamepad",
+                                device as Gamepad);
+                                break;
+                            }
+                        }
+                    }
+                    Debug.Log(device.displayName + " Added");
+                    break;
+                case InputDeviceChange.Disconnected:
+                    InputSystem.FlushDisconnectedDevices();
+                    Debug.Log(device.displayName + " Disconnected");
+                    break;
+                case InputDeviceChange.Removed:
+                    if (device is Gamepad)
+                    {
+                        for (int i = 0; i < PlayerInput.all.Count; ++i)
+                        {
+                            if (PlayerInput.all[i].GetDevice<InputDevice>() == device && Keyboard.current != null)
+                            {
+                                PlayerInput.all[i].SwitchCurrentControlScheme(
+                                "Keyboard&Mouse",
+                                Keyboard.current);
+                                break;
+                            }
+                        }
+                    }
+                    InputSystem.RemoveDevice(device);
+                    Debug.Log(device.displayName + " Removed");
+                    break;
+            }
+        };
 
     }
 
@@ -43,6 +95,7 @@ public class GameManager : Singleton<GameManager>
         //各システムのupdate
         //シーンの移行など
         RespawnCheck();
+
     }
 
     //シーンの移行
@@ -117,12 +170,13 @@ public class GameManager : Singleton<GameManager>
     /// プレイヤー1を復活させる
     /// </summary>
     private void RespawnPlayer1()
-    {
-        GameObject respawnPlayer = GameManager.Instance.playerOne;
-        respawnPlayer.transform.position = Global.PLAYER1_START_POSITION;
-        respawnPlayer.transform.forward = Vector3.forward;
-        respawnPlayer.SetActive(true);
-        respawnPlayer.GetComponent<Renderer>().material.color = Color.black;
+    { 
+        playerOne.transform.position = Global.PLAYER1_START_POSITION;
+        playerOne.transform.forward = Vector3.right;
+        playerOne.GetComponent<Player1Control>().SetStatus(PlayerStatus.Fine);
+        playerOne.GetComponent<TrailRenderer>().enabled = true;
+        playerOne.GetComponent<DropPointControl>().enabled = true;
+        playerOne.GetComponent<Renderer>().material.color = Color.black;
     }
 
     /// <summary>
@@ -130,11 +184,12 @@ public class GameManager : Singleton<GameManager>
     /// </summary>
     private void RespawnPlayer2()
     {
-        GameObject respawnPlayer = GameManager.Instance.playerTwo;
-        respawnPlayer.transform.position = Global.PLAYER2_START_POSITION;
-        respawnPlayer.transform.forward = Vector3.back;
-        respawnPlayer.SetActive(true);
-        respawnPlayer.GetComponent<Renderer>().material.color = Color.black;
+        playerTwo.transform.position = Global.PLAYER2_START_POSITION;
+        playerTwo.transform.forward = Vector3.left;
+        playerTwo.GetComponent<Player2Control>().SetStatus(PlayerStatus.Fine);
+        playerTwo.GetComponent<TrailRenderer>().enabled = true;
+        playerTwo.GetComponent<DropPointControl>().enabled = true;
+        playerTwo.GetComponent<Renderer>().material.color = Color.black;
     }
 
     private void OnDestroy()
@@ -147,19 +202,21 @@ public class GameManager : Singleton<GameManager>
     {
         if (nextScene.name == "Gaming")
         {
-            GameObject player1 = Instantiate(_playerPrefab, Global.PLAYER1_START_POSITION, Quaternion.identity);
-            player1.AddComponent<Player1Control>().SetAreaColor(Global.PLAYER_ONE_AREA_COLOR);
-            player1.name = "Player1";
-            GameObject player2 = Instantiate(_playerPrefab, Global.PLAYER2_START_POSITION, Quaternion.identity);
-            player2.AddComponent<Player2Control>().SetAreaColor(Global.PLAYER_TWO_AREA_COLOR);
-            player2.transform.forward = Vector3.back;
-            player2.name = "Player2";
+            GameObject player1 = Instantiate(_player1Prefab, Global.PLAYER1_START_POSITION, Quaternion.identity);
+            player1.GetComponent<Player1Control>().SetAreaColor(Global.PLAYER_ONE_TRACE_COLOR);
+            player1.transform.forward = Vector3.right;
+            GameObject player2 = Instantiate(_player2Prefab, Global.PLAYER2_START_POSITION, Quaternion.identity);
+            player2.GetComponent<Player2Control>().SetAreaColor(Global.PLAYER_TWO_TRACE_COLOR);
+            player2.transform.forward = Vector3.left;
 
             GameObject scoreItemManager = new GameObject("ScoreItemManager");
             scoreItemManager.AddComponent<ScoreItemManager>();
 
             GameObject dropPointManager = new GameObject("DropPointManager");
             dropPointManager.AddComponent<DropPointManager>();
+
+            GameObject inputManager = new GameObject("InputManager");
+            inputManager.AddComponent<InputManager>();
         }
         else
         {
