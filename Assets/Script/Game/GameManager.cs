@@ -9,6 +9,8 @@ public class GameManager : Singleton<GameManager>
 {
     public GameObject playerOne;
     public GameObject playerTwo;
+    public PlayerStatus p1Status { get; private set; }
+    public PlayerStatus p2Status { get; private set; }
     private ItemSystem itemSystem;
 
     Timer _player1Timer;        // プレイヤー1の待機タイマー
@@ -66,7 +68,7 @@ public class GameManager : Singleton<GameManager>
                     break;
                 case InputDeviceChange.Disconnected:
                     InputSystem.FlushDisconnectedDevices();
-                    Debug.Log(device.displayName + " Disconnected");
+                    Debug.LogWarning(device.displayName + " Disconnected");
                     break;
                 case InputDeviceChange.Removed:
                     if (device is Gamepad)
@@ -83,7 +85,7 @@ public class GameManager : Singleton<GameManager>
                         }
                     }
                     InputSystem.RemoveDevice(device);
-                    Debug.Log(device.displayName + " Removed");
+                    Debug.LogWarning(device.displayName + " Removed");
                     break;
             }
         };

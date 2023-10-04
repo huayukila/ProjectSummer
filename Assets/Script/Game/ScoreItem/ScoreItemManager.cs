@@ -23,6 +23,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// <returns></returns>
     private Vector3 GetInSpaceRandomPosition()
     {
+        // ステージの一定範囲内にインスタンス化する
         float spawnAreaLength = Global.STAGE_LENGTH / 2.5f;
         float spawnAreaWidth = Global.STAGE_WIDTH / 2.5f;
         float posX = Random.Range(-spawnAreaLength,spawnAreaLength);

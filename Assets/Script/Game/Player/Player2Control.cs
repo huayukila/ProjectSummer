@@ -52,6 +52,7 @@ public class Player2Control : Player
                 IsGotSilk = false;
             }
         }
+        
     }
 
     protected override void SetDeadStatus()
