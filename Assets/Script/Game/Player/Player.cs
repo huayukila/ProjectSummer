@@ -74,7 +74,7 @@ public abstract class Player : MonoBehaviour
         };
         pickSilkEvent = new PickSilkEvent();
 
-        GetComponent<Renderer>().material.color = Color.clear;
+        GetComponent<Renderer>().material.color = Color.white;
 
         playerInput = GetComponent<PlayerInput>();
         rotateAction = playerInput.actions["Rotate"];
@@ -126,6 +126,7 @@ public abstract class Player : MonoBehaviour
         _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.deltaTime;
         Vector3 moveDirection = transform.forward * _currentMoveSpeed * Time.fixedDeltaTime * _moveSpeedCoefficient;
         _rigidbody.velocity = moveDirection;
+
     }
 
     /// <summary>

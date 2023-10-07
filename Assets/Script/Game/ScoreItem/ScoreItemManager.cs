@@ -52,7 +52,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private void SetGoalPoint(Vector3 pos)
     {
         _inSpaceSilk.SetActive(false);
-        //todo temp pos
         _goalPoint.transform.position = new Vector3(35.0f,0.64f,15.0f);
         float posX = 0.0f;
         if (pos.x < 0.0f)

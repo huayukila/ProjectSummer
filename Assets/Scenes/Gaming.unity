@@ -1329,6 +1329,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1021175778}
   m_CullTransparentMesh: 1
+--- !u!1 &1107591388
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1107591390}
+  - component: {fileID: 1107591389}
+  m_Layer: 0
+  m_Name: PaintManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1107591389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1107591388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd7d4e8e7ce7d514e9a7c67277ced8e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  texturePaint: {fileID: 4800000, guid: 848d39d443743084990dd1b91b27ab6c, type: 3}
+  areaPaint: {fileID: 4800000, guid: bffacadb33e22964b8dd2a92cad97a1e, type: 3}
+  computeShader: {fileID: 7200000, guid: bcf1799c9ec914444936ecf65a8da3eb, type: 3}
+  player1AreaTexture: {fileID: 21300000, guid: 486ec434fed651b49b4d133be4e4705f, type: 3}
+  player2AreaTexture: {fileID: 21300000, guid: de4247bd550338f438f05803aceefbf2, type: 3}
+  mapPaintable: {fileID: 1142179350}
+--- !u!4 &1107591390
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1107591388}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -29.944963, y: 8.604583, z: 3.0600152}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1142179345
 GameObject:
   m_ObjectHideFlags: 0
@@ -1449,9 +1499,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugUV: 0
-
-  textureSize_x: 1920
-  textureSize_y: 1080
+  textureSize_x: 1024
+  textureSize_y: 1024
 --- !u!1 &1151167969
 GameObject:
   m_ObjectHideFlags: 0
@@ -1897,56 +1946,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!1 &2079903015
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2079903017}
-  - component: {fileID: 2079903018}
-  m_Layer: 0
-  m_Name: PaintManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2079903017
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2079903015}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2079903018
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2079903015}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd7d4e8e7ce7d514e9a7c67277ced8e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  texturePaint: {fileID: 4800000, guid: 848d39d443743084990dd1b91b27ab6c, type: 3}
-  areaPaint: {fileID: 4800000, guid: bffacadb33e22964b8dd2a92cad97a1e, type: 3}
-  computeShader: {fileID: 7200000, guid: bcf1799c9ec914444936ecf65a8da3eb, type: 3}
-  player1AreaTexture: {fileID: 21300000, guid: 486ec434fed651b49b4d133be4e4705f, type: 3}
-  player2AreaTexture: {fileID: 21300000, guid: de4247bd550338f438f05803aceefbf2, type: 3}
-  mapPaintable: {fileID: 1142179350}
 --- !u!1 &2130800045
 GameObject:
   m_ObjectHideFlags: 0
@@ -2092,4 +2091,4 @@ SceneRoots:
   - {fileID: 1142179349}
   - {fileID: 769119238}
   - {fileID: 647297131}
-  - {fileID: 2079903017}
+  - {fileID: 1107591390}
