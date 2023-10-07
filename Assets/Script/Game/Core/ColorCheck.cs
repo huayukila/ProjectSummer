@@ -48,5 +48,6 @@ public class ColorCheck : MonoBehaviour
             Mathf.Abs(targetColor.g - _CurrentColor.g) +
             Mathf.Abs(targetColor.b - _CurrentColor.b)
             < 0.1f;
+
     }
 }
