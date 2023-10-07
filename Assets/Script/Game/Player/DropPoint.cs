@@ -52,8 +52,8 @@ public class DropPoint : MonoBehaviour
     {
         Vector3 playerPos = gameObject.CompareTag("DropPoint1") ? GameManager.Instance.playerOne.transform.position : GameManager.Instance.playerTwo.transform.position;
         Vector3 distance = playerPos - gameObject.transform.position;
-        // 1.0fは後ほどプレイヤーのコライダーの半径に置き換える
-        if (distance.magnitude > _radius + 1.0f)
+        // 5.0fは後ほどプレイヤーのコライダーの半径に置き換える
+        if (distance.magnitude > _radius + 5.0f)
         {
             _turnOn = true;
             GetComponent<SphereCollider>().enabled = true;

@@ -48,7 +48,7 @@ public class Player2Control : Player
                     playerID = 2
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
-                gameObject.GetComponent<Renderer>().material.color = Color.black;
+                gameObject.GetComponent<Renderer>().material.color = Color.white;
                 IsGotSilk = false;
             }
         }
@@ -86,7 +86,7 @@ public class Player2Control : Player
         List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(ob.gameObject);
         verts.Add(transform.position);
         // 領域を描画する　※２はプレイヤー２を指す
-        PolygonPaintManager.Instance.Paint(verts.ToArray(),2,GetAreaColor());
+        PolygonPaintManager.Instance.Paint(verts.ToArray(),2, GetTraceColor());
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();

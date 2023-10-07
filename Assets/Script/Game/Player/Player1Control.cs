@@ -47,7 +47,7 @@ public class Player1Control : Player
                     playerID = 1
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
-                gameObject.GetComponent<Renderer>().material.color = Color.black;
+                gameObject.GetComponent<Renderer>().material.color = Color.white;
                 IsGotSilk = false;
             }
         }
@@ -87,7 +87,7 @@ public class Player1Control : Player
         List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob.gameObject);
         verts.Add(transform.position);
         // 領域を描画する　※１はプレイヤー１を指す
-        PolygonPaintManager.Instance.Paint(verts.ToArray(),1,GetAreaColor());
+        PolygonPaintManager.Instance.Paint(verts.ToArray(),1, GetTraceColor());
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerOneDropPoints();
         gameObject.GetComponent<Player1DropControl>().ClearTrail();

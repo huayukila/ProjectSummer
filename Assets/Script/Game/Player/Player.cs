@@ -16,7 +16,7 @@ public abstract class Player : MonoBehaviour
     [Min(0.0f)][SerializeField]
     float rotationSpeed;                // プレイヤーの回転速度
     [SerializeField]
-    Color32 _areaColor;                 // 領域または移動した跡の色
+    Color32 _traceColor;                 // 領域または移動した跡の色
 
     protected bool isPainting;                          // 地面に描けるかどうかの信号   
     protected ColorCheck colorCheck;                    // カラーチェックコンポネント
@@ -30,6 +30,7 @@ public abstract class Player : MonoBehaviour
     private float _currentMoveSpeed;                    // プレイヤーの現在速度
     private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
     private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
+    private Vector3 _rotateDirection;
 
 
     // public InputActionReference rotateAction;
@@ -73,8 +74,7 @@ public abstract class Player : MonoBehaviour
         };
         pickSilkEvent = new PickSilkEvent();
 
-        GetComponent<Renderer>().material.color = Color.black;
-        IsGotSilk = false;
+        GetComponent<Renderer>().material.color = Color.clear;
 
         playerInput = GetComponent<PlayerInput>();
         rotateAction = playerInput.actions["Rotate"];
@@ -86,6 +86,8 @@ public abstract class Player : MonoBehaviour
         // 描画を制限する（α版）
         if(status == PlayerStatus.Fine)
         {
+            Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
+            _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
             if (isPainting)
             {
                 if(_paintableTimer == null)
@@ -145,11 +147,11 @@ public abstract class Player : MonoBehaviour
         GetComponent<TrailRenderer>().enabled = false;
     }
 
-    public Color32 GetAreaColor() => _areaColor;
+    public Color32 GetTraceColor() => _traceColor;
 
-    public void SetAreaColor(Color32 color)
+    public void SetTraceColor(Color32 color)
     {
-        _areaColor = color;
+        _traceColor = color;
     }
 
     //todo アクセス修飾子の変更予定
@@ -181,12 +183,10 @@ public abstract class Player : MonoBehaviour
     private void PlayerRotation()
     {
         // 方向入力を取得する
-        Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
-        Vector3 rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-        if (rotateDirection != Vector3.zero)
+        if (_rotateDirection != Vector3.zero)
         {
             // 入力された方向へ回転する
-            Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
+            Quaternion rotation = Quaternion.LookRotation(_rotateDirection, Vector3.up);
             RotateRigidbody(rotation);
         }
 
