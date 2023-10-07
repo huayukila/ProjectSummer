@@ -761,13 +761,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 546575827}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 13.75, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
 --- !u!1 &558610889
 GameObject:
   m_ObjectHideFlags: 0
@@ -1644,9 +1644,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugUV: 0
-
-  textureSize_x: 1920
-  textureSize_y: 1080
+  textureSize: 1920
 --- !u!1 &1151167969
 GameObject:
   m_ObjectHideFlags: 0
@@ -2287,9 +2285,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   texturePaint: {fileID: 4800000, guid: 848d39d443743084990dd1b91b27ab6c, type: 3}
   areaPaint: {fileID: 4800000, guid: bffacadb33e22964b8dd2a92cad97a1e, type: 3}
-  computeShader: {fileID: 7200000, guid: bcf1799c9ec914444936ecf65a8da3eb, type: 3}
-  player1AreaTexture: {fileID: 21300000, guid: 486ec434fed651b49b4d133be4e4705f, type: 3}
-  player2AreaTexture: {fileID: 21300000, guid: de4247bd550338f438f05803aceefbf2, type: 3}
+  player1AreaTexture: {fileID: 21300000, guid: ac1e7b15c5fe0c041ba195e5696a89e0, type: 3}
+  player2AreaTexture: {fileID: 21300000, guid: a19652eb4ace55346af51f2dcf1eebed, type: 3}
   mapPaintable: {fileID: 1142179350}
 --- !u!1 &2130800045
 GameObject:
