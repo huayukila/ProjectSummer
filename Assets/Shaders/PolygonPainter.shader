@@ -23,7 +23,7 @@ Shader "Paint/PolygonPainter"
                 float4 worldPos : TEXCOORD1;
             };
             
-            float mask(int max, float4 worldPosArray[100], float4 center)
+            float mask(int max, float4 worldPosArray[100], float4 center,float4 currentColor32)
             {
                 float2 extreme=float2(100000,center.y);
                 int count=0;
@@ -60,7 +60,7 @@ Shader "Paint/PolygonPainter"
             fixed4 frag (v2f i) : SV_Target
             {
                 float4 col = tex2D(_MainTex, i.uv);
-                float f = mask(_MaxVertNum, _worldPosList,i.worldPos);
+                float f = mask(_MaxVertNum, _worldPosList,i.worldPos,col);
                 return lerp(col, _Color, f);
             }
             ENDCG
