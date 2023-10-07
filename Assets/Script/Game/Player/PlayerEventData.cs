@@ -1,15 +1,21 @@
 using UnityEngine;
 
 public struct AddScoreEvent
-{ 
-    public int playerID { get; set; }
+{
+    public int playerID;
 }
 
 public struct PickSilkEvent
 {
-    public GameObject player { get; set; }
+
 }
 public struct DropSilkEvent
 {
-    public DropMode dropMode { get; set; }
+    public DropMode dropMode;
+    public Vector3 pos;
+}
+
+public struct PlayerRespawnEvent
+{
+    public GameObject player;
 }

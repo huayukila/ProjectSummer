@@ -42,6 +42,7 @@ public class ScoreUIDirector : MonoBehaviour
         this.p2ScoreUI.GetComponent<TextMeshProUGUI>().text = "SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
         this.timeUI.GetComponent<TextMeshProUGUI>().text = "TIME:" + timer.GetTime().ToString("F2");     //タイマーのテキストの内容
         
+        /*
         if (this.player1.active == false) 
         {
             p1RespawnUI.active= true;
@@ -65,7 +66,7 @@ public class ScoreUIDirector : MonoBehaviour
             p2RespawnUI.active = false;
             player2Timer = Global.RESPAWN_TIME;
         }
-
+        */
         if (timer.IsTimerFinished())                                    //タイマーが０になるとENDシーンに切り替える
         {
             TypeEventSystem.Instance.Send<GameOver>();                 //GameOver命令を発送、EndSceneへ切り替え

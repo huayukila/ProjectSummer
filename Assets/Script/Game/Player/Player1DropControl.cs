@@ -16,6 +16,7 @@ public class Player1DropControl : DropPointControl
         TR.startWidth = 0.5f;
         TR.endWidth = 0.5f;
         TR.time = Global.DROP_POINT_ALIVE_TIME;
+    
     }
 
 }

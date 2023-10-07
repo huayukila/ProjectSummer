@@ -1,24 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Player2DropControl))]
 public class Player2Control : Player
 {
     private Player2DropControl p2dc;
-    protected override void PlayerRotation()
-    {
-        // 方向入力を取得する
-        float horizontal = Input.GetAxis("Player2_Horizontal");
-        float vertical = Input.GetAxis("Player2_Vertical");
-
-        Vector3 rotateDirection = new Vector3(horizontal, 0.0f, vertical);
-        if (rotateDirection != Vector3.zero)
-        {
-            // 入力された方向へ回転する
-            Quaternion rotation = Quaternion.LookRotation(rotateDirection, Vector3.up);
-            RotateRigidbody(rotation);
-        }
-
-    }
+    
 
     /// <summary>
     /// 当たったときの処理諸々
@@ -29,11 +17,13 @@ public class Player2Control : Player
         // 別のプレイヤーのDropPointに当たったら
         if (other.gameObject.CompareTag("DropPoint1"))
         {
-            SetDeadStatus();
-            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+
+            if (IsGotSilk)
             {
+                dropSilkEvent.pos = transform.position;
                 TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
             }
+            SetDeadStatus();
         }
         // DropPointに当たったら
         if (other.gameObject.CompareTag("DropPoint2") && !isPainting)
@@ -43,28 +33,26 @@ public class Player2Control : Player
         // 金の網に当たったら
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
+            gameObject.GetComponent<Renderer>().material.color = Color.yellow;
+            IsGotSilk = true;
             TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
         // ゴールに当たったら
         if (other.gameObject.CompareTag("Goal"))
         {
             // 自分が金の網を持っていたら
-            if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+            if (IsGotSilk)
             {
                 AddScoreEvent AddScoreEvent = new AddScoreEvent()
                 {
                     playerID = 2
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
-                gameObject.GetComponent<Renderer>().material.color = Color.black;
+                gameObject.GetComponent<Renderer>().material.color = Color.white;
+                IsGotSilk = false;
             }
         }
-    }
-
-    protected override void ResetPlayerTransform()
-    {
-        transform.position = Global.PLAYER2_START_POSITION;
-        transform.forward = Vector3.back;
+        
     }
 
     protected override void SetDeadStatus()
@@ -72,17 +60,17 @@ public class Player2Control : Player
         base.SetDeadStatus();
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();
+        transform.position = Global.PLAYER2_START_POSITION * 100.0f;
     }
-
     protected override void GroundColorCheck()
     {
         // 自分の領域にいたら
-        if (colorCheck.isTargetColor(GetAreaColor()))
+        if (colorCheck.isTargetColor(Global.PLAYER_TWO_TRACE_COLOR))
         {
             SetMoveSpeedCoefficient(Global.SPEED_UP_COEFFICIENT);
         }
         // 別のプレイヤーの領域にいたら
-        else if (colorCheck.isTargetColor(GameManager.Instance.playerOne.GetComponent<Player1Control>().GetAreaColor()))
+        else if (colorCheck.isTargetColor(Global.PLAYER_ONE_TRACE_COLOR))
         {
             SetMoveSpeedCoefficient(Global.SPEED_DOWN_COEFFICIENT);
         }
@@ -91,7 +79,6 @@ public class Player2Control : Player
             SetMoveSpeedCoefficient(1.0f);
         }
     }
-
     protected override void PaintArea(GameObject ob)
     {
         isPainting = true;
@@ -99,7 +86,7 @@ public class Player2Control : Player
         List<Vector3> verts = DropPointManager.Instance.GetPlayerTwoPaintablePointVector3(ob.gameObject);
         verts.Add(transform.position);
         // 領域を描画する　※２はプレイヤー２を指す
-        PolygonPaintManager.Instance.Paint(verts.ToArray(),2,GetAreaColor());
+        PolygonPaintManager.Instance.Paint(verts.ToArray(),2, GetTraceColor());
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();
@@ -109,17 +96,17 @@ public class Player2Control : Player
     protected override void Awake()
     {
         base.Awake();
-        p2dc = gameObject.AddComponent<Player2DropControl>();
+        GameManager.Instance.playerTwo = gameObject;
+        p2dc = GetComponent<Player2DropControl>();
     }
 
     private void Start()
     {
-        GameManager.Instance.playerTwo = gameObject;
+        
     }
 
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
-        PlayerRotation();
     }
 }

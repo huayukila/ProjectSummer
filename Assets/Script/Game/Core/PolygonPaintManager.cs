@@ -43,15 +43,15 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         computeShader.SetTexture(kernelHandle, "Result", mapPaintable.GetCopy());
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
         computeShader.SetVector("_TargetColorA",
-            new Vector4(Global.PLAYER_ONE_AREA_COLOR.r / 255.0f,
-            Global.PLAYER_ONE_AREA_COLOR.g / 255.0f,
-            Global.PLAYER_ONE_AREA_COLOR.b / 255.0f,
-            Global.PLAYER_ONE_AREA_COLOR.a / 255.0f));
+            new Vector4(Global.PLAYER_ONE_TRACE_COLOR.r / 255.0f,
+            Global.PLAYER_ONE_TRACE_COLOR.g / 255.0f,
+            Global.PLAYER_ONE_TRACE_COLOR.b / 255.0f,
+            Global.PLAYER_ONE_TRACE_COLOR.a / 255.0f));
         computeShader.SetVector("_TargetColorB", 
-            new Vector4(Global.PLAYER_TWO_AREA_COLOR.r / 255.0f,
-            Global.PLAYER_TWO_AREA_COLOR.g / 255.0f,
-            Global.PLAYER_TWO_AREA_COLOR.b / 255.0f,
-            Global.PLAYER_TWO_AREA_COLOR.a / 255.0f));
+            new Vector4(Global.PLAYER_TWO_TRACE_COLOR.r / 255.0f,
+            Global.PLAYER_TWO_TRACE_COLOR.g / 255.0f,
+            Global.PLAYER_TWO_TRACE_COLOR.b / 255.0f,
+            Global.PLAYER_TWO_TRACE_COLOR.a / 255.0f));
     }
 
     private void OnGUI()
