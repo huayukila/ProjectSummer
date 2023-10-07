@@ -26,8 +26,13 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         // ステージの一定範囲内にインスタンス化する
         float spawnAreaLength = Global.STAGE_LENGTH / 2.5f;
         float spawnAreaWidth = Global.STAGE_WIDTH / 2.5f;
-        float posX = Random.Range(-spawnAreaLength,spawnAreaLength);
-        float posZ = Random.Range(-spawnAreaWidth, spawnAreaWidth);
+        float posX = 0.0f;
+        float posZ = 0.0f;
+        while(posX == 0.0f || posZ == 0.0f)
+        {
+            posX = Random.Range(-spawnAreaLength, spawnAreaLength);
+            posZ = Random.Range(-spawnAreaWidth, spawnAreaWidth);
+        }
         return new Vector3(posX,0.64f,posZ);
     }
 
@@ -36,23 +41,40 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// </summary>
     private void SetReachGoalProperties(int ID)
     {
-        ScoreSystem.Instance.AddScore(ID);
+        ScoreSystem.Instance.AddScore(ID,Global.SILK_SCORE);
         // 新しい金の網を生成する
         GenerateNewSilk();
     }
 
     /// <summary>
     /// ゴールの位置を生成する
-    /// 未完成のため、固定位置に生成している
     /// </summary>
     private void SetGoalPoint(Vector3 pos)
     {
         _inSpaceSilk.SetActive(false);
         //todo temp pos
         _goalPoint.transform.position = new Vector3(35.0f,0.64f,15.0f);
+        float posX = 0.0f;
+        if (pos.x < 0.0f)
+        {
+            posX = Random.Range(Global.STAGE_LENGTH / 5.0f, Global.STAGE_LENGTH / 2.5f);
+        }
+        else if (pos.x > 0.0f)
+        {
+            posX = Random.Range(-Global.STAGE_LENGTH / 2.5f, -Global.STAGE_LENGTH / 5.0f ) ;
+        }
+
+        float zRange = CalculateOvalRange(posX);
+        float posZ = Random.Range(0, 1) == 0 ? Random.Range(zRange, Global.STAGE_WIDTH / 2.5f) : Random.Range(-Global.STAGE_WIDTH / 2.5f, -zRange);
+
+        _goalPoint.transform.position = new Vector3(posX, 0.64f, posZ);
         _goalPoint.SetActive(true);
     }
 
+    private float CalculateOvalRange(float x)
+    {
+        return Mathf.Sqrt(Mathf.Pow(Global.STAGE_WIDTH / 2.5f, 2) * (1 - (Mathf.Pow(x, 2) / Mathf.Pow(Global.STAGE_LENGTH / 2.5f, 2))));
+    }
     private void GenerateNewSilk()
     {
         _goldenSilkSpawnTimer = new Timer();

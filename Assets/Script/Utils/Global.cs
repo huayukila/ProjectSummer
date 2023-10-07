@@ -23,4 +23,6 @@ public static class Global
     public static readonly float STAGE_LENGTH = 174.0f;
     public static readonly float STAGE_WIDTH = 90.0f;
 
+    public static readonly int SILK_SCORE = 100;
+
 }
