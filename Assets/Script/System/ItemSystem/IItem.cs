@@ -1,9 +1,26 @@
+using System.Collections;
+using UnityEngine;
+
 public interface IItem
 {
-    public void Action(TPlayer player);
+    public void Action();
 }
 
-public abstract class Item :IItem 
+public abstract class Item :MonoBehaviour, IItem 
 {
-    public abstract void Action(TPlayer player);
+    protected float durationTime = 0f;
+    public virtual void Action() {
+        if(durationTime>0f)
+        {
+            StartCoroutine(CallBackEnum());
+        }
+    }
+
+    public abstract void CallBack();
+    IEnumerator CallBackEnum()
+    {
+        yield return new WaitForSeconds(durationTime);
+        CallBack();
+        yield return null;
+    }
 }

@@ -44,7 +44,7 @@ public class ItemSystem : SingletonBase<ItemSystem>
         //道具生成
     }
 
-    private void GiveItem(IPlayer player)
+    private void GiveItem(IPlayer_Item player)
     {
         Item giveItem;
         if (!player.isHadSilk)
