@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class TitleSceneUIDirector : MonoBehaviour
 {
-    public GameObject startBtn;
+    public GameObject pressBtn;
     public bool shineOnOff = true;         //ブタン点滅のスイッチ
     public float blinkSpeed = 0.02f;       //ボタンの点滅変化の速度
     public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
@@ -18,7 +19,7 @@ public class TitleSceneUIDirector : MonoBehaviour
         {
             blinkTimer += Time.fixedDeltaTime;
 
-            Color newColor = startBtn.GetComponent<Image>().color;
+            Color newColor = pressBtn.GetComponent<TextMeshProUGUI>().color;
 
             if (blinkTimer < blinkInterval * 0.5f)
             {
@@ -33,12 +34,12 @@ public class TitleSceneUIDirector : MonoBehaviour
                     blinkTimer = 0f;
                 }
             }
-            startBtn.GetComponent<Image>().color = newColor;
+            pressBtn.GetComponent<TextMeshProUGUI>().color = newColor;
         }
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Return))          //MenuSceneへ切り替え
+        if (Input.anyKeyDown)          //MenuSceneへ切り替え
         {
             TypeEventSystem.Instance.Send<MenuSceneSwitch>();
         }
