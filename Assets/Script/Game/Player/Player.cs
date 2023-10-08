@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public enum PlayerStatus
 {
@@ -15,8 +16,6 @@ public abstract class Player : MonoBehaviour
     float acceleration;                 // プレイヤーの加速度
     [Min(0.0f)][SerializeField]
     float rotationSpeed;                // プレイヤーの回転速度
-    [SerializeField]
-    Color32 _traceColor;                 // 領域または移動した跡の色
 
     protected bool isPainting;                          // 地面に描けるかどうかの信号   
     protected ColorCheck colorCheck;                    // カラーチェックコンポネント
@@ -31,7 +30,8 @@ public abstract class Player : MonoBehaviour
     private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
     private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
     private Vector3 _rotateDirection;
-
+    protected Image playerImage;
+    protected float offset;
 
     // public InputActionReference rotateAction;
     public bool IsGotSilk { get; protected set; }
@@ -79,16 +79,25 @@ public abstract class Player : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
         rotateAction = playerInput.actions["Rotate"];
         status = PlayerStatus.Fine;
+        playerImage = GetComponentInChildren<Image>();
+        offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
     }
 
     private void Update()
     {
+        playerImage.transform.position = transform.position;
+        playerImage.transform.forward = Vector3.down;
         // 描画を制限する（α版）
         if(status == PlayerStatus.Fine)
         {
             Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
             _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-            if (isPainting)
+            GroundColorCheck();
+            if(!isPainting)
+            {
+                CheckCanPaint();
+            }
+            else
             {
                 if(_paintableTimer == null)
                 {
@@ -105,10 +114,9 @@ public abstract class Player : MonoBehaviour
                     _paintableTimer = null;
                 }
             }
-            GroundColorCheck();
         }
     }
-    protected virtual void FixedUpdate()
+    private void FixedUpdate()
     {
         if(status == PlayerStatus.Fine)
         {
@@ -146,13 +154,7 @@ public abstract class Player : MonoBehaviour
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
         GetComponent<DropPointControl>().enabled = false;
         GetComponent<TrailRenderer>().enabled = false;
-    }
-
-    public Color32 GetTraceColor() => _traceColor;
-
-    public void SetTraceColor(Color32 color)
-    {
-        _traceColor = color;
+        playerImage.color = Color.white;
     }
 
     //todo アクセス修飾子の変更予定
@@ -198,6 +200,8 @@ public abstract class Player : MonoBehaviour
     /// 地面の色をチェックする
     /// </summary>
     protected abstract void GroundColorCheck();
+
+    protected abstract void CheckCanPaint();
 
     /// <summary>
     /// 領域を描く

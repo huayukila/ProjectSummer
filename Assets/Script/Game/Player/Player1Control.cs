@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Player1DropControl))]
 public class Player1Control : Player
@@ -24,20 +23,15 @@ public class Player1Control : Player
             }
             SetDeadStatus();
         }
-        // 自分のDropPointに当たったら
-        if (other.gameObject.CompareTag("DropPoint1") && !isPainting)
-        {
-            PaintArea(other.gameObject);
-        }
         // 金の網に当たったら
-        if(other.gameObject.CompareTag("GoldenSilk"))
+        else if (other.gameObject.CompareTag("GoldenSilk"))
         {
-            gameObject.GetComponent<Renderer>().material.color = Color.yellow;
+            playerImage.color = Color.yellow;
             IsGotSilk = true;
             TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
         // ゴールに当たったら
-        if(other.gameObject.CompareTag("Goal"))
+        else if (other.gameObject.CompareTag("Goal"))
         {
             // 自分が金の網を持っていたら
             if(IsGotSilk)
@@ -47,7 +41,7 @@ public class Player1Control : Player
                     playerID = 1
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
-                gameObject.GetComponent<Renderer>().material.color = Color.white;
+                playerImage.color = Color.white;
                 IsGotSilk = false;
             }
         }
@@ -59,6 +53,7 @@ public class Player1Control : Player
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerOneDropPoints();
         p1dc.ClearTrail();
+        p1dc.ResetTrail();
         transform.position = Global.PLAYER1_START_POSITION * 100.0f;
     }
 
@@ -84,13 +79,61 @@ public class Player1Control : Player
     {
         isPainting = true;
         // 描画すべき領域の頂点を取得する
-        List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob.gameObject);
+        List<Vector3> verts = DropPointManager.Instance.GetPlayerOnePaintablePointVector3(ob);
         verts.Add(transform.position);
         // 領域を描画する　※１はプレイヤー１を指す
-        PolygonPaintManager.Instance.Paint(verts.ToArray(),1, GetTraceColor());
+        PolygonPaintManager.Instance.Paint(verts.ToArray(),1, Global.PLAYER_ONE_TRACE_COLOR);
         // DropPointを全て消す
         DropPointManager.Instance.ClearPlayerOneDropPoints();
-        gameObject.GetComponent<Player1DropControl>().ClearTrail();
+        p1dc.ClearTrail();
+        p1dc.ResetTrail();
+    }
+
+    protected override void CheckCanPaint()
+    {
+        Vector3[] dropPoints = DropPointManager.Instance.GetPlayerOneDropPoints();
+        if(dropPoints.Length >= 4)
+        {
+            //todo プレイヤーの大きさによってオフセットが変わる
+            Vector3 endPoint1 = transform.position + transform.forward * offset;
+            Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
+            int endIndex = dropPoints.Length - 2;
+            if(endPoint1 == endPoint2)
+            {
+                endPoint2 = dropPoints[endIndex];
+                endIndex--;
+            }
+            for (int i = 0; i < endIndex; ++i)
+            {
+                if (VectorMath.IsParallel(dropPoints[i], dropPoints[i+1],endPoint2,endPoint1))
+                {
+                    continue;
+                }
+
+                float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
+                float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
+                float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
+                float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
+
+                if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
+                {
+                    Debug.LogError("不完全相交");
+                    isPainting = true;
+                    Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
+                    List<Vector3> verts = new List<Vector3>();
+                    for (int j = i + 1; j < dropPoints.Length; j++)
+                    {
+                        verts.Add(dropPoints[j]);
+                    }
+                    verts.Add(crossPoint);
+                    PolygonPaintManager.Instance.Paint(verts.ToArray(), 1, Global.PLAYER_ONE_TRACE_COLOR);
+                    DropPointManager.Instance.ClearPlayerOneDropPoints();
+                    p1dc.ClearTrail();
+                    p1dc.ResetTrail();
+                    break;
+                }
+            }
+        }
     }
 
     protected override void Awake()
@@ -100,14 +143,5 @@ public class Player1Control : Player
         p1dc = GetComponent<Player1DropControl>();
     }
 
-    private void Start()
-    {
-
-    }
-
-    protected override void FixedUpdate()
-    {
-        base.FixedUpdate();
-    }
-
+    
 }

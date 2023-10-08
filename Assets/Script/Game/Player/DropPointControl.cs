@@ -3,9 +3,13 @@ using UnityEngine;
 [RequireComponent(typeof(TrailRenderer))]
 public abstract class DropPointControl : MonoBehaviour
 {
-    protected TrailRenderer TR;                 // DropPointが繋がっていることを表すTrailRenderer
-    protected GameObject _pointPrefab;          // DropPointのプレハブ
-    Timer _dropTimer;                           // DropPointのインスタンス化することを管理するタイマー
+    protected TrailRenderer tr;                 // DropPointが繋がっていることを表すTrailRenderer
+    protected GameObject pointPrefab;           // DropPointのプレハブ
+    protected float fadeOutTimer;
+
+    private Timer _dropTimer;                   // DropPointのインスタンス化することを管理するタイマー
+
+
 
     /// <summary>
     /// DropPointをインスタンス化する
@@ -48,18 +52,20 @@ public abstract class DropPointControl : MonoBehaviour
     /// </summary>
     public void ClearTrail()
     {
-        TR.Clear();
+        tr.Clear();
     }
 
     private void Awake()
     {
-        _pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
-        TR = gameObject.GetComponent<TrailRenderer>();
+        pointPrefab = (GameObject)Resources.Load("Prefabs/DropPoint");
+        tr = gameObject.GetComponent<TrailRenderer>();
+        fadeOutTimer = 0.0f;
         SetTRProperties();
+        
     }
 
     // Update is called once per frame
-    private void Update()
+    protected virtual void Update()
     {
         TryDropPoint();
     }
@@ -69,6 +75,7 @@ public abstract class DropPointControl : MonoBehaviour
     private void OnDestroy()
     {
         Resources.UnloadUnusedAssets();
+        Destroy(tr.material);
     }
 }
 
