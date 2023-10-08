@@ -38,7 +38,7 @@ public class GameManager : Singleton<GameManager>
         {
             RespawnPlayer(e.player);
 
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
 
         SceneManager.sceneLoaded += SceneLoaded;
 
