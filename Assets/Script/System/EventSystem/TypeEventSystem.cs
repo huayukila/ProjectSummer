@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public interface ITypeEventSystem
@@ -52,14 +53,9 @@ public class UnregisterOnDestroyTrigger : MonoBehaviour
 /// </summary>
 public static class UnregisterExtension
 {
-    public static void UnregisterWhenGameObjectDestroyde(this IUnregister unRegister, GameObject gameObject)
+    public static void UnregisterWhenGameObjectDestroyed(this IUnregister unRegister, GameObject gameObject)
     {
-        var trigger = gameObject.GetComponent<UnregisterOnDestroyTrigger>();
-        if (!trigger)
-        {
-            trigger = gameObject.AddComponent<UnregisterOnDestroyTrigger>();
-        }
-        trigger.AddUnregister(unRegister);
+        gameObject.GetOrAddComponent<UnregisterOnDestroyTrigger>().AddUnregister(unRegister);
     }
 }
 public class TypeEventSystem : SingletonBase<TypeEventSystem>,ITypeEventSystem

@@ -36,7 +36,7 @@ public class ItemSystem : SingletonBase<ItemSystem>
                 GiveItem(e.player);
                 itemObj.SetActive(false);
             }
-        }).UnregisterWhenGameObjectDestroyde(GameManager.Instance.gameObject);
+        }).UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
     }
 
     public void SpawnItem()
