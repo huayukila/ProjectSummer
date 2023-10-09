@@ -23,20 +23,20 @@ public class Paintable : MonoBehaviour
 
     private void Awake()
     {
-        maskTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGB32);
+        maskTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         maskTexture.filterMode = FilterMode.Bilinear;
         maskTexture.Create();
 
-        areaMaskTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGB32);
+        areaMaskTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         areaMaskTexture.filterMode = FilterMode.Bilinear;
         areaMaskTexture.Create();
 
-        copyTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGB32);
+        copyTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         copyTexture.filterMode = FilterMode.Bilinear;
         copyTexture.enableRandomWrite = true;
         copyTexture.Create();
 
-        areaCopyTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGB32);
+        areaCopyTexture = new RenderTexture(textureSize_x, textureSize_y, 0,RenderTextureFormat.ARGBFloat);
         areaCopyTexture.filterMode = FilterMode.Bilinear;
         areaCopyTexture.Create();
 
