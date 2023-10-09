@@ -2,20 +2,26 @@
 
 RWBuffer<int> CountBuffer;
 RWTexture2D<float4> Result;
+
 float4 TargetColorA;
 float4 TargetColorB;
+
+bool CompareColor(float4 CurrentColor,float4 TargetColor){
+    return
+    (abs(CurrentColor.x-TargetColor.x)<0.1f&&
+    abs(CurrentColor.y-TargetColor.y)<0.1f&&
+    abs(CurrentColor.z-TargetColor.z)<0.1f);
+}
 
 [numthreads(8, 8, 1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    int tmp=0;
-    if(Result[id.xy].z==1){
-        tmp=1;
+    if (CompareColor(Result[id.xy],TargetColorA))
+    {
+        InterlockedAdd(CountBuffer[0], 1);
     }
-    InterlockedAdd(CountBuffer[0],tmp);
-    tmp=0;
-    if(Result[id.xy].y==1){
-        tmp=1;
+    if (CompareColor(Result[id.xy],TargetColorB))
+    {
+        InterlockedAdd(CountBuffer[1], 1);
     }
-    InterlockedAdd(CountBuffer[1],tmp);
 }

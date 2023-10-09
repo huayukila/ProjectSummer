@@ -13,8 +13,8 @@ public static class Global
 
     public static readonly float RESPAWN_TIME = 5.0f;                                            // プレイヤーが死んでから復活までの時間間隔
 
-    public static readonly Color32 PLAYER_ONE_TRACE_COLOR = new Color32(0, 0, 255, 255);          // プレイヤー１の痕跡の色
-    public static readonly Color32 PLAYER_TWO_TRACE_COLOR = new Color32(0, 255, 0, 255);          // プレイヤー２の痕跡の色
+    public static readonly Color PLAYER_ONE_TRACE_COLOR = new Color(0.0f, 0.0f, 1.0f, 1.0f);          // プレイヤー１の痕跡の色
+    public static readonly Color PLAYER_TWO_TRACE_COLOR = new Color(0.5f, 0.0f, 0.5f, 1.0f);          // プレイヤー２の痕跡の色
 
     public static readonly float PLAYER_MAX_MOVE_SPEED = 1000.0f;                                // プレイヤーの最大速度
     public static readonly float PLAYER_ACCELERATION = 600.0f;                                   // プレイヤーの加速度
