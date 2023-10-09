@@ -128,18 +128,18 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             SetReachGoalProperties(e.playerID);
 
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
 
         TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
         {
             DropGoldenSilk(e.dropMode,e.pos);
 
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
         {
             SetGoalPoint(_inSpaceSilk.transform.position);
 
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
 
     }
 
