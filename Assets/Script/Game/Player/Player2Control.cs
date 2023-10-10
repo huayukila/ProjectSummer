@@ -117,7 +117,6 @@ public class Player2Control : Player
 
                 if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
                 {
-                    Debug.Log("•sŠ®‘S‘ŠŒð");
                     Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
                     List<Vector3> verts = new List<Vector3>();
                     for(int j = i+1;j< dropPoints.Length;j++)

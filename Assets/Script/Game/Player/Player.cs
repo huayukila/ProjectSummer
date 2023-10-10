@@ -24,14 +24,19 @@ public abstract class Player : MonoBehaviour
     protected InputAction rotateAction;
     protected PlayerInput playerInput;
     protected PlayerStatus status;
+    protected Image playerImage;
+    protected float offset;
 
     private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
     private float _currentMoveSpeed;                    // プレイヤーの現在速度
     private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
     private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
     private Vector3 _rotateDirection;
-    protected Image playerImage;
-    protected float offset;
+    private GameObject _particleObject;
+    private GameObject _particlePrefab;
+    private ParticleSystem _pS;
+    private ParticleSystem.MainModule _pSMain;
+
 
     // public InputActionReference rotateAction;
     public bool IsGotSilk { get; protected set; }
@@ -59,30 +64,12 @@ public abstract class Player : MonoBehaviour
 
     protected virtual void Awake()
     {
-        isPainting = false;
-        _currentMoveSpeed = 0.0f;
-        _rigidbody = GetComponent<Rigidbody>();
-        colorCheck = GetComponent<ColorCheck>();
-        colorCheck.layerMask = LayerMask.GetMask("Ground");
-        _moveSpeedCoefficient = 1.0f;
-        maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-        acceleration = Global.PLAYER_ACCELERATION;
-        rotationSpeed = Global.PLAYER_ROTATION_SPEED;
-        dropSilkEvent = new DropSilkEvent()
-        {
-            dropMode = DropMode.Standard,
-        };
-        pickSilkEvent = new PickSilkEvent();
-
-        GetComponent<Renderer>().material.color = Color.white;
-
-        playerInput = GetComponent<PlayerInput>();
-        rotateAction = playerInput.actions["Rotate"];
-        status = PlayerStatus.Fine;
-        playerImage = GetComponentInChildren<Image>();
-        offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+        Init();
     }
+    private void Start()
+    {
 
+    }
     private void Update()
     {
         playerImage.transform.position = transform.position;
@@ -90,6 +77,12 @@ public abstract class Player : MonoBehaviour
         // 描画を制限する（α版）
         if(status == PlayerStatus.Fine)
         {
+            if(_pS.isStopped)
+            {
+                _pS.Play();
+            };
+            _pSMain.simulationSpeed = _currentMoveSpeed * 0.005f;
+            _pSMain.startLifetime = _pSMain.simulationSpeed * 0.5f;
             Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
             _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
             GroundColorCheck();
@@ -125,13 +118,46 @@ public abstract class Player : MonoBehaviour
         }
     }
 
+    protected virtual void Init()
+    {
+        isPainting = false;
+        _currentMoveSpeed = 0.0f;
+        _rigidbody = GetComponent<Rigidbody>();
+        colorCheck = GetComponent<ColorCheck>();
+        colorCheck.layerMask = LayerMask.GetMask("Ground");
+        _moveSpeedCoefficient = 1.0f;
+        maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+        acceleration = Global.PLAYER_ACCELERATION;
+        rotationSpeed = Global.PLAYER_ROTATION_SPEED;
+        dropSilkEvent = new DropSilkEvent()
+        {
+            dropMode = DropMode.Standard,
+        };
+        pickSilkEvent = new PickSilkEvent();
+
+        GetComponent<Renderer>().material.color = Color.white;
+        playerInput = GetComponent<PlayerInput>();
+        rotateAction = playerInput.actions["Rotate"];
+        status = PlayerStatus.Fine;
+        playerImage = GetComponentInChildren<Image>();
+        offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+
+        _particlePrefab = Resources.Load("Prefabs/DustParticlePrefab") as GameObject;
+        _particleObject = Instantiate(_particlePrefab, transform);
+        _particleObject.transform.localPosition = Vector3.zero;
+        _particleObject.transform.rotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
+        _pS = _particleObject.GetComponent<ParticleSystem>();
+        _pSMain = _pS.main;
+        _pSMain.startSize = 0.2f;
+        _pSMain.startSpeed = 1.0f;
+    }
     /// <summary>
     /// プレイヤーの移動を制御する
     /// </summary>
     private void PlayerMovement()
     {
         // 加速運動をして、最大速度まで加速する
-        _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.deltaTime;
+        _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.fixedDeltaTime;
         Vector3 moveDirection = transform.forward * _currentMoveSpeed * Time.fixedDeltaTime * _moveSpeedCoefficient;
         _rigidbody.velocity = moveDirection;
 
@@ -155,6 +181,10 @@ public abstract class Player : MonoBehaviour
         GetComponent<DropPointControl>().enabled = false;
         GetComponent<TrailRenderer>().enabled = false;
         playerImage.color = Color.white;
+        if(_pS.isPlaying)
+        {
+            _pS.Stop();
+        }
     }
 
     //todo アクセス修飾子の変更予定
