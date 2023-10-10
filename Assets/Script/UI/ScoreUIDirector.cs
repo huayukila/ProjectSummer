@@ -21,7 +21,7 @@ public class ScoreUIDirector : MonoBehaviour
 
     public Timer timer;
 
-    public float timerSetting = 60f;
+    public float timerSetting = Global.SET_GAME_TIME;
 
     void Start()
     {
@@ -51,6 +51,7 @@ public class ScoreUIDirector : MonoBehaviour
         this.p2ScoreUI.GetComponent<TextMeshProUGUI>().text = "SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();Å@  //ÉeÉLÉXÉgÇÃì‡óe
         this.timeUI.GetComponent<TextMeshProUGUI>().text = "TIME:" + timer.GetTime().ToString("F2");     //É^ÉCÉ}Å[ÇÃÉeÉLÉXÉgÇÃì‡óe
 
+
         //ÉeÉXÉgópÅ]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]Å]
         //if (this.player1.active ==false)
         //{
@@ -70,6 +71,34 @@ public class ScoreUIDirector : MonoBehaviour
         //    TypeEventSystem.Instance.Send<Player2RespawnCntEnd>();
         //}
 
+
+        
+        /*
+        if (this.player1.active == false) 
+        {
+            p1RespawnUI.active= true;
+            player1Timer -= Time.deltaTime;
+            this.p1RespawnUI.GetComponent<TextMeshProUGUI>().text = player1Timer.ToString("F0");
+        }
+        else
+        {
+            p1RespawnUI.active = false;
+            player1Timer = Global.RESPAWN_TIME;
+        }
+
+        if (this.player2.active == false)
+        {
+            p2RespawnUI.active = true;
+            player2Timer -= Time.deltaTime;
+            this.p2RespawnUI.GetComponent<TextMeshProUGUI>().text = player2Timer.ToString("F0");
+        }
+        else
+        {
+            p2RespawnUI.active = false;
+            player2Timer = Global.RESPAWN_TIME;
+        }
+        */
+ 
         if (timer.IsTimerFinished())                                    //É^ÉCÉ}Å[Ç™ÇOÇ…Ç»ÇÈÇ∆ENDÉVÅ[ÉìÇ…êÿÇËë÷Ç¶ÇÈ
         {
             TypeEventSystem.Instance.Send<GameOver>();                 //GameOverñΩóﬂÇî≠ëóÅAEndSceneÇ÷êÿÇËë÷Ç¶

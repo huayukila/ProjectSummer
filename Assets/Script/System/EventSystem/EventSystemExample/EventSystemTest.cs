@@ -10,7 +10,7 @@ public class EventSystemTest : MonoBehaviour
         TypeEventSystem.Instance.Register<KillEvent>(e =>
         {
             Debug.Log(e.Name + " " + e.Age);
-        }).UnregisterWhenGameObjectDestroyde(gameObject);
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
         //只需要响应事件的写法
         //TypeEventSystem.Instance.Register<GameStartEvent>(e =>
         //{

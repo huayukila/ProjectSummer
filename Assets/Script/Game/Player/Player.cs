@@ -1,21 +1,40 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+public enum PlayerStatus
+{
+    Fine,
+    Dead
+}
+[RequireComponent(typeof(ColorCheck),typeof(PlayerInput))]
 public abstract class Player : MonoBehaviour
 {
-    public float maxMoveSpeed;                  // プレイヤーの最大速度
-    [Min(0.0f)] public float acceleration;      // プレイヤーの加速度
-    [Min(0.0f)] public float rotationSpeed;     // プレイヤーの回転速度
-    [SerializeField]Color32 _areaColor;         // 領域または移動した跡の色
+    [SerializeField]
+    float maxMoveSpeed;                 // プレイヤーの最大速度
+    [Min(0.0f)][SerializeField]
+    float acceleration;                 // プレイヤーの加速度
+    [Min(0.0f)][SerializeField]
+    float rotationSpeed;                // プレイヤーの回転速度
+    [SerializeField]
+    Color32 _traceColor;                 // 領域または移動した跡の色
 
-    protected bool isPainting;                  // 地面に描けるかどうかの信号 
-    private Rigidbody _rigidbody;               // プレイヤーのRigidbody
-    protected ColorCheck colorCheck;            // カラーチェックコンポネント
-    protected DropSilkEvent dropSilkEvent;
-    protected PickSilkEvent pickSilkEvent;
+    protected bool isPainting;                          // 地面に描けるかどうかの信号   
+    protected ColorCheck colorCheck;                    // カラーチェックコンポネント
+    protected DropSilkEvent dropSilkEvent;              // 金の網を落とすイベント
+    protected PickSilkEvent pickSilkEvent;              // 金の網を拾うイベント
+    protected InputAction rotateAction;
+    protected PlayerInput playerInput;
+    protected PlayerStatus status;
 
-    private Timer _paintableTimer;              // 領域を描く間隔を管理するタイマー
-    private float _currentMoveSpeed;            // プレイヤーの現在速度
-    private float _moveSpeedCoefficient;        // プレイヤーの移動速度の係数
+    private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
+    private float _currentMoveSpeed;                    // プレイヤーの現在速度
+    private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
+    private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
+    private Vector3 _rotateDirection;
+
+
+    // public InputActionReference rotateAction;
+    public bool IsGotSilk { get; protected set; }
 
     /// <summary>
     /// 衝突があったとき処理する
@@ -24,18 +43,18 @@ public abstract class Player : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         // 衝突したら死亡状態に設定する
-        SetDeadStatus();
+
         // 死亡したプレイヤーは金の網を持っていたら
-        if (ScoreItemManager.Instance.IsGotSilk(gameObject))
+        if (IsGotSilk)
         {
+            dropSilkEvent.pos = transform.position;
             if (collision.gameObject.CompareTag("Wall"))
             {
-                dropSilkEvent.dropMode = DropMode.Edge;
+                dropSilkEvent.dropMode = DropMode.Edge; 
             }
             TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
-
         }
-
+        SetDeadStatus();
     }
 
     protected virtual void Awake()
@@ -43,7 +62,7 @@ public abstract class Player : MonoBehaviour
         isPainting = false;
         _currentMoveSpeed = 0.0f;
         _rigidbody = GetComponent<Rigidbody>();
-        colorCheck = gameObject.AddComponent<ColorCheck>();
+        colorCheck = GetComponent<ColorCheck>();
         colorCheck.layerMask = LayerMask.GetMask("Ground");
         _moveSpeedCoefficient = 1.0f;
         maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
@@ -51,41 +70,51 @@ public abstract class Player : MonoBehaviour
         rotationSpeed = Global.PLAYER_ROTATION_SPEED;
         dropSilkEvent = new DropSilkEvent()
         {
-            dropMode = DropMode.Standard
+            dropMode = DropMode.Standard,
         };
-        pickSilkEvent = new PickSilkEvent()
-        {
-            player = gameObject
-        };
-        gameObject.GetComponent<Renderer>().material.color = Color.black;
+        pickSilkEvent = new PickSilkEvent();
+
+        GetComponent<Renderer>().material.color = Color.white;
+
+        playerInput = GetComponent<PlayerInput>();
+        rotateAction = playerInput.actions["Rotate"];
+        status = PlayerStatus.Fine;
     }
 
     private void Update()
     {
         // 描画を制限する（α版）
-        if (isPainting)
+        if(status == PlayerStatus.Fine)
         {
-            if(_paintableTimer == null)
+            Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
+            _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+            if (isPainting)
             {
-                _paintableTimer = new Timer();
-                _paintableTimer.SetTimer(0.5f,
-                    () =>
-                    {
-                        isPainting = false;
-                    }
-                    );
+                if(_paintableTimer == null)
+                {
+                    _paintableTimer = new Timer();
+                    _paintableTimer.SetTimer(0.3f,
+                        () =>
+                        {
+                            isPainting = false;
+                        }
+                        );
+                }
+                if(_paintableTimer.IsTimerFinished())
+                {
+                    _paintableTimer = null;
+                }
             }
-            if(_paintableTimer.IsTimerFinished())
-            {
-                _paintableTimer = null;
-            }
+            GroundColorCheck();
         }
-        GroundColorCheck();
-
     }
     protected virtual void FixedUpdate()
     {
-        PlayerMovement();
+        if(status == PlayerStatus.Fine)
+        {
+            PlayerMovement();
+            PlayerRotation();
+        }
     }
 
     /// <summary>
@@ -97,6 +126,7 @@ public abstract class Player : MonoBehaviour
         _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.deltaTime;
         Vector3 moveDirection = transform.forward * _currentMoveSpeed * Time.fixedDeltaTime * _moveSpeedCoefficient;
         _rigidbody.velocity = moveDirection;
+
     }
 
     /// <summary>
@@ -104,29 +134,32 @@ public abstract class Player : MonoBehaviour
     /// </summary>
     protected virtual void SetDeadStatus()
     {
-        gameObject.SetActive(false);
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
-
-    }
-
-    // プレイヤーを復活させる
-    public void Respawn()
-    {
-        if(!gameObject.activeSelf)
+        status = PlayerStatus.Dead;
+        _currentMoveSpeed = 0.0f;
+        IsGotSilk = false;
+        PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
         {
-            _currentMoveSpeed = 0.0f;
-            ResetPlayerTransform();
-            gameObject.SetActive(true);
-            gameObject.GetComponent<Renderer>().material.color = Color.black;
-        }
+            player = gameObject
+        };
+        TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
+        GetComponent<DropPointControl>().enabled = false;
+        GetComponent<TrailRenderer>().enabled = false;
     }
 
-    public Color32 GetAreaColor() => _areaColor;
+    public Color32 GetTraceColor() => _traceColor;
 
-    public void SetAreaColor(Color32 color)
+    public void SetTraceColor(Color32 color)
     {
-        _areaColor = color;
+        _traceColor = color;
+    }
+
+    //todo アクセス修飾子の変更予定
+    public PlayerStatus GetStatus() => status;
+    public void SetStatus(PlayerStatus status)
+    {
+        this.status = status;
     }
     /// <summary>
     /// プレイヤーのリジッドボディを回転させる
@@ -148,12 +181,18 @@ public abstract class Player : MonoBehaviour
     /// <summary>
     /// プレイヤーの回転を制御する
     /// </summary>
-    protected abstract void PlayerRotation();
+    private void PlayerRotation()
+    {
+        // 方向入力を取得する
+        if (_rotateDirection != Vector3.zero)
+        {
+            // 入力された方向へ回転する
+            Quaternion rotation = Quaternion.LookRotation(_rotateDirection, Vector3.up);
+            RotateRigidbody(rotation);
+        }
 
-    /// <summary>
-    /// プレイヤーの位置をリセットする
-    /// </summary>
-    protected abstract void ResetPlayerTransform();
+
+    }
 
     /// <summary>
     /// 地面の色をチェックする
@@ -165,4 +204,14 @@ public abstract class Player : MonoBehaviour
     /// </summary>
     /// <param name="object">当たった自分自身が落としたDropPoint</param>
     protected abstract void PaintArea(GameObject @object);
+
+    private void OnEnable()
+    {
+        rotateAction.Enable();
+    }
+    private void OnDisable()
+    {
+        rotateAction.Disable();
+    }
+
 }
