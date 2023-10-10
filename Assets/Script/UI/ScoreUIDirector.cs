@@ -21,11 +21,9 @@ public class ScoreUIDirector : MonoBehaviour
 
     public Timer timer;
 
-<<<<<<< Updated upstream
-    public float timerSetting = Global.SET_GAME_TIME;
-=======
-    float timerSetting = Global.GAMING_TIME_SETTING;
->>>>>>> Stashed changes
+
+    float timerSetting = Global.SET_GAME_TIME;
+
 
     void Start()
     {
