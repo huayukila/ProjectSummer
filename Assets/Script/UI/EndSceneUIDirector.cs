@@ -11,6 +11,7 @@ public class EndSceneUIDirector : MonoBehaviour
     public GameObject draw;
     public GameObject winYellow;
     public GameObject winRed;
+    public GameObject pressAnyBtn;
 
     float timer;
     float alphaSetTMP;
@@ -21,6 +22,11 @@ public class EndSceneUIDirector : MonoBehaviour
     float localScaleChangeTMP;
     float localScaleSet;
     float localScaleChange;
+
+    //Blink Initialization--------------------
+    public float blinkSpeed = 0.02f;       //ボタンの点滅変化の速度
+    public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
+    float blinkTimer = 0f;
 
 
     private void Start()
@@ -37,6 +43,7 @@ public class EndSceneUIDirector : MonoBehaviour
         localScaleSet = 20f;
         localScaleChange = 0.5f;
 
+
         UISystem.SetPos(redScore,1500f,0f);
         UISystem.SetPos(yellowScore, 1500f, 0f);
 
@@ -52,6 +59,11 @@ public class EndSceneUIDirector : MonoBehaviour
         UISystem.SetLocalScale(winYellow, localScaleSet, localScaleSet, localScaleSet);
         UISystem.SetAlpha(winYellow, alphaSet);
 
+        UISystem.DisplayOff(pressAnyBtn);
+
+        //UISystem.SetLocalScale(pressAnyBtn, 10f, 10f, 10f);
+        //UISystem.SetAlphaTMP(pressAnyBtn, alphaSet);
+
         //Debug.Log(redScore.transform.position);
 
 
@@ -59,12 +71,9 @@ public class EndSceneUIDirector : MonoBehaviour
     private void Update()
     {
         this.redScore.GetComponent<TextMeshProUGUI>().text = "RED SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
-        this.yellowScore.GetComponent<TextMeshProUGUI>().text = "YELLOW SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
+        this.yellowScore.GetComponent<TextMeshProUGUI>().text = "YELLOW SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容 
 
-        if (Input.anyKey)
-        {
-            TypeEventSystem.Instance.Send<TitleSceneSwitch>();
-        }
+        
     }
     void FixedUpdate()
     {
@@ -95,6 +104,15 @@ public class EndSceneUIDirector : MonoBehaviour
             if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())
             {
                 TurnSmallAndAppear(winYellow);
+            }         
+        }
+        if (timer <= 0.5f) 
+        {
+            UISystem.DisplayOn(pressAnyBtn);
+            Blink();
+            if (Input.anyKeyDown)          //TitleSceneへ切り替え
+            {
+                TypeEventSystem.Instance.Send<TitleSceneSwitch>();
             }
         }
     }
@@ -117,5 +135,26 @@ public class EndSceneUIDirector : MonoBehaviour
             localScaleSet -= localScaleChange;
             UISystem.SetLocalScale(ui, localScaleSet, localScaleSet, localScaleSet);
         }
+    }
+    private void Blink()
+    {
+        blinkTimer += Time.fixedDeltaTime;
+
+        Color newColor = pressAnyBtn.GetComponent<TextMeshProUGUI>().color;
+
+        if (blinkTimer < blinkInterval * 0.5f)
+        {
+            newColor.a -= blinkSpeed;
+        }
+        else
+        {
+            newColor.a += blinkSpeed;
+            if (newColor.a >= 1.0f)
+            {
+                newColor.a = 1.0f;
+                blinkTimer = 0f;
+            }
+        }
+        pressAnyBtn.GetComponent<TextMeshProUGUI>().color = newColor;
     }
 }

@@ -27,6 +27,4 @@ public static class Global
 
     public static readonly float SET_GAME_TIME = 60f;　　　　　　　　　　　　　　　　　　　　　　　//ゲーム時間
 
-    public static float GAMING_TIME_SETTING = 60f;
-
 }

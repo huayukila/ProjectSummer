@@ -73,4 +73,46 @@ public class UISystem : MonoBehaviour
         colorUI.a = alpha;
         ui.GetComponent<Image>().color = colorUI;
     }
+    //public static float BlinkTMP(GameObject ui,float blinkTimer,float blinkSpeed, float blinkInterval)
+    //{
+    //    Color newColor = ui.GetComponent<TextMeshProUGUI>().color;
+    //    if (blinkTimer <  0.5f)
+    //    {
+    //        newColor.a -= blinkSpeed;
+    //    }
+    //    else
+    //    {
+    //        newColor.a += blinkSpeed;
+    //        //if (newColor.a >= 1.0f)
+    //        //{
+    //        //    newColor.a = 1.0f;
+    //        //    blinkTimer = 0f;
+    //        //}
+    //    }
+    //    ui.GetComponent<TextMeshProUGUI>().color = newColor;
+    //    return blinkTimer;
+    //}
+
+    //public static void BlinkTMP(GameObject ui, float blinkTimer, float blinkSpeed, float blinkInterval)
+    //{
+    //    blinkTimer += blinkSpeed;
+
+    //    Color newColor = ui.GetComponent<TextMeshProUGUI>().color;
+
+    //    if (blinkTimer < blinkInterval * 0.5f)
+    //    {
+    //        newColor.a -= blinkSpeed;
+    //    }
+    //    else
+    //    {
+    //        newColor.a += blinkSpeed;
+    //        blinkTimer = 0f;
+    //        if (newColor.a >= 1.0f)
+    //        {
+    //            newColor.a = 1.0f;
+    //            blinkTimer = 0f;
+    //        }
+    //    }
+    //    ui.GetComponent<TextMeshProUGUI>().color = newColor;
+    //}
 }
