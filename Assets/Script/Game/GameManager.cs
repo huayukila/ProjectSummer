@@ -220,6 +220,7 @@ public class GameManager : Singleton<GameManager>
         {
             _player1Timer = null;
             _player2Timer = null;
+            GameObject switchSceneInputManager = Instantiate(Resources.Load("Prefabs/SwitchSceneManager") as GameObject);
         }
     }
 

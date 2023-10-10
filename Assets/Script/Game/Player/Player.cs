@@ -72,7 +72,8 @@ public abstract class Player : MonoBehaviour
     }
     private void Update()
     {
-        playerImage.transform.position = transform.position;
+        //todo
+        playerImage.transform.position = transform.position - new Vector3(0.0f,0.1f,0.0f);
         playerImage.transform.forward = Vector3.down;
         // •`‰æ‚ğ§ŒÀ‚·‚éiƒ¿”Åj
         if(status == PlayerStatus.Fine)

@@ -394,7 +394,6 @@ MonoBehaviour:
   p1RespawnUI: {fileID: 1021175778}
   p2RespawnUI: {fileID: 1639434789}
   timeUI: {fileID: 2130800045}
-  timerSetting: 60
 --- !u!114 &65571327
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1413,7 +1412,7 @@ MeshCollider:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_LayerOverridePriority: 0
+  m_LayerOverridePriority: -1
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
