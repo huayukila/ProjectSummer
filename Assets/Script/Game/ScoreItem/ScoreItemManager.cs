@@ -120,8 +120,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         Init();
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
-        _inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
-        _goalPoint.GetComponent<Renderer>().material.color = Color.yellow;
         System.Random rand = new System.Random((int)Time.time);
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
@@ -149,13 +147,11 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             GameObject silkPrefab = (GameObject)Resources.Load("Prefabs/GoldenSilk");
             _inSpaceSilk = Instantiate(silkPrefab, GetInSpaceRandomPosition(),Quaternion.identity);
-            _inSpaceSilk.GetComponent<Renderer>().material.color = Color.yellow;
         }
         if(_goalPoint == null)
         {
             GameObject goalPrefab = (GameObject)Resources.Load("Prefabs/Goal");
             _goalPoint = Instantiate(goalPrefab, new Vector3(35.0f, 0.64f, 15.0f), Quaternion.identity);
-            _goalPoint.GetComponent<Renderer>().material.color = Color.yellow;
         }
 
     }

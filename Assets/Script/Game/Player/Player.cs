@@ -81,7 +81,8 @@ public abstract class Player : MonoBehaviour
             {
                 _pS.Play();
             };
-            _pSMain.simulationSpeed = _currentMoveSpeed * 0.005f;
+            _pSMain.startSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 2.0f;
+            _pSMain.simulationSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 4.0f + 1.0f;
             _pSMain.startLifetime = _pSMain.simulationSpeed * 0.5f;
             Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
             _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
@@ -149,7 +150,7 @@ public abstract class Player : MonoBehaviour
         _pS = _particleObject.GetComponent<ParticleSystem>();
         _pSMain = _pS.main;
         _pSMain.startSize = 0.2f;
-        _pSMain.startSpeed = 1.0f;
+        _pSMain.startColor = Color.gray;
     }
     /// <summary>
     /// ÉvÉåÉCÉÑÅ[ÇÃà⁄ìÆÇêßå‰Ç∑ÇÈ
