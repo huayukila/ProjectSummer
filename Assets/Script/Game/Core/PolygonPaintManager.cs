@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -42,22 +43,15 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     {
         computeShader.SetTexture(kernelHandle, "Result", mapPaintable.GetCopy());
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
-        computeShader.SetVector("_TargetColorA",
-            new Vector4(Global.PLAYER_ONE_TRACE_COLOR.r / 255.0f,
-            Global.PLAYER_ONE_TRACE_COLOR.g / 255.0f,
-            Global.PLAYER_ONE_TRACE_COLOR.b / 255.0f,
-            Global.PLAYER_ONE_TRACE_COLOR.a / 255.0f));
-        computeShader.SetVector("_TargetColorB", 
-            new Vector4(Global.PLAYER_TWO_TRACE_COLOR.r / 255.0f,
-            Global.PLAYER_TWO_TRACE_COLOR.g / 255.0f,
-            Global.PLAYER_TWO_TRACE_COLOR.b / 255.0f,
-            Global.PLAYER_TWO_TRACE_COLOR.a / 255.0f));
+
+        computeShader.SetVector("TargetColorA", Global.PLAYER_ONE_TRACE_COLOR);
+        computeShader.SetVector("TargetColorB", Global.PLAYER_TWO_TRACE_COLOR);
     }
 
     private void OnGUI()
     {
         GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(3.0f, 3.0f, 1));
-        GUILayout.BeginArea(new Rect(10, 10, 1000, 200));
+        GUILayout.BeginArea(new Rect(10, 100, 1000, 200));
         GUILayout.Label("Game Data Test", GUILayout.Width(1000));
         GUILayout.Label("Blue:" + redScore + "%", GUILayout.Width(1000));
         GUILayout.Label("Green:" + greenScore + "%", GUILayout.Width(1000));
@@ -176,9 +170,16 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
            mapPaintable.GetCopy().height / 8, 1);
         int[] CountResultArray = new int[2];
         mCountBuffer.GetData(CountResultArray);
-        redScore = (CountResultArray[0] / (1920.0f * 1080.0f)) * 1000.0f;
-        greenScore = (CountResultArray[1] / (1920.0f * 1080.0f)) * 1000.0f;
+
+        redScore = CountScore(CountResultArray[0],mapPaintable.GetMask().width, mapPaintable.GetMask().height);
+
+        greenScore = CountScore(CountResultArray[1], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
         mCountBuffer.SetData(new int[2] { 0, 0 });
+    }
+
+    float CountScore(int Nums,float width,float heigt)
+    {
+        return MathF.Floor((Nums / (width * heigt*0.5f))*10000f)/100f;
     }
 
     private void OnDestroy()

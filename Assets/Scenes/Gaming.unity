@@ -1499,8 +1499,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugUV: 0
-  textureSize_x: 1024
-  textureSize_y: 1024
+  textureSize_x: 1920
+  textureSize_y: 1080
 --- !u!1 &1151167969
 GameObject:
   m_ObjectHideFlags: 0
