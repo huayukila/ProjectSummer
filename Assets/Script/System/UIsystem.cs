@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UISystem : MonoBehaviour
+public static class UISystem
 {
     public static void DisplayOn(GameObject ui)  //UI‚ð•\Ž¦
     {

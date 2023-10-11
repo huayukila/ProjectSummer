@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class TitleSceneUIDirector : MonoBehaviour
 {
@@ -12,9 +13,16 @@ public class TitleSceneUIDirector : MonoBehaviour
     public float blinkSpeed = 0.02f;       //ボタンの点滅変化の速度
     public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
     float blinkTimer = 0f;
+
+    private InputAction _anyKeyAction;
+    public InputActionAsset _anyValueAction;
+    
     //float speed = 1f;　　　　　　　　　　//テスト用
 
-
+    private void Awake()
+    {
+        _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
+    }
     private void FixedUpdate()
     {
         if(shineOnOff==true)
@@ -46,11 +54,13 @@ public class TitleSceneUIDirector : MonoBehaviour
     }
     void Update()
     {
-        if (Input.anyKeyDown)          //MenuSceneへ切り替え
+        if (_anyKeyAction.triggered)          //MenuSceneへ切り替え
         {
             TypeEventSystem.Instance.Send<MenuSceneSwitch>();
         }
     }
+    private void OnEnable()=>_anyKeyAction.Enable();
+    private void OnDisable()=>_anyKeyAction.Disable();
 
     //private float CycleThroughTimer()　　　　　　　　　//テスト用‐‐‐‐‐‐‐‐
     //{
