@@ -1,7 +1,4 @@
-using System;
 using UnityEngine;
-using System.Collections.Generic;
-using UnityEngine.InputSystem.Utilities;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
@@ -22,8 +19,10 @@ public class GameManager : Singleton<GameManager>
     {
         base.Awake();
         //各システムの実例化と初期化
-        itemSystem = ItemSystem.Instance;
-        itemSystem.Init();
+        {
+            itemSystem = ItemSystem.Instance;
+            itemSystem.Init();
+        }
         //シーンの移行命令を受け
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
         TypeEventSystem.Instance.Register<MenuSceneSwitch>(e => { MenuSceneSwitch(); });
@@ -172,7 +171,7 @@ public class GameManager : Singleton<GameManager>
     /// プレイヤー1を復活させる
     /// </summary>
     private void RespawnPlayer1()
-    { 
+    {
         playerOne.transform.position = Global.PLAYER1_START_POSITION;
         playerOne.transform.forward = Vector3.right;
         playerOne.GetComponent<Player1Control>().SetStatus(PlayerStatus.Fine);

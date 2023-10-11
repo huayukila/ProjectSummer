@@ -1,60 +1,90 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
 using UnityEngine;
 
 public class ItemSystem : SingletonBase<ItemSystem>
 {
-    GameObject itemPrefab;
     GameObject itemObj;
+    GameObject itemPrefab;
+
+    //通常で獲得できる
+    Item[] normalItemArray;
     //糸持ってないやつ獲得できる
-    List<Item> attackItemList = new List<Item>();
+    Item[] powerItemArray;
     //持っているやつ
-    List<Item> dfenteItemList = new List<Item>();
+    Item[] weakItemArray;
 
-    ItemData data;
+    System.Random rand;
 
-    System.Random rand = new System.Random((int)Time.time);
+    #region 内部用
+    /// <summary>
+    /// 各ItemPool初期化
+    /// </summary>
+    void InitItemArray()
+    {
+        normalItemArray = new Item[]
+        {
+
+        };
+
+        powerItemArray = new Item[]
+        {
+
+        };
+
+        weakItemArray = new Item[]
+        {
+
+        };
+
+        if (normalItemArray != null && powerItemArray != null && weakItemArray != null)
+        {
+            Debug.Log("アイテムロード成功");
+        }
+    }
+
+
+    //道具抽選
+    private Item LotteryItem(IPlayer2ItemSystem player)
+    {
+
+        if (player.HadSilk)
+        {
+            return weakItemArray[rand.Next(0, weakItemArray.Count())];
+        }
+
+        //silkは生成された、かつプレイヤーがsilkを持ってない場合、強力アイテムをあげる
+        //if (!player.HadSilk)
+        //{
+
+        //}
+
+        //普通の場合獲得できるのアイテム
+        return normalItemArray[rand.Next(0, normalItemArray.Count())];
+    }
+    #endregion
+
     public void Init()
     {
-        itemPrefab = (GameObject)Resources.Load("Prefabs/ItemPrefab");
-        if(itemPrefab != null)
+        rand = new System.Random((int)Time.time);
+        InitItemArray();
+
+        itemObj = Object.Instantiate((GameObject)Resources.Load("Prefabs/ItemPrefab"),
+            new Vector3(100, 100, 100), Quaternion.identity);
+        if (itemObj != null)
         {
-            Debug.Log("ItemPrefabロード成功");
+            Debug.Log("itemObjロード成功");
         }
-        data = (ItemData)Resources.Load("ItemDataTable");
-        if (data != null)
-        {
-            attackItemList = data.PowerList;
-            dfenteItemList = data.NormalList;
-            Debug.Log("Itemデータロード成功");
-        }
-        itemObj = GameObject.Instantiate(itemPrefab);
         itemObj.SetActive(false);
         TypeEventSystem.Instance.Register<PlayerGetItem>(e =>
         {
-            if (!e.player.isHadItem)
-            {
-                GiveItem(e.player);
-                itemObj.SetActive(false);
-            }
+            e.player.GetItem(LotteryItem(e.player));
         }).UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
     }
 
+    //道具生成
     public void SpawnItem()
     {
-        //道具生成
-    }
-
-    private void GiveItem(IPlayer player)
-    {
-        Item giveItem;
-        if (!player.isHadSilk)
-        {
-            giveItem = attackItemList[rand.Next(0, attackItemList.Count)];
-        }
-        else
-        {
-            giveItem = dfenteItemList[rand.Next(0, dfenteItemList.Count)];
-        }
-        player.GetItem(giveItem);
+        itemObj.SetActive(true);
+        itemObj.transform.position = new Vector3(980, 500, 10);
     }
 }
