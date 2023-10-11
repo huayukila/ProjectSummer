@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public enum PlayerStatus
 {
@@ -15,8 +16,6 @@ public abstract class Player : MonoBehaviour
     float acceleration;                 // プレイヤーの加速度
     [Min(0.0f)][SerializeField]
     float rotationSpeed;                // プレイヤーの回転速度
-    [SerializeField]
-    Color32 _traceColor;                 // 領域または移動した跡の色
 
     protected bool isPainting;                          // 地面に描けるかどうかの信号   
     protected ColorCheck colorCheck;                    // カラーチェックコンポネント
@@ -25,12 +24,18 @@ public abstract class Player : MonoBehaviour
     protected InputAction rotateAction;
     protected PlayerInput playerInput;
     protected PlayerStatus status;
+    protected Image playerImage;
+    protected float offset;
 
     private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
     private float _currentMoveSpeed;                    // プレイヤーの現在速度
     private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
     private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
     private Vector3 _rotateDirection;
+    private GameObject _particleObject;
+    private GameObject _particlePrefab;
+    private ParticleSystem _pS;
+    private ParticleSystem.MainModule _pSMain;
 
 
     // public InputActionReference rotateAction;
@@ -59,36 +64,35 @@ public abstract class Player : MonoBehaviour
 
     protected virtual void Awake()
     {
-        isPainting = false;
-        _currentMoveSpeed = 0.0f;
-        _rigidbody = GetComponent<Rigidbody>();
-        colorCheck = GetComponent<ColorCheck>();
-        colorCheck.layerMask = LayerMask.GetMask("Ground");
-        _moveSpeedCoefficient = 1.0f;
-        maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-        acceleration = Global.PLAYER_ACCELERATION;
-        rotationSpeed = Global.PLAYER_ROTATION_SPEED;
-        dropSilkEvent = new DropSilkEvent()
-        {
-            dropMode = DropMode.Standard,
-        };
-        pickSilkEvent = new PickSilkEvent();
-
-        GetComponent<Renderer>().material.color = Color.white;
-
-        playerInput = GetComponent<PlayerInput>();
-        rotateAction = playerInput.actions["Rotate"];
-        status = PlayerStatus.Fine;
+        Init();
     }
+    private void Start()
+    {
 
+    }
     private void Update()
     {
+        //todo
+        playerImage.transform.position = transform.position - new Vector3(0.0f,0.1f,0.0f);
+        playerImage.transform.forward = Vector3.down;
         // 描画を制限する（α版）
         if(status == PlayerStatus.Fine)
         {
+            if(_pS.isStopped)
+            {
+                _pS.Play();
+            };
+            _pSMain.startSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 2.0f;
+            _pSMain.simulationSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 4.0f + 1.0f;
+            _pSMain.startLifetime = _pSMain.simulationSpeed * 0.5f;
             Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
             _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-            if (isPainting)
+            GroundColorCheck();
+            if(!isPainting)
+            {
+                CheckCanPaint();
+            }
+            else
             {
                 if(_paintableTimer == null)
                 {
@@ -105,10 +109,9 @@ public abstract class Player : MonoBehaviour
                     _paintableTimer = null;
                 }
             }
-            GroundColorCheck();
         }
     }
-    protected virtual void FixedUpdate()
+    private void FixedUpdate()
     {
         if(status == PlayerStatus.Fine)
         {
@@ -117,13 +120,46 @@ public abstract class Player : MonoBehaviour
         }
     }
 
+    protected virtual void Init()
+    {
+        isPainting = false;
+        _currentMoveSpeed = 0.0f;
+        _rigidbody = GetComponent<Rigidbody>();
+        colorCheck = GetComponent<ColorCheck>();
+        colorCheck.layerMask = LayerMask.GetMask("Ground");
+        _moveSpeedCoefficient = 1.0f;
+        maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+        acceleration = Global.PLAYER_ACCELERATION;
+        rotationSpeed = Global.PLAYER_ROTATION_SPEED;
+        dropSilkEvent = new DropSilkEvent()
+        {
+            dropMode = DropMode.Standard,
+        };
+        pickSilkEvent = new PickSilkEvent();
+
+        GetComponent<Renderer>().material.color = Color.white;
+        playerInput = GetComponent<PlayerInput>();
+        rotateAction = playerInput.actions["Rotate"];
+        status = PlayerStatus.Fine;
+        playerImage = GetComponentInChildren<Image>();
+        offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+
+        _particlePrefab = Resources.Load("Prefabs/DustParticlePrefab") as GameObject;
+        _particleObject = Instantiate(_particlePrefab, transform);
+        _particleObject.transform.localPosition = Vector3.zero;
+        _particleObject.transform.rotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
+        _pS = _particleObject.GetComponent<ParticleSystem>();
+        _pSMain = _pS.main;
+        _pSMain.startSize = 0.2f;
+        _pSMain.startColor = Color.gray;
+    }
     /// <summary>
     /// プレイヤーの移動を制御する
     /// </summary>
     private void PlayerMovement()
     {
         // 加速運動をして、最大速度まで加速する
-        _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.deltaTime;
+        _currentMoveSpeed = _currentMoveSpeed >= maxMoveSpeed ? maxMoveSpeed : _currentMoveSpeed + acceleration * Time.fixedDeltaTime;
         Vector3 moveDirection = transform.forward * _currentMoveSpeed * Time.fixedDeltaTime * _moveSpeedCoefficient;
         _rigidbody.velocity = moveDirection;
 
@@ -146,13 +182,11 @@ public abstract class Player : MonoBehaviour
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
         GetComponent<DropPointControl>().enabled = false;
         GetComponent<TrailRenderer>().enabled = false;
-    }
-
-    public Color32 GetTraceColor() => _traceColor;
-
-    public void SetTraceColor(Color32 color)
-    {
-        _traceColor = color;
+        playerImage.color = Color.white;
+        if(_pS.isPlaying)
+        {
+            _pS.Stop();
+        }
     }
 
     //todo アクセス修飾子の変更予定
@@ -198,6 +232,8 @@ public abstract class Player : MonoBehaviour
     /// 地面の色をチェックする
     /// </summary>
     protected abstract void GroundColorCheck();
+
+    protected abstract void CheckCanPaint();
 
     /// <summary>
     /// 領域を描く
