@@ -74,6 +74,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     {
         CopyRT=rt;
         computeShader.SetTexture(kernelHandle, "Result", CopyRT);
+        redScore = 0.0f;
+        greenScore = 0.0f;
     }
 
     /// <summary>
