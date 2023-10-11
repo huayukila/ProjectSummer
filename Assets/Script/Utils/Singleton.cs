@@ -1,6 +1,4 @@
-using Unity.VisualScripting;
 using UnityEngine;
-
 
 public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
@@ -20,9 +18,11 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
                     instance = singletonObject.AddComponent<T>();
                 }
             }
+
             return instance;
         }
     }
+
     protected virtual void Awake()
     {
         if (instance == null)

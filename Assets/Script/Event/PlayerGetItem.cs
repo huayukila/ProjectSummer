@@ -1,4 +1,4 @@
 public class PlayerGetItem
 {
-    public IPlayer2ItemSystem player;
+    public IPlayer player;
 }

@@ -4,11 +4,11 @@ public class ItemObject : MonoBehaviour
 {
     private void OnCollisionEnter(Collision other)
     {
-        if (!other.gameObject.GetComponent<IPlayer2ItemSystem>().HadItem())
+        if (other.transform.gameObject.GetComponent<TPlayer>())
         {
-            TypeEventSystem.Instance.Send(new PlayerGetItem()
+            TypeEventSystem.Instance.Send<PlayerGetItem>(new PlayerGetItem()
             {
-                player=other.gameObject.GetComponent<IPlayer2ItemSystem>(),
+                player = other.gameObject.GetComponent<IPlayer>()
             });
         }
     }
