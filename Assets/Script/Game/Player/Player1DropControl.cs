@@ -13,8 +13,8 @@ public class Player1DropControl : DropPointControl
         tr.material = new Material(Shader.Find("Sprites/Default"));
         tr.startColor = Global.PLAYER_ONE_TRACE_COLOR;
         tr.endColor = Global.PLAYER_ONE_TRACE_COLOR;
-        tr.startWidth = 0.5f;
-        tr.endWidth = 0.5f;
+        tr.startWidth = 1.0f;
+        tr.endWidth = 1.0f;
         tr.time = Global.DROP_POINT_ALIVE_TIME;
     }
 

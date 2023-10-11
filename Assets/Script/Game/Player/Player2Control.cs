@@ -53,6 +53,7 @@ public class Player2Control : Player
     protected override void SetDeadStatus()
     {
         base.SetDeadStatus();
+        //TypeEventSystem.Instance.Send<Player2RespawnCntBegin>();
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();
         p2dc.ResetTrail();

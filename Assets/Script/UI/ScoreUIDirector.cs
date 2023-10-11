@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using UnityEngine.SceneManagement;
-using Unity.VisualScripting;
 
 public class ScoreUIDirector : MonoBehaviour
 {
@@ -23,7 +19,7 @@ public class ScoreUIDirector : MonoBehaviour
 
     public Timer timer;
 
-    bool player1RespawnCnt;
+    bool isPlayer1Respawn;
     bool player2RespawnCnt;
 
     float timerSetting = Global.SET_GAME_TIME;
@@ -55,11 +51,11 @@ public class ScoreUIDirector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.p1ScoreUI.GetComponent<TextMeshProUGUI>().text = "SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
-        this.p2ScoreUI.GetComponent<TextMeshProUGUI>().text = "SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
-        this.timeUI.GetComponent<TextMeshProUGUI>().text = "TIME:" + timer.GetTime().ToString("F2");     //タイマーのテキストの内容
+        p1ScoreUI.GetComponent<TextMeshProUGUI>().text = "SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
+        p2ScoreUI.GetComponent<TextMeshProUGUI>().text = "SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
+        timeUI.GetComponent<TextMeshProUGUI>().text = "TIME:" + timer.GetTime().ToString("F2");     //タイマーのテキストの内容
 
-        if (player1RespawnCnt)
+        if (isPlayer1Respawn)
         {
             player1Timer -= Time.deltaTime;                                                    //カウントダウンを開始
             p1RespawnUI.GetComponent<TextMeshProUGUI>().text = player1Timer.ToString("F1");  //カウントダウンのテキスト
@@ -85,7 +81,7 @@ public class ScoreUIDirector : MonoBehaviour
     }
     void Player1RespawnCntBegin()
     {
-        player1RespawnCnt = true;
+        isPlayer1Respawn = true;
         UISystem.DisplayOn(p1RespawnUI);         　　　　　　　　　　　　　　　　　　　　　//復活のカウントダウンUIを現す
         UISystem.DisplayOn(redSpiderImageGray);
     }
@@ -94,7 +90,7 @@ public class ScoreUIDirector : MonoBehaviour
         UISystem.DisplayOff(p1RespawnUI);　　　　　　　　　　　　　　　　　　　　　　　　　//復活のカウントダウンUIを隠す
         UISystem.DisplayOff(redSpiderImageGray);
         player1Timer = Global.RESPAWN_TIME;　　　　　　　　　　　　　　　　　　　　　　　　//カウントダウンをリセット
-        player1RespawnCnt = false;
+        isPlayer1Respawn = false;
     }
     void Player2RespawnCntBegin()
     {
