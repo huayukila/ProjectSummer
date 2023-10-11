@@ -1,10 +1,11 @@
-Shader "Custom/Grayscale" {
+Shader "Custom/GrayscaleFade" {
     Properties{
         _MainTex("Texture", 2D) = "white" {}
     }
         SubShader{
-            Tags { "RenderType" = "Opaque" }
+            Tags { "RenderType" = "Transparent" } 
             Pass {
+                Blend SrcAlpha OneMinusSrcAlpha 
                 CGPROGRAM
                 #pragma vertex vert
                 #pragma fragment frag
@@ -32,11 +33,10 @@ Shader "Custom/Grayscale" {
 
                 half4 frag(v2f i) : SV_Target {
                     half4 col = tex2D(_MainTex, i.texcoord);
-                    
                     half gray = dot(col.rgb, half3(0.299, 0.587, 0.114));
                     return half4(gray, gray, gray, col.a);
                 }
                 ENDCG
             }
         }
- }
+}
