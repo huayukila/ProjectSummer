@@ -1,4 +1,3 @@
-using System;
 public interface IItem
 {
     void Use(Player player);
