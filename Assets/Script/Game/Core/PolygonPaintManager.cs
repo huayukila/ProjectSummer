@@ -1,5 +1,4 @@
 using System;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,12 +13,14 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
 
     public Paintable mapPaintable;
 
+
     CommandBuffer command;
     ComputeBuffer mCountBuffer;
-    private Material paintMaterial;
-    private Material areaMaterial;
-    int kernelHandle;
+    Material paintMaterial;
+    Material areaMaterial;
+    RenderTexture CopyRT;
 
+    int kernelHandle;
     int colorID = Shader.PropertyToID("_Color");
     int textureID = Shader.PropertyToID("_MainTex");
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
@@ -41,7 +42,6 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     }
     private void Start()
     {
-        computeShader.SetTexture(kernelHandle, "Result", mapPaintable.GetCopy());
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
 
         computeShader.SetVector("TargetColorA", Global.PLAYER_ONE_TRACE_COLOR);
@@ -56,6 +56,12 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         GUILayout.Label("Blue:" + redScore + "%", GUILayout.Width(1000));
         GUILayout.Label("Green:" + greenScore + "%", GUILayout.Width(1000));
         GUILayout.EndArea();
+    }
+
+    public void SetCopyTexture(RenderTexture rt)
+    {
+        CopyRT=rt;
+        computeShader.SetTexture(kernelHandle, "Result", CopyRT);
     }
 
     /// <summary>
@@ -160,6 +166,9 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         command.Clear();
     }
 
+
+
+    #region ì‡ïîóp
     /// <summary>
     /// ï™êîåvéZ
     /// </summary>
@@ -171,20 +180,19 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         int[] CountResultArray = new int[2];
         mCountBuffer.GetData(CountResultArray);
 
-        redScore = CountScore(CountResultArray[0],mapPaintable.GetMask().width, mapPaintable.GetMask().height);
+        redScore = CountScore(CountResultArray[0], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
 
         greenScore = CountScore(CountResultArray[1], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
         mCountBuffer.SetData(new int[2] { 0, 0 });
     }
-
-    float CountScore(int Nums,float width,float heigt)
+    private float CountScore(int Nums, float width, float heigt)
     {
-        return MathF.Floor((Nums / (width * heigt*0.5f))*10000f)/100f;
+        return MathF.Floor((Nums / (width * heigt * 0.5f)) * 10000f) / 100f;
     }
-
     private void OnDestroy()
     {
         mCountBuffer.Release();
         mCountBuffer = null;
     }
+    #endregion
 }

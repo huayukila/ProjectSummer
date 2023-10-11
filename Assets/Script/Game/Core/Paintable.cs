@@ -49,6 +49,7 @@ public class Paintable : MonoBehaviour
         PolygonPaintManager.Instance.mapPaintable = this;
         PolygonPaintManager.Instance.ClearRT(copyTexture);
         PolygonPaintManager.Instance.ClearRT(areaCopyTexture);
+        PolygonPaintManager.Instance.SetCopyTexture(copyTexture);
         if (debugUV)
         {
             PolygonPaintManager.Instance.InitUVMask(this);
