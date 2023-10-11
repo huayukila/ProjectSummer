@@ -178,7 +178,6 @@ public class GameManager : Singleton<GameManager>
         playerOne.GetComponent<Player1Control>().SetStatus(PlayerStatus.Fine);
         playerOne.GetComponent<TrailRenderer>().enabled = true;
         playerOne.GetComponent<DropPointControl>().enabled = true;
-        playerOne.GetComponent<Renderer>().material.color = Color.white;
     }
 
     /// <summary>
@@ -191,7 +190,6 @@ public class GameManager : Singleton<GameManager>
         playerTwo.GetComponent<Player2Control>().SetStatus(PlayerStatus.Fine);
         playerTwo.GetComponent<TrailRenderer>().enabled = true;
         playerTwo.GetComponent<DropPointControl>().enabled = true;
-        playerTwo.GetComponent<Renderer>().material.color = Color.white;
     }
 
     private void OnDestroy()
@@ -205,10 +203,8 @@ public class GameManager : Singleton<GameManager>
         if (nextScene.name == "Gaming")
         {
             GameObject player1 = Instantiate(_player1Prefab, Global.PLAYER1_START_POSITION, Quaternion.identity);
-            player1.GetComponent<Player1Control>().SetTraceColor(Global.PLAYER_ONE_TRACE_COLOR);
             player1.transform.forward = Vector3.right;
             GameObject player2 = Instantiate(_player2Prefab, Global.PLAYER2_START_POSITION, Quaternion.identity);
-            player2.GetComponent<Player2Control>().SetTraceColor(Global.PLAYER_TWO_TRACE_COLOR);
             player2.transform.forward = Vector3.left;
 
             GameObject scoreItemManager = new GameObject("ScoreItemManager");
@@ -224,6 +220,7 @@ public class GameManager : Singleton<GameManager>
         {
             _player1Timer = null;
             _player2Timer = null;
+            GameObject switchSceneInputManager = Instantiate(Resources.Load("Prefabs/SwitchSceneManager") as GameObject);
         }
     }
 
