@@ -470,8 +470,8 @@ MonoBehaviour:
   p2ScoreUI: {fileID: 1151167969}
   p1RespawnUI: {fileID: 1021175778}
   p2RespawnUI: {fileID: 1639434789}
-  redSpiderImageGray: {fileID: 0}
-  yellowSpiderImageGray: {fileID: 0}
+  redSpiderImageGray: {fileID: 506994865}
+  yellowSpiderImageGray: {fileID: 21314312}
   timeUI: {fileID: 2130800045}
 --- !u!114 &65571327
 MonoBehaviour:
