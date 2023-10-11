@@ -17,6 +17,9 @@ public class ScoreUIDirector : MonoBehaviour
     float player1Timer;
     float player2Timer;
 
+    public GameObject redSpiderImageGray;
+    public GameObject yellowSpiderImageGray;
+
     public GameObject timeUI;
 
     public Timer timer;
@@ -36,6 +39,9 @@ public class ScoreUIDirector : MonoBehaviour
 
         UISystem.DisplayOff(p1RespawnUI);//復活のカウントダウンUIを隠す
         UISystem.DisplayOff(p2RespawnUI);
+
+        UISystem.DisplayOff(redSpiderImageGray);
+        UISystem.DisplayOff(yellowSpiderImageGray) ;
 
         //this.player1 = GameObject.Find("Player1");//テスト用
         //this.player2 = GameObject.Find("Player2");
@@ -109,23 +115,27 @@ public class ScoreUIDirector : MonoBehaviour
     void Player1RespawnCntBegin()
     {
         UISystem.DisplayOn(p1RespawnUI);         　　　　　　　　　　　　　　　　　　　　　//復活のカウントダウンUIを現す
+        UISystem.DisplayOn(redSpiderImageGray);
         player1Timer -= Time.deltaTime;                                                    //カウントダウンを開始
         p1RespawnUI.GetComponent<TextMeshProUGUI>().text = player1Timer.ToString("F1");　　//カウントダウンのテキスト
     }
     void Player1RespawnCntEnd()
     {
         UISystem.DisplayOff(p1RespawnUI);　　　　　　　　　　　　　　　　　　　　　　　　　//復活のカウントダウンUIを隠す
+        UISystem.DisplayOff(redSpiderImageGray);
         player1Timer = Global.RESPAWN_TIME;　　　　　　　　　　　　　　　　　　　　　　　　//カウントダウンをリセット
     }
     void Player2RespawnCntBegin()
     {
-        UISystem.DisplayOn(p2RespawnUI);  　　　　　　　　　　　　　　　　　　　　　　　　 //復活のカウントダウンUIを現す       
+        UISystem.DisplayOn(p2RespawnUI);  　　　　　　　　　　　　　　　　　　　　　　　　 //復活のカウントダウンUIを現す
+        UISystem.DisplayOn(yellowSpiderImageGray);                                                                
         player2Timer -= Time.deltaTime;                                                    //カウントダウンを開始
         p2RespawnUI.GetComponent<TextMeshProUGUI>().text = player2Timer.ToString("F1");    //カウントダウンのテキスト
     }
     void Player2RespawnCntEnd()
     {
         UISystem.DisplayOff(p2RespawnUI);                                                  //復活のカウントダウンUIを隠す
+        UISystem.DisplayOff(yellowSpiderImageGray) ;
         player2Timer = Global.RESPAWN_TIME;                                                //カウントダウンをリセット
     }
 }
