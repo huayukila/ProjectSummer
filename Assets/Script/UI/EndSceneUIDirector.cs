@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class EndSceneUIDirector : MonoBehaviour
 {
@@ -28,7 +30,17 @@ public class EndSceneUIDirector : MonoBehaviour
     public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
     float blinkTimer = 0f;
 
+    private InputAction _anyKeyAction;
+    public InputActionAsset _anyValueAction;
+    [SerializeField]
+    private bool _isAnimationStopped;
 
+    private void Awake()
+    {
+        _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
+        _anyKeyAction.performed += OnSwitchScene;
+        _isAnimationStopped = false;
+    }
     private void Start()
     {
         timer = 3f;
@@ -72,7 +84,6 @@ public class EndSceneUIDirector : MonoBehaviour
     {
         this.redScore.GetComponent<TextMeshProUGUI>().text = "RED SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
         this.yellowScore.GetComponent<TextMeshProUGUI>().text = "YELLOW SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容 
-
         
     }
     void FixedUpdate()
@@ -110,10 +121,8 @@ public class EndSceneUIDirector : MonoBehaviour
         {
             UISystem.DisplayOn(pressAnyBtn);
             Blink();
-            if (Input.anyKeyDown)          //TitleSceneへ切り替え
-            {
-                TypeEventSystem.Instance.Send<TitleSceneSwitch>();
-            }
+            //todo true->can switch scene;false -> cant switch scene until animation is stopped
+            _isAnimationStopped = true;
         }
     }
     void TurnSmallAndAppearTMP(GameObject ui)
@@ -157,4 +166,22 @@ public class EndSceneUIDirector : MonoBehaviour
         }
         pressAnyBtn.GetComponent<TextMeshProUGUI>().color = newColor;
     }
+
+    private void OnSwitchScene(InputAction.CallbackContext context)
+    {
+        Debug.Log("stopped");
+        if (_isAnimationStopped)
+        {
+            
+            if (context.performed)
+            {
+                TypeEventSystem.Instance.Send<TitleSceneSwitch>();
+            }
+        }
+    }
+
+    private void OnEnable() => _anyKeyAction.Enable();
+    private void OnDisable() => _anyKeyAction.Disable();
+    private void OnDestroy() => _anyKeyAction.performed -= OnSwitchScene;
+
 }

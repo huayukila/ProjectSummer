@@ -7,7 +7,7 @@
             "actions": [
                 {
                     "name": "AnyKey",
-                    "type": "PassThrough",
+                    "type": "Button",
                     "id": "961396c1-2ec2-4868-bba1-3b89dbdc2140",
                     "expectedControlType": "Button",
                     "processors": "",

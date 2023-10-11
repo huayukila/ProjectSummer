@@ -22,6 +22,7 @@ public class TitleSceneUIDirector : MonoBehaviour
     private void Awake()
     {
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
+        _anyKeyAction.performed += OnSwitchScene;
     }
     private void FixedUpdate()
     {
@@ -54,10 +55,7 @@ public class TitleSceneUIDirector : MonoBehaviour
     }
     void Update()
     {
-        if (_anyKeyAction.triggered)          //MenuSceneÇ÷êÿÇËë÷Ç¶
-        {
-            TypeEventSystem.Instance.Send<MenuSceneSwitch>();
-        }
+
     }
     private void OnEnable()=>_anyKeyAction.Enable();
     private void OnDisable()=>_anyKeyAction.Disable();
@@ -77,4 +75,14 @@ public class TitleSceneUIDirector : MonoBehaviour
     //    }
     //    return blinkTimer;
     //}
+
+    private void OnSwitchScene(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            TypeEventSystem.Instance.Send<MenuSceneSwitch>();
+        }
+    }
+
+    private void OnDestroy() => _anyKeyAction.performed -= OnSwitchScene;
 }
