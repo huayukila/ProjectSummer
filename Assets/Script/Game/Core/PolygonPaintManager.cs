@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -14,6 +15,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     public Paintable mapPaintable;
 
 
+
     CommandBuffer command;
     ComputeBuffer mCountBuffer;
     Material paintMaterial;
@@ -26,6 +28,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
     int playerAreaTextureID = Shader.PropertyToID("_PlayerAreaText");
 
+    bool isShowPercent = false;
     float redScore = 0.0f;
     float greenScore = 0.0f;
     protected override void Awake()
@@ -50,12 +53,21 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
 
     private void OnGUI()
     {
-        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(3.0f, 3.0f, 1));
-        GUILayout.BeginArea(new Rect(10, 100, 1000, 200));
-        GUILayout.Label("Game Data Test", GUILayout.Width(1000));
-        GUILayout.Label("Blue:" + redScore + "%", GUILayout.Width(1000));
-        GUILayout.Label("Green:" + greenScore + "%", GUILayout.Width(1000));
-        GUILayout.EndArea();
+        if(isShowPercent)
+        {
+            GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(3.0f, 3.0f, 1));
+            GUILayout.BeginArea(new Rect(10, 100, 1000, 200));
+            GUILayout.Label("Game Data Test", GUILayout.Width(1000));
+            GUILayout.Label("Blue:" + redScore + "%", GUILayout.Width(1000));
+            GUILayout.Label("Green:" + greenScore + "%", GUILayout.Width(1000));
+            GUILayout.EndArea();
+        }
+    }
+
+    [Button]
+    void ShowPaintAreaScore()
+    {
+        isShowPercent=!isShowPercent;
     }
 
     public void SetCopyTexture(RenderTexture rt)
