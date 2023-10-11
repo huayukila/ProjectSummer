@@ -12,10 +12,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     public Sprite player1AreaTexture;
     public Sprite player2AreaTexture;
 
-    public Paintable mapPaintable;
-
-
-
+    Paintable mapPaintable;
     CommandBuffer command;
     ComputeBuffer mCountBuffer;
     Material paintMaterial;
@@ -46,14 +43,13 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     private void Start()
     {
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
-
         computeShader.SetVector("TargetColorA", Global.PLAYER_ONE_TRACE_COLOR);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TWO_TRACE_COLOR);
     }
 
     private void OnGUI()
     {
-        if(isShowPercent)
+        if (isShowPercent)
         {
             GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(3.0f, 3.0f, 1));
             GUILayout.BeginArea(new Rect(10, 100, 1000, 200));
@@ -64,20 +60,17 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         }
     }
 
-    [Button]
-    void ShowPaintAreaScore()
-    {
-        isShowPercent=!isShowPercent;
-    }
-
     public void SetCopyTexture(RenderTexture rt)
     {
-        CopyRT=rt;
+        CopyRT = rt;
         computeShader.SetTexture(kernelHandle, "Result", CopyRT);
         redScore = 0.0f;
         greenScore = 0.0f;
     }
-
+    public void SetPaintable(Paintable paintable)
+    {
+        mapPaintable = paintable;
+    }
     /// <summary>
     /// âòÇ≥ÇÍÇΩRTÇ„YóÌÇ…Ç∑ÇÈ
     /// </summary>
@@ -162,27 +155,15 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         command.Clear();
         CountPixelByColor();
     }
-    /// <summary>
-    /// debugópä÷êî
-    /// </summary>
-    /// <param name="paintable"></param>
-    public void InitUVMask(Paintable paintable)
-    {
-        RenderTexture mask = paintable.GetMask();
-        RenderTexture copy = paintable.GetCopy();
-        Renderer rend = paintable.GetRenderer();
-
-        command.SetRenderTarget(mask);
-        command.SetRenderTarget(copy);
-        command.DrawRenderer(rend, paintMaterial, 0);
-
-        Graphics.ExecuteCommandBuffer(command);
-        command.Clear();
-    }
-
-
 
     #region ì‡ïîóp
+
+    [Button]
+    void ShowPaintAreaScore()
+    {
+        isShowPercent = !isShowPercent;
+    }
+
     /// <summary>
     /// ï™êîåvéZ
     /// </summary>
