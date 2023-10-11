@@ -11,14 +11,23 @@ public class MenuSceneUIDirector : MonoBehaviour
     private void Awake()
     {
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
+        _anyKeyAction.performed += OnSwitchScene;
     }
     void Update()
     {
-        if (_anyKeyAction.triggered)　　　　　　　　　//GamingSceneへ切り替え
-        {
-            TypeEventSystem.Instance.Send<GamingSceneSwitch>();
-        }
+
     }
     private void OnEnable() => _anyKeyAction.Enable();
     private void OnDisable() => _anyKeyAction.Disable();
+
+    private void OnSwitchScene(InputAction.CallbackContext context)
+    {
+        if(context.performed)
+        {
+            TypeEventSystem.Instance.Send<GamingSceneSwitch>();
+        }
+
+    }
+
+    private void OnDestroy() => _anyKeyAction.performed -= OnSwitchScene;
 }

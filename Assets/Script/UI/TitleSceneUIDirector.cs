@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
 
@@ -12,16 +8,18 @@ public class TitleSceneUIDirector : MonoBehaviour
     public bool shineOnOff = true;         //ブタン点滅のスイッチ
     public float blinkSpeed = 0.02f;       //ボタンの点滅変化の速度
     public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
-    float blinkTimer = 0f;
-
-    private InputAction _anyKeyAction;
     public InputActionAsset _anyValueAction;
+
+    private float blinkTimer = 0f;
+    private InputAction _anyKeyAction;
+    
     
     //float speed = 1f;　　　　　　　　　　//テスト用
 
     private void Awake()
     {
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
+        _anyKeyAction.performed += OnSwitchScene;
     }
     private void FixedUpdate()
     {
@@ -47,6 +45,7 @@ public class TitleSceneUIDirector : MonoBehaviour
                 {
                     newColor.a = 1.0f;
                     blinkTimer = 0f;
+                    Mathf.Sin(blinkTimer);
                 }
             }
             pressBtn.GetComponent<TextMeshProUGUI>().color = newColor;
@@ -54,14 +53,11 @@ public class TitleSceneUIDirector : MonoBehaviour
     }
     void Update()
     {
-        if (_anyKeyAction.triggered)          //MenuSceneへ切り替え
-        {
-            TypeEventSystem.Instance.Send<MenuSceneSwitch>();
-        }
+
     }
     private void OnEnable()=>_anyKeyAction.Enable();
     private void OnDisable()=>_anyKeyAction.Disable();
-
+    private void OnDestroy() => _anyKeyAction.performed -= OnSwitchScene;
     //private float CycleThroughTimer()　　　　　　　　　//テスト用‐‐‐‐‐‐‐‐
     //{
     //    blinkTimer += speed*Time.fixedDeltaTime;
@@ -77,4 +73,14 @@ public class TitleSceneUIDirector : MonoBehaviour
     //    }
     //    return blinkTimer;
     //}
+
+    private void OnSwitchScene(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            TypeEventSystem.Instance.Send<MenuSceneSwitch>();
+        }
+    }
+
+
 }

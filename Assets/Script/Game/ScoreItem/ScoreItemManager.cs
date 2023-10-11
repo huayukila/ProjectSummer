@@ -19,7 +19,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private GameObject _silkShadow;
     private GameObject _silkAirdrop;
 
-
     /// <summary>
     /// ‹à‚Ì–Ô‚Ì¶¬ˆÊ’u‚ğŒˆ‚ß‚éŠÖ”
     /// –¢Š®¬‚Ì‚½‚ßAŒÅ’èˆÊ’u‚É¶¬‚µ‚Ä‚¢‚é
