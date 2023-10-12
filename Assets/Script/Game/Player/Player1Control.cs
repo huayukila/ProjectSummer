@@ -50,6 +50,7 @@ public class Player1Control : Player
     protected override void SetDeadStatus()
     {
         base.SetDeadStatus();
+        //TypeEventSystem.Instance.Send<Player1RespawnCntBegin>();
         // DropPoint‚ğ‘S‚ÄÁ‚·
         DropPointManager.Instance.ClearPlayerOneDropPoints();
         p1dc.ClearTrail();

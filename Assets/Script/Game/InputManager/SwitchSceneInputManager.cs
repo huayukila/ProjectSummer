@@ -5,10 +5,8 @@ using UnityEngine.InputSystem;
 
 public class SwitchSceneInputManager : MonoBehaviour
 {
-    [SerializeField]
     private InputAction _anyKeyAction;
-    [SerializeField]
-    private InputActionAsset _anyValueAction;
+    public InputActionAsset _anyValueAction;
     private void Awake()
     {
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
@@ -18,14 +16,14 @@ public class SwitchSceneInputManager : MonoBehaviour
     void Update()
     {
         
-        if(_anyKeyAction.triggered)
+        if(_anyKeyAction.WasPressedThisFrame())
         {
             Debug.Log("Any Button");
         }
-        
+
     }
 
     private void OnEnable() => _anyKeyAction.Enable();
     private void OnDisable() => _anyKeyAction.Disable();
 
-}
+    }
