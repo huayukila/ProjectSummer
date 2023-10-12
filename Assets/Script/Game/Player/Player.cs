@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-
+using System;
 public enum PlayerStatus
 {
     Fine,
@@ -76,41 +76,53 @@ public abstract class Player : MonoBehaviour
         playerImage.transform.position = transform.position - new Vector3(0.0f,0.1f,0.0f);
         playerImage.transform.forward = Vector3.down;
         // 描画を制限する（α版）
-        if(status == PlayerStatus.Fine)
+        if (status == PlayerStatus.Fine)
         {
-            if(_pS.isStopped)
-            {
-                _pS.Play();
-            };
+            UpdateFine();
+        }
+    }
+
+    private void UpdateFine()
+    {
+        if (_pS.isStopped)
+        {
+            _pS.Play();
+        };
+
+        //エフェクトの更新
+        {
             _pSMain.startSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 2.0f;
             _pSMain.simulationSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 4.0f + 1.0f;
             _pSMain.startLifetime = _pSMain.simulationSpeed * 0.5f;
-            Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
-            _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-            GroundColorCheck();
-            if(!isPainting)
+        };
+
+        Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
+        _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+        GroundColorCheck();
+        
+        if (!isPainting)
+        {
+            CheckCanPaint();
+        }
+        else
+        {
+            if (_paintableTimer == null)
             {
-                CheckCanPaint();
+                _paintableTimer = new Timer();
+                _paintableTimer.SetTimer(0.3f,
+                    () =>
+                    {
+                        isPainting = false;
+                    }
+                    );
             }
-            else
+            if (_paintableTimer.IsTimerFinished())
             {
-                if(_paintableTimer == null)
-                {
-                    _paintableTimer = new Timer();
-                    _paintableTimer.SetTimer(0.3f,
-                        () =>
-                        {
-                            isPainting = false;
-                        }
-                        );
-                }
-                if(_paintableTimer.IsTimerFinished())
-                {
-                    _paintableTimer = null;
-                }
+                _paintableTimer = null;
             }
         }
     }
+
     private void FixedUpdate()
     {
         if(status == PlayerStatus.Fine)

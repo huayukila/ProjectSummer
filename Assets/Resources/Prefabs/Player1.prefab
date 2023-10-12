@@ -176,6 +176,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51131fc8d8a87f649b75129554dcabb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mTag: DropPoint1
+  mColor: {r: 0, g: 0, b: 1, a: 1}
 --- !u!114 &8610935008665565687
 MonoBehaviour:
   m_ObjectHideFlags: 0

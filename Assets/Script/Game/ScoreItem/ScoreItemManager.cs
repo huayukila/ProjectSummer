@@ -81,7 +81,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         _inSpaceSilk.transform.position = GetInSpaceRandomPosition();
         ResetAnimationStatus();
         _goldenSilkSpawnTimer = new Timer();
-        _goldenSilkSpawnTimer.SetTimer(10.0f,
+        _goldenSilkSpawnTimer.SetTimer(Global.SILK_SPAWN_TIME,
             () =>
             {
                 ResetAnimationStatus();
@@ -113,7 +113,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             case DropMode.Standard:
                 _inSpaceSilk.transform.position = pos;
                 break;
-            case DropMode.Edge: 
+            case DropMode.Edge:
+                _inSpaceSilk.transform.position = pos;
                 _awayFromEdgeStartPos = pos;
                 _awayFromEdgeEndPos = (pos - new Vector3(0.0f, 0.64f, 0.0f)) * 0.7f + new Vector3(0.0f, 0.64f, 0.0f) * 0.3f;
                 _isStartAwayFromEdge = true;
@@ -186,16 +187,16 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             _silkShadow.SetActive(true);
             _silkShadow.transform.position = _inSpaceSilk.transform.position;
         }
-        _silkAirdrop.transform.Translate(0.0f,0.0f,-20.0f * Time.deltaTime);
-        _silkAirdrop.transform.localScale -= Vector3.one * Time.deltaTime / 5.0f;
-        _silkShadow.transform.localScale += Vector3.one * Time.deltaTime / 10.0f;
+        _silkAirdrop.transform.Translate(0.0f,0.0f,-200.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
+        _silkAirdrop.transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
+        _silkShadow.transform.localScale += Vector3.one * Time.deltaTime * 2.0f/ Global.SILK_SPAWN_TIME;
     }
 
     private void ResetAnimationStatus()
     {
         _silkAirdrop.SetActive(false);
         _silkShadow.SetActive(false);
-        _silkAirdrop.transform.localScale = Vector3.one * 1.5f;
+        _silkAirdrop.transform.localScale = Vector3.one * 1.9f;
         _silkShadow.transform.localScale = Vector3.zero;
         _silkShadow.GetComponent<Renderer>().material.color = new Color(0.0f,0.0f,0.0f,1.0f);
     }
@@ -203,7 +204,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     {
         if (_goldenSilkSpawnTimer != null)
         {
-            if(_goldenSilkSpawnTimer.GetTime() <= 5.0f)
+            if(_goldenSilkSpawnTimer.GetTime() <= Global.SILK_SPAWN_TIME / 2.0f)
             {
                 PlayGoldenSilkAnimation();
             }

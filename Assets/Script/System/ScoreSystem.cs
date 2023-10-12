@@ -53,4 +53,5 @@ public class ScoreSystem:Singleton<ScoreSystem>
     {
         return player2Score;
     }
+
 }
