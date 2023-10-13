@@ -176,7 +176,7 @@ public class GameManager : Singleton<GameManager>
         playerOne.transform.position = Global.PLAYER1_START_POSITION;
         playerOne.transform.forward = Vector3.right;
         playerOne.GetComponent<Player1Control>().SetStatus(PlayerStatus.Fine);
-        playerOne.GetComponent<TrailRenderer>().enabled = true;
+        playerOne.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerOne.GetComponent<DropPointControl>().enabled = true;
     }
 
@@ -188,7 +188,7 @@ public class GameManager : Singleton<GameManager>
         playerTwo.transform.position = Global.PLAYER2_START_POSITION;
         playerTwo.transform.forward = Vector3.left;
         playerTwo.GetComponent<Player2Control>().SetStatus(PlayerStatus.Fine);
-        playerTwo.GetComponent<TrailRenderer>().enabled = true;
+        playerTwo.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerTwo.GetComponent<DropPointControl>().enabled = true;
     }
 

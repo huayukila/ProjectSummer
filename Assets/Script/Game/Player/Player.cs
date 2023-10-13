@@ -21,7 +21,8 @@ public abstract class Player : MonoBehaviour
     protected ColorCheck colorCheck;                    // カラーチェックコンポネント
     protected DropSilkEvent dropSilkEvent;              // 金の網を落とすイベント
     protected PickSilkEvent pickSilkEvent;              // 金の網を拾うイベント
-    protected InputAction rotateAction;
+    protected InputAction playerAction;
+    private InputAction rotateAction;
     protected PlayerInput playerInput;
     protected PlayerStatus status;
     protected Image playerImage;
@@ -36,6 +37,10 @@ public abstract class Player : MonoBehaviour
     private GameObject _particlePrefab;
     private ParticleSystem _pS;
     private ParticleSystem.MainModule _pSMain;
+    private Timer _mBoostCoolDown;
+    private float _boostDurationTime = Global.BOOST_DURATION_TIME;
+    private bool _isBoosting = false;
+    
 
 
     // public InputActionReference rotateAction;
@@ -75,7 +80,6 @@ public abstract class Player : MonoBehaviour
         //todo
         playerImage.transform.position = transform.position - new Vector3(0.0f,0.1f,0.0f);
         playerImage.transform.forward = Vector3.down;
-        // 描画を制限する（α版）
         if (status == PlayerStatus.Fine)
         {
             UpdateFine();
@@ -99,7 +103,7 @@ public abstract class Player : MonoBehaviour
         Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
         _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
         GroundColorCheck();
-        
+        // 描画を制限する（α版）
         if (!isPainting)
         {
             CheckCanPaint();
@@ -121,6 +125,19 @@ public abstract class Player : MonoBehaviour
                 _paintableTimer = null;
             }
         }
+        if(_mBoostCoolDown != null)
+        {
+            _boostDurationTime -= Time.deltaTime;
+            if(_boostDurationTime <= 0.0f)
+            {
+                maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            }
+            if(_mBoostCoolDown.IsTimerFinished())
+            {
+                _mBoostCoolDown = null;
+            }
+        }
+        Debug.Log(name + " " + maxMoveSpeed);
     }
 
     private void FixedUpdate()
@@ -149,9 +166,10 @@ public abstract class Player : MonoBehaviour
         };
         pickSilkEvent = new PickSilkEvent();
 
-        GetComponent<Renderer>().material.color = Color.white;
         playerInput = GetComponent<PlayerInput>();
         rotateAction = playerInput.actions["Rotate"];
+        playerAction = playerInput.actions["Boost"];
+        playerAction.performed += OnBoost;
         status = PlayerStatus.Fine;
         playerImage = GetComponentInChildren<Image>();
         offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
@@ -162,7 +180,7 @@ public abstract class Player : MonoBehaviour
         _particleObject.transform.rotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
         _pS = _particleObject.GetComponent<ParticleSystem>();
         _pSMain = _pS.main;
-        _pSMain.startSize = 0.2f;
+        _pSMain.startSize = 0.4f;
         _pSMain.startColor = Color.gray;
     }
     /// <summary>
@@ -187,13 +205,16 @@ public abstract class Player : MonoBehaviour
         status = PlayerStatus.Dead;
         _currentMoveSpeed = 0.0f;
         IsGotSilk = false;
+        _isBoosting = false;
+        _boostDurationTime = Global.BOOST_DURATION_TIME;
+        _mBoostCoolDown = null;
         PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
         {
             player = gameObject
         };
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
         GetComponent<DropPointControl>().enabled = false;
-        GetComponent<TrailRenderer>().enabled = false;
+        GetComponentInChildren<TrailRenderer>().enabled = false;
         playerImage.color = Color.white;
         if(_pS.isPlaying)
         {
@@ -256,10 +277,36 @@ public abstract class Player : MonoBehaviour
     private void OnEnable()
     {
         rotateAction.Enable();
+        playerAction.Enable();
     }
     private void OnDisable()
     {
         rotateAction.Disable();
+        playerAction.Disable();
+    }
+    private void OnDestroy()
+    {
+        playerAction.performed -= OnBoost;
+    }
+    private void OnBoost(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            Debug.Log("boost pressed");
+            if(_isBoosting == false)
+            {
+                maxMoveSpeed *= 1.5f;
+                _currentMoveSpeed = maxMoveSpeed;
+                _isBoosting = true;
+                _mBoostCoolDown = new Timer();
+                _mBoostCoolDown.SetTimer(Global.BOOST_COOLDOWN_TIME,
+                    () =>
+                    {
+                        _boostDurationTime = Global.BOOST_DURATION_TIME;
+                        _isBoosting = false;
+                    });
+            }
+        }
     }
 
 }
