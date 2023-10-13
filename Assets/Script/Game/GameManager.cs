@@ -91,12 +91,16 @@ public class GameManager : Singleton<GameManager>
 
     }
 
+    private void Start()
+    {
+        AudioManager.Instance.PlayBGM("TitleBGM", 0.3f);
+    }
+
     private void Update()
     {
         //各システムのupdate
         //シーンの移行など
         RespawnCheck();
-
     }
 
     //シーンの移行
