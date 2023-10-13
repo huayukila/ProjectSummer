@@ -6,6 +6,11 @@ using Unity.VisualScripting;
 interface AudioPlayer
 {
     void StopAllMusic();
+    /// <summary>
+    /// BGM再生
+    /// </summary>
+    /// <param name="name">BGMの名前</param>
+    /// <param name="Volum">音量</param>
     void PlayBGM(string name, float Volum);
     void StopBGM();
 
@@ -15,9 +20,26 @@ interface AudioPlayer
     void ContinueBGM();
 
     void CountinueAllMusic();
-
+    /// <summary>
+    /// 普通でFX再生
+    /// </summary>
+    /// <param name="name">名前</param>
+    /// <param name="Volum">音量</param>
     void PlayFX(string name, float Volum);
+    /// <summary>
+    /// オブジェクトについていくのFX。まだ実装してないため、今は利用できません
+    /// </summary>
+    /// <param name="name">名前</param>
+    /// <param name="Volum">音量</param>
+    /// <param name="Obj">オブジェクト</param>
+    /// <param name="isLoop">繰り返して再生のか</param>
     void PlayFX(string name, float Volum, GameObject Obj, bool isLoop);
+    /// <summary>
+    /// 発生場所にそのまま残るために。同じ利用できません
+    /// </summary>
+    /// <param name="name">名前</param>
+    /// <param name="Volum">音量</param>
+    /// <param name="transform">発生位置</param>
     void PlayFX(string name, float Volum, Transform transform);
 }
 
@@ -38,6 +60,7 @@ public class AudioManager : Singleton<AudioManager>, AudioPlayer
     {
         base.Awake();
         GameObject AudioPool=new GameObject("AudioPool");
+        DontDestroyOnLoad(AudioPool);
         FX_audioSourcePool = new SimpleObjectPool<GameObject>(() =>
         {
             GameObject obj = new GameObject();
