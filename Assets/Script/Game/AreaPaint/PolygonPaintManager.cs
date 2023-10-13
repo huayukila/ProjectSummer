@@ -1,5 +1,5 @@
+using NaughtyAttributes;
 using System;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -12,19 +12,20 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     public Sprite player1AreaTexture;
     public Sprite player2AreaTexture;
 
-    public Paintable mapPaintable;
-
+    Paintable mapPaintable;
     CommandBuffer command;
     ComputeBuffer mCountBuffer;
-    private Material paintMaterial;
-    private Material areaMaterial;
-    int kernelHandle;
+    Material paintMaterial;
+    Material areaMaterial;
+    RenderTexture CopyRT;
 
+    int kernelHandle;
     int colorID = Shader.PropertyToID("_Color");
     int textureID = Shader.PropertyToID("_MainTex");
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
     int playerAreaTextureID = Shader.PropertyToID("_PlayerAreaText");
 
+    bool isShowPercent = false;
     float redScore = 0.0f;
     float greenScore = 0.0f;
     protected override void Awake()
@@ -41,23 +42,35 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     }
     private void Start()
     {
-        computeShader.SetTexture(kernelHandle, "Result", mapPaintable.GetCopy());
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
-
         computeShader.SetVector("TargetColorA", Global.PLAYER_ONE_TRACE_COLOR);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TWO_TRACE_COLOR);
     }
 
     private void OnGUI()
     {
-        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(3.0f, 3.0f, 1));
-        GUILayout.BeginArea(new Rect(10, 100, 1000, 200));
-        GUILayout.Label("Game Data Test", GUILayout.Width(1000));
-        GUILayout.Label("Blue:" + redScore + "%", GUILayout.Width(1000));
-        GUILayout.Label("Green:" + greenScore + "%", GUILayout.Width(1000));
-        GUILayout.EndArea();
+        if (isShowPercent)
+        {
+            GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(3.0f, 3.0f, 1));
+            GUILayout.BeginArea(new Rect(10, 100, 1000, 200));
+            GUILayout.Label("Game Data Test", GUILayout.Width(1000));
+            GUILayout.Label("Blue:" + redScore + "%", GUILayout.Width(1000));
+            GUILayout.Label("Green:" + greenScore + "%", GUILayout.Width(1000));
+            GUILayout.EndArea();
+        }
     }
 
+    public void SetCopyTexture(RenderTexture rt)
+    {
+        CopyRT = rt;
+        computeShader.SetTexture(kernelHandle, "Result", CopyRT);
+        redScore = 0.0f;
+        greenScore = 0.0f;
+    }
+    public void SetPaintable(Paintable paintable)
+    {
+        mapPaintable = paintable;
+    }
     /// <summary>
     /// âòÇ≥ÇÍÇΩRTÇ„YóÌÇ…Ç∑ÇÈ
     /// </summary>
@@ -142,22 +155,13 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         command.Clear();
         CountPixelByColor();
     }
-    /// <summary>
-    /// debugópä÷êî
-    /// </summary>
-    /// <param name="paintable"></param>
-    public void InitUVMask(Paintable paintable)
+
+    #region ì‡ïîóp
+
+    [Button]
+    void ShowPaintAreaScore()
     {
-        RenderTexture mask = paintable.GetMask();
-        RenderTexture copy = paintable.GetCopy();
-        Renderer rend = paintable.GetRenderer();
-
-        command.SetRenderTarget(mask);
-        command.SetRenderTarget(copy);
-        command.DrawRenderer(rend, paintMaterial, 0);
-
-        Graphics.ExecuteCommandBuffer(command);
-        command.Clear();
+        isShowPercent = !isShowPercent;
     }
 
     /// <summary>
@@ -171,20 +175,19 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         int[] CountResultArray = new int[2];
         mCountBuffer.GetData(CountResultArray);
 
-        redScore = CountScore(CountResultArray[0],mapPaintable.GetMask().width, mapPaintable.GetMask().height);
+        redScore = CountScore(CountResultArray[0], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
 
         greenScore = CountScore(CountResultArray[1], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
         mCountBuffer.SetData(new int[2] { 0, 0 });
     }
-
-    float CountScore(int Nums,float width,float heigt)
+    private float CountScore(int Nums, float width, float heigt)
     {
-        return MathF.Floor((Nums / (width * heigt*0.5f))*10000f)/100f;
+        return MathF.Floor((Nums / (width * heigt * 0.5f)) * 10000f) / 100f;
     }
-
     private void OnDestroy()
     {
         mCountBuffer.Release();
         mCountBuffer = null;
     }
+    #endregion
 }

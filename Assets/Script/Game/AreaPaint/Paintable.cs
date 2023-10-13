@@ -5,6 +5,11 @@ public class Paintable : MonoBehaviour
     public bool debugUV = true;
     public int textureSize_x = 1024;
     public int textureSize_y= 1024;
+    public Renderer GetRenderer() => rend;
+    public RenderTexture GetMask() => maskTexture;
+    public RenderTexture GetCopy() => copyTexture;
+    public RenderTexture GetAreaMask() => areaMaskTexture;
+    public RenderTexture GetAreaCopy() => areaCopyTexture;
 
     private Renderer rend;
     private RenderTexture maskTexture;
@@ -14,13 +19,6 @@ public class Paintable : MonoBehaviour
 
     private int maskTextureID = Shader.PropertyToID("_MaskTex");
     private int areaMaskTextureID = Shader.PropertyToID("_AreaMaskTex");
-
-    public Renderer GetRenderer() => rend;
-    public RenderTexture GetMask() => maskTexture;
-    public RenderTexture GetCopy() => copyTexture;
-    public RenderTexture GetAreaMask() => areaMaskTexture;
-    public RenderTexture GetAreaCopy() => areaCopyTexture;
-
     private void Awake()
     {
         maskTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
@@ -46,13 +44,10 @@ public class Paintable : MonoBehaviour
     }
     void Start()
     {
-        PolygonPaintManager.Instance.mapPaintable = this;
+        PolygonPaintManager.Instance.SetPaintable(this);
         PolygonPaintManager.Instance.ClearRT(copyTexture);
         PolygonPaintManager.Instance.ClearRT(areaCopyTexture);
-        if (debugUV)
-        {
-            PolygonPaintManager.Instance.InitUVMask(this);
-        }
+        PolygonPaintManager.Instance.SetCopyTexture(copyTexture);
     }
     void OnDisable()
     {
