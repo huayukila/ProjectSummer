@@ -9,7 +9,7 @@ public static class Global
     public static readonly float SPEED_UP_COEFFICIENT = 1.25f;                                   // 自分のプレイヤーの領域上にいる時のスビート係数
 
     public static readonly float DROP_POINT_INTERVAL = 0.1f;                                     // DropPointをインスタンス化する時間間隔
-    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f;                                   // DropPointの存在している時間
+    public static readonly float DROP_POINT_ALIVE_TIME = 1.5f;                                   // DropPointの存在している時間
 
     public static readonly float RESPAWN_TIME = 5.0f;                                            // プレイヤーが死んでから復活までの時間間隔
 

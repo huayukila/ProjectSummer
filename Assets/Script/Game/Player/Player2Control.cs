@@ -28,7 +28,6 @@ public class Player2Control : Player
         // ‹à‚Ì–Ô‚É“–‚½‚Á‚½‚ç
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
-            playerImage.color = Color.yellow;
             IsGotSilk = true;
             TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
@@ -43,7 +42,6 @@ public class Player2Control : Player
                     playerID = 2
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
-                playerImage.color = Color.white;
                 IsGotSilk = false;
             }
         }

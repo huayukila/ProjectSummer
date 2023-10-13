@@ -25,7 +25,6 @@ public abstract class Player : MonoBehaviour
     private InputAction rotateAction;
     protected PlayerInput playerInput;
     protected PlayerStatus status;
-    protected Image playerImage;
     protected float offset;
 
     private Timer _paintableTimer;                      // óÃàÊÇï`Ç≠ä‘äuÇä«óùÇ∑ÇÈÉ^ÉCÉ}Å[
@@ -40,6 +39,7 @@ public abstract class Player : MonoBehaviour
     private Timer _mBoostCoolDown;
     private float _boostDurationTime = Global.BOOST_DURATION_TIME;
     private bool _isBoosting = false;
+    private SpriteRenderer _mSpriteRenderer;
     
 
 
@@ -73,13 +73,12 @@ public abstract class Player : MonoBehaviour
     }
     private void Start()
     {
-
+        _mSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        _mSpriteRenderer.transform.localPosition = Vector3.zero - new Vector3(0.0f,0.05f,0.0f);
     }
     private void Update()
     {
-        //todo
-        playerImage.transform.position = transform.position - new Vector3(0.0f,0.1f,0.0f);
-        playerImage.transform.forward = Vector3.down;
+        _mSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         if (status == PlayerStatus.Fine)
         {
             UpdateFine();
@@ -98,6 +97,15 @@ public abstract class Player : MonoBehaviour
             _pSMain.startSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 2.0f;
             _pSMain.simulationSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 4.0f + 1.0f;
             _pSMain.startLifetime = _pSMain.simulationSpeed * 0.5f;
+            //todo
+            if (transform.forward.x < 0.0f)
+            {
+                _mSpriteRenderer.flipX = false;
+            }
+            else
+            {
+                _mSpriteRenderer.flipX = true;
+            }
         };
 
         Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
@@ -137,7 +145,6 @@ public abstract class Player : MonoBehaviour
                 _mBoostCoolDown = null;
             }
         }
-        Debug.Log(name + " " + maxMoveSpeed);
     }
 
     private void FixedUpdate()
@@ -171,7 +178,6 @@ public abstract class Player : MonoBehaviour
         playerAction = playerInput.actions["Boost"];
         playerAction.performed += OnBoost;
         status = PlayerStatus.Fine;
-        playerImage = GetComponentInChildren<Image>();
         offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
 
         _particlePrefab = Resources.Load("Prefabs/DustParticlePrefab") as GameObject;
@@ -215,7 +221,6 @@ public abstract class Player : MonoBehaviour
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
         GetComponent<DropPointControl>().enabled = false;
         GetComponentInChildren<TrailRenderer>().enabled = false;
-        playerImage.color = Color.white;
         if(_pS.isPlaying)
         {
             _pS.Stop();
@@ -292,7 +297,6 @@ public abstract class Player : MonoBehaviour
     {
         if (context.performed)
         {
-            Debug.Log("boost pressed");
             if(_isBoosting == false)
             {
                 maxMoveSpeed *= 1.5f;

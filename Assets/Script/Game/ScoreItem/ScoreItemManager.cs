@@ -155,13 +155,13 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             GameObject silkPrefab = Resources.Load("Prefabs/GoldenSilk") as GameObject;
             _inSpaceSilk = Instantiate(silkPrefab, GetInSpaceRandomPosition(),Quaternion.identity);
-            _silkAirdrop = Instantiate(silkPrefab as GameObject, _inSpaceSilk.transform.position, Quaternion.identity);
+            _silkAirdrop = Instantiate(silkPrefab, _inSpaceSilk.transform.position, Quaternion.identity);
             _silkAirdrop.GetComponent<BoxCollider>().enabled = false;
             _silkAirdrop.SetActive(false);
             MeshRenderer mr1 = _silkAirdrop.GetComponent<MeshRenderer>();
             mr1.sortingLayerName = "Default";
             mr1.sortingOrder = 1;
-            _silkShadow = Instantiate(Resources.Load("Prefabs/SilkShadow") as GameObject, _inSpaceSilk.transform.position, Quaternion.identity);
+            _silkShadow = Instantiate(Resources.Load("Prefabs/SilkShadow") as GameObject, _inSpaceSilk.transform.position - new Vector3(0.0f,0.1f,0.0f), Quaternion.identity);
             _silkShadow.SetActive(false);
             MeshRenderer mr2 = _silkShadow.GetComponent<MeshRenderer>();
             mr2.sortingLayerName = "Default";
@@ -185,7 +185,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         if(_silkShadow.gameObject.activeSelf == false)
         {
             _silkShadow.SetActive(true);
-            _silkShadow.transform.position = _inSpaceSilk.transform.position;
+            _silkShadow.transform.position = _inSpaceSilk.transform.position - new Vector3(0.0f, 0.1f, 0.0f);
         }
         _silkAirdrop.transform.Translate(0.0f,0.0f,-200.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
         _silkAirdrop.transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
