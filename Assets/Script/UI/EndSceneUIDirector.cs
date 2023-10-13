@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 
 public class EndSceneUIDirector : MonoBehaviour
 {
@@ -16,12 +13,13 @@ public class EndSceneUIDirector : MonoBehaviour
     public GameObject pressAnyBtn;
 
     float timer;
+
     float alphaSetTMP;
-    float alphaSet;
     float alphachangeTMP;
-    float alphachange;
     float localScaleSetTMP;
     float localScaleChangeTMP;
+    float alphaSet;
+    float alphachange;
     float localScaleSet;
     float localScaleChange;
 
@@ -82,8 +80,10 @@ public class EndSceneUIDirector : MonoBehaviour
     }
     private void Update()
     {
-        this.redScore.GetComponent<TextMeshProUGUI>().text = "RED SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
-        this.yellowScore.GetComponent<TextMeshProUGUI>().text = "YELLOW SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容 
+        this.redScore.GetComponent<TextMeshProUGUI>().text =
+            "RED SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
+        this.yellowScore.GetComponent<TextMeshProUGUI>().text = 
+            "YELLOW SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容 
         
     }
     void FixedUpdate()

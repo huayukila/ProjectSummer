@@ -53,4 +53,9 @@ public class ScoreSystem:Singleton<ScoreSystem>
     {
         return player2Score;
     }
+    public void ResetScore()
+    {
+        player1Score = 0;
+        player2Score = 0;
+    }
 }
