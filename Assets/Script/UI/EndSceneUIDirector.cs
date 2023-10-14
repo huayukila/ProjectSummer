@@ -13,6 +13,7 @@ public class EndSceneUIDirector : MonoBehaviour
     public GameObject pressAnyBtn;
 
     float timer;
+    float timerCon;
 
     float alphaSetTMP;
     float alphachangeTMP;
@@ -28,6 +29,11 @@ public class EndSceneUIDirector : MonoBehaviour
     public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
     float blinkTimer = 0f;
 
+    public GameObject sceneSwitchCurtain;//scene切り替えのカーテン
+    private float sceneSwitchCurtainSpeed;//scene切り替えのカーテンを黒くなるスピード
+    private float sceneSwitchCurtainAlpha;//シーン切り替えカーテンの初期値
+    bool isCurtainTurnBlack;
+
     private InputAction _anyKeyAction;
     public InputActionAsset _anyValueAction;
     [SerializeField]
@@ -42,6 +48,11 @@ public class EndSceneUIDirector : MonoBehaviour
     private void Start()
     {
         timer = 3f;
+        timerCon = 0.6f;
+
+        sceneSwitchCurtainAlpha = 1f;//scene切り替えのカーテンの透明度初期値（完全透明）
+        sceneSwitchCurtainSpeed = 0.1f;//scene切り替えのカーテンを透明になるスピード
+        UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
 
         alphaSetTMP = 0.0f;
         alphachangeTMP = 0.025f;
@@ -89,12 +100,16 @@ public class EndSceneUIDirector : MonoBehaviour
     void FixedUpdate()
     {
         timer -= Time.deltaTime;
-        UISystem.MoveToLeft(redScore, 900, 100);
-        if (timer <= 2.6f)
+        if(timer <= 3.0f-timerCon)
+        {
+            UISystem.MoveToLeft(redScore, 900, 100);
+
+        }
+        if (timer <= 2.6f - timerCon)
         {
             UISystem.MoveToLeft(yellowScore, 900, 100);
         }
-        if (timer <= 2.0f)
+        if (timer <= 2.0f - timerCon)
         {
             if (ScoreSystem.Instance.GetPlayer1Score() == ScoreSystem.Instance.GetPlayer2Score())
             {
@@ -106,7 +121,7 @@ public class EndSceneUIDirector : MonoBehaviour
                 
             }      
         }
-        if (timer <= 1.4f)
+        if (timer <= 1.4f - timerCon)
         {
             if(ScoreSystem.Instance.GetPlayer1Score() > ScoreSystem.Instance.GetPlayer2Score())
             {
@@ -117,12 +132,23 @@ public class EndSceneUIDirector : MonoBehaviour
                 TurnSmallAndAppear(winYellow);
             }         
         }
-        if (timer <= 0.5f) 
+        if (timer <= 0.5f - timerCon) 
         {
             UISystem.DisplayOn(pressAnyBtn);
             Blink();
             //todo true->can switch scene;false -> cant switch scene until animation is stopped
             _isAnimationStopped = true;
+        }
+
+        //scene切り替えのカーテンのコントロラー
+        if (isCurtainTurnBlack == false)
+        {
+            sceneSwitchCurtainAlpha -= sceneSwitchCurtainSpeed;
+            UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
+        }
+        else
+        {
+            CurtainTurnBlackAndSceneSwitch();
         }
     }
     void TurnSmallAndAppearTMP(GameObject ui)
@@ -165,6 +191,16 @@ public class EndSceneUIDirector : MonoBehaviour
             }
         }
         pressAnyBtn.GetComponent<TextMeshProUGUI>().color = newColor;
+    }
+    private void CurtainTurnBlackAndSceneSwitch()
+    {
+        sceneSwitchCurtainAlpha += sceneSwitchCurtainSpeed;
+        UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
+        if (sceneSwitchCurtainAlpha >= 1f)
+        {
+            isCurtainTurnBlack = false;
+            TypeEventSystem.Instance.Send<GamingSceneSwitch>();
+        }
     }
 
     private void OnSwitchScene(InputAction.CallbackContext context)

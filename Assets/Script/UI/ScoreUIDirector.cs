@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class ScoreUIDirector : MonoBehaviour
 {
@@ -24,8 +25,12 @@ public class ScoreUIDirector : MonoBehaviour
 
     float timerSetting = Global.SET_GAME_TIME;
 
+    public Image TimeBarFront;
+    public float timePercent;
+
     void Start()
     {
+        timePercent = 0.2f;
         timer = new Timer();
 
         player1Timer = Global.RESPAWN_TIME;//復活の時間を設定
@@ -49,11 +54,11 @@ public class ScoreUIDirector : MonoBehaviour
     void Update()
     {
         p1ScoreUI.GetComponent<TextMeshProUGUI>().text =
-            "SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
+            ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
         p2ScoreUI.GetComponent<TextMeshProUGUI>().text =
-            "SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
-        timeUI.GetComponent<TextMeshProUGUI>().text =
-            "TIME:" + timer.GetTime().ToString("F2");     //タイマーのテキストの内容
+            ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
+        //timeUI.GetComponent<TextMeshProUGUI>().text =
+            //"TIME:"+ timer.GetTime().ToString("F2");     //タイマーのテキストの内容
 
         if (isPlayer1Respawn)
         {
@@ -79,15 +84,17 @@ public class ScoreUIDirector : MonoBehaviour
             TypeEventSystem.Instance.Send<GameOver>();                 //GameOver命令を発送、EndSceneへ切り替え
         }
 
+        TimeBarFront.fillAmount = timePercent;
+
         //テスト用‐‐‐‐‐‐‐‐
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            TypeEventSystem.Instance.Send<Player2RespawnCntBegin>();
-        }
-        if (Input.GetKeyDown(KeyCode.X))
-        {
-            TypeEventSystem.Instance.Send<Player1RespawnCntBegin>();
-        }
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //{
+        //    TypeEventSystem.Instance.Send<Player2RespawnCntBegin>();
+        //}
+        //if (Input.GetKeyDown(KeyCode.X))
+        //{
+        //    TypeEventSystem.Instance.Send<Player1RespawnCntBegin>();
+        //}
     }
     void Player1RespawnCntBegin()
     {

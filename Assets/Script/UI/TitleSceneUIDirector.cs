@@ -6,18 +6,19 @@ using Unity.Mathematics;
 public class TitleSceneUIDirector : MonoBehaviour
 {
     public GameObject pressBtn;
-    public GameObject sceneSwitchEffect;
     public bool isShiningOn = true;         //ブタン点滅のスイッチ
     public float blinkSpeed = 0.02f;       //ボタンの点滅変化の速度
     public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
     public InputActionAsset _anyValueAction;
 
+    public GameObject sceneSwitchCurtain;//scene切り替えのカーテン
+    private float sceneSwitchCurtainSpeed;//scene切り替えのカーテンを黒くなるスピード
+    private float sceneSwitchCurtainAlpha;//シーン切り替えカーテンの初期値
+
     private float blinkTimer = 0f;
     private InputAction _anyKeyAction;
-    private float sceneSwitchEffectAlpha;//シーン切り替えエフェクトの初期値
-    private float sceneSwitchEffectSpeed;
 
-    //float speed = 1f;　　　　　　　　　　//テスト用
+    bool isCurtainTurnBlack;
 
     private void Awake()
     {
@@ -27,13 +28,13 @@ public class TitleSceneUIDirector : MonoBehaviour
     }
     private void Start()
     {
-        sceneSwitchEffectAlpha = 0f;
-        sceneSwitchEffectSpeed = 0.2f;
-        UISystem.SetAlpha(sceneSwitchEffect, sceneSwitchEffectAlpha);
+        sceneSwitchCurtainAlpha = 0f;//scene切り替えのカーテンの透明度初期値（完全透明）
+        sceneSwitchCurtainSpeed = 0.1f;//scene切り替えのカーテンを黒くなるスピード
+        UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
     }
     private void FixedUpdate()
     {
-        if(isShiningOn==true)
+        if (isShiningOn==true)
         {
             blinkTimer += Time.fixedDeltaTime;
 
@@ -55,6 +56,21 @@ public class TitleSceneUIDirector : MonoBehaviour
             }
             pressBtn.GetComponent<TextMeshProUGUI>().color = newColor;
         }
+
+        if (isCurtainTurnBlack == true) 
+        {
+            CurtainTurnBlackAndSceneSwitch();
+        }
+    }
+    private void CurtainTurnBlackAndSceneSwitch()
+    {
+        sceneSwitchCurtainAlpha += sceneSwitchCurtainSpeed;
+        UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
+        if (sceneSwitchCurtainAlpha >= 1f)
+        {
+            isCurtainTurnBlack = false;
+            TypeEventSystem.Instance.Send<MenuSceneSwitch>();
+        }
     }
 
     private void OnEnable()=>_anyKeyAction.Enable();
@@ -62,18 +78,10 @@ public class TitleSceneUIDirector : MonoBehaviour
     private void OnDestroy() => _anyKeyAction.performed -= OnSwitchScene;
 
     private void OnSwitchScene(InputAction.CallbackContext context)
-    {
-        
+    { 
         if (context.performed)
         {
-            sceneSwitchEffectAlpha += sceneSwitchEffectSpeed;
-            UISystem.SetAlpha(sceneSwitchEffect, sceneSwitchEffectAlpha);                            //?????????????
-            if (sceneSwitchEffectAlpha>=1f)
-            {
-                TypeEventSystem.Instance.Send<MenuSceneSwitch>();
-            }
+            isCurtainTurnBlack = true;       
         }
     }
-
-
 }
