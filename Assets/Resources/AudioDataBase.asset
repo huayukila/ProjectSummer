@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 671ffcefaa9e30b40b79ec47519e74b0, type: 3}
   m_Name: AudioDataBase
   m_EditorClassIdentifier: 
-  BGMAudioDatasList: []
+  BGMAudioDatasList:
+  - {fileID: 11400000, guid: 45e585fc4eb111f44aa4989a504d7191, type: 2}
+  - {fileID: 11400000, guid: d7d0f8a5a228fc343afe291320620e73, type: 2}
+  - {fileID: 11400000, guid: e255d08a79ee012488232cd02312ffaf, type: 2}
   FXAudioDatasList:
+  - {fileID: 11400000, guid: 9a705827cacfd8645a71f22eb0a14fcd, type: 2}
   - {fileID: 11400000, guid: cfcaf6c9dfbe67740953ce25915f8d41, type: 2}
+  - {fileID: 11400000, guid: a74f08e21153175449e28df00fc1e430, type: 2}
+  - {fileID: 11400000, guid: d21bb25f42e94104b968295e0cf24f5e, type: 2}
+  - {fileID: 11400000, guid: 6a95490555652bb41a48983d0ad0edfc, type: 2}
