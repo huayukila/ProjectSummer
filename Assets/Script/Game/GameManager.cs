@@ -111,6 +111,7 @@ public class GameManager : Singleton<GameManager>
     void TitleSceneSwitch()
     {
         SceneManager.LoadScene("Title");
+        //ScoreSystem.Instance.ResetScore();
     }
     void MenuSceneSwitch()
     {
