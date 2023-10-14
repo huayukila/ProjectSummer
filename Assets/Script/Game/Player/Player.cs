@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-
+using System;
 public enum PlayerStatus
 {
     Fine,
@@ -21,10 +21,10 @@ public abstract class Player : MonoBehaviour
     protected ColorCheck colorCheck;                    // カラーチェックコンポネント
     protected DropSilkEvent dropSilkEvent;              // 金の網を落とすイベント
     protected PickSilkEvent pickSilkEvent;              // 金の網を拾うイベント
-    protected InputAction rotateAction;
+    protected InputAction playerAction;
+    private InputAction rotateAction;
     protected PlayerInput playerInput;
     protected PlayerStatus status;
-    protected Image playerImage;
     protected float offset;
 
     private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
@@ -36,7 +36,20 @@ public abstract class Player : MonoBehaviour
     private GameObject _particlePrefab;
     private ParticleSystem _pS;
     private ParticleSystem.MainModule _pSMain;
+    private Timer _mBoostCoolDown;
+    private float _boostDurationTime = Global.BOOST_DURATION_TIME;
+    private bool _isBoosting = false;
+    private SpriteRenderer _mSpriteRenderer;
+    private GameObject _explosionPrefab;
+    private GameObject _bigSpider;
+    private LineRenderer _mBigSpiderLineRenderer;
 
+    //todo refactorying
+    protected Vector3 _mRespawnPos;
+    private string _mTag;
+    private int _mID;
+
+    private Timer _respawnAnimationTimer;
 
     // public InputActionReference rotateAction;
     public bool IsGotSilk { get; protected set; }
@@ -68,49 +81,90 @@ public abstract class Player : MonoBehaviour
     }
     private void Start()
     {
-
+        _mSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        _mSpriteRenderer.transform.localPosition = Vector3.zero - new Vector3(0.0f,0.05f,0.0f);
     }
     private void Update()
     {
-        //todo
-        playerImage.transform.position = transform.position - new Vector3(0.0f,0.1f,0.0f);
-        playerImage.transform.forward = Vector3.down;
-        // 描画を制限する（α版）
-        if(status == PlayerStatus.Fine)
+        _mSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        if (status == PlayerStatus.Fine)
         {
-            if(_pS.isStopped)
+            UpdateFine();
+        }
+        //todo
+        if (transform.forward.x < 0.0f)
+        {
+            _mSpriteRenderer.flipX = false;
+        }
+        else
+        {
+            _mSpriteRenderer.flipX = true;
+        }
+        if (_respawnAnimationTimer != null)
+        {
+            UpdateRespawnAnimation();
+            if(_respawnAnimationTimer.IsTimerFinished())
             {
-                _pS.Play();
-            };
+                ResetRespawnAnimation();
+            }
+        }
+
+    }
+
+    private void UpdateFine()
+    {
+        if (_pS.isStopped)
+        {
+            _pS.Play();
+        };
+
+        //エフェクトの更新
+        {
             _pSMain.startSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 2.0f;
             _pSMain.simulationSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 4.0f + 1.0f;
             _pSMain.startLifetime = _pSMain.simulationSpeed * 0.5f;
-            Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
-            _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-            GroundColorCheck();
-            if(!isPainting)
+
+        };
+
+        Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
+        _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+        GroundColorCheck();
+        // 描画を制限する（α版）
+        if (!isPainting)
+        {
+            CheckCanPaint();
+        }
+        else
+        {
+            if (_paintableTimer == null)
             {
-                CheckCanPaint();
+                _paintableTimer = new Timer();
+                _paintableTimer.SetTimer(0.3f,
+                    () =>
+                    {
+                        isPainting = false;
+                    }
+                    );
             }
-            else
+            if (_paintableTimer.IsTimerFinished())
             {
-                if(_paintableTimer == null)
-                {
-                    _paintableTimer = new Timer();
-                    _paintableTimer.SetTimer(0.3f,
-                        () =>
-                        {
-                            isPainting = false;
-                        }
-                        );
-                }
-                if(_paintableTimer.IsTimerFinished())
-                {
-                    _paintableTimer = null;
-                }
+                _paintableTimer = null;
+            }
+        }
+        if(_mBoostCoolDown != null)
+        {
+            _boostDurationTime -= Time.deltaTime;
+            if(_boostDurationTime <= 0.0f)
+            {
+                maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            }
+            if(_mBoostCoolDown.IsTimerFinished())
+            {
+                _mBoostCoolDown = null;
             }
         }
     }
+
     private void FixedUpdate()
     {
         if(status == PlayerStatus.Fine)
@@ -137,11 +191,11 @@ public abstract class Player : MonoBehaviour
         };
         pickSilkEvent = new PickSilkEvent();
 
-        GetComponent<Renderer>().material.color = Color.white;
         playerInput = GetComponent<PlayerInput>();
         rotateAction = playerInput.actions["Rotate"];
+        playerAction = playerInput.actions["Boost"];
+        playerAction.performed += OnBoost;
         status = PlayerStatus.Fine;
-        playerImage = GetComponentInChildren<Image>();
         offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
 
         _particlePrefab = Resources.Load("Prefabs/DustParticlePrefab") as GameObject;
@@ -150,8 +204,17 @@ public abstract class Player : MonoBehaviour
         _particleObject.transform.rotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
         _pS = _particleObject.GetComponent<ParticleSystem>();
         _pSMain = _pS.main;
-        _pSMain.startSize = 0.2f;
+        _pSMain.startSize = 0.4f;
         _pSMain.startColor = Color.gray;
+
+        _explosionPrefab = Resources.Load("Prefabs/Explosion") as GameObject;
+        _bigSpider = Instantiate(GameManager.Instance.bigSpiderPrefab,_mRespawnPos,Quaternion.identity);
+        _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f,0.0f,100.0f);
+        _bigSpider.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        _mBigSpiderLineRenderer = _bigSpider.GetComponentInChildren<LineRenderer>();
+        _mBigSpiderLineRenderer.positionCount = 2;
+        _mBigSpiderLineRenderer.startWidth = 0.2f;
+        _mBigSpiderLineRenderer.endWidth = 0.2f;
     }
     /// <summary>
     /// プレイヤーの移動を制御する
@@ -170,23 +233,38 @@ public abstract class Player : MonoBehaviour
     /// </summary>
     protected virtual void SetDeadStatus()
     {
+        GameObject explosion = Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
+        explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        transform.position = _bigSpider.transform.position;
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
         status = PlayerStatus.Dead;
+        transform.localScale = Vector3.one;
         _currentMoveSpeed = 0.0f;
         IsGotSilk = false;
+        _isBoosting = false;
+        _boostDurationTime = Global.BOOST_DURATION_TIME;
+        _mBoostCoolDown = null;
         PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
         {
             player = gameObject
         };
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
         GetComponent<DropPointControl>().enabled = false;
-        GetComponent<TrailRenderer>().enabled = false;
-        playerImage.color = Color.white;
+        GetComponentInChildren<TrailRenderer>().enabled = false;
+        GetComponent<Collider>().enabled = false;
         if(_pS.isPlaying)
         {
             _pS.Stop();
         }
+
+        _mBigSpiderLineRenderer.positionCount = 2;
+        _respawnAnimationTimer = new Timer();
+        _respawnAnimationTimer.SetTimer(Global.RESPAWN_TIME,
+            () =>
+            {
+                _respawnAnimationTimer = null;
+            });
     }
 
     //todo アクセス修飾子の変更予定
@@ -228,6 +306,30 @@ public abstract class Player : MonoBehaviour
 
     }
 
+    private void ResetRespawnAnimation()
+    {
+        _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f,0.0f,100.0f);
+        _mBigSpiderLineRenderer.positionCount = 0;
+
+    }
+
+    private void UpdateRespawnAnimation()
+    {
+        if(_respawnAnimationTimer.GetTime() >= Global.RESPAWN_TIME /2.0f)
+        {
+            _bigSpider.transform.Translate(new Vector3(0.0f, 0.0f,-16.0f * Time.deltaTime),Space.World);
+            transform.position = _bigSpider.transform.position + new Vector3(0.0f,0.5f,0.0f);
+        }
+        else
+        {
+            transform.Translate(-(_bigSpider.transform.position - _mRespawnPos) * 0.4f * Time.deltaTime,Space.World);
+            transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
+            Vector3[] temp = new Vector3[2];
+            temp[0] = _bigSpider.transform.position;
+            temp[1] = transform.position + new Vector3(0.0f,-0.5f,offset);
+            _mBigSpiderLineRenderer.SetPositions(temp);
+        }
+    }
     /// <summary>
     /// 地面の色をチェックする
     /// </summary>
@@ -244,10 +346,35 @@ public abstract class Player : MonoBehaviour
     private void OnEnable()
     {
         rotateAction.Enable();
+        playerAction.Enable();
     }
     private void OnDisable()
     {
         rotateAction.Disable();
+        playerAction.Disable();
+    }
+    private void OnDestroy()
+    {
+        playerAction.performed -= OnBoost;
+    }
+    private void OnBoost(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            if(_isBoosting == false)
+            {
+                maxMoveSpeed *= 1.5f;
+                _currentMoveSpeed = maxMoveSpeed;
+                _isBoosting = true;
+                _mBoostCoolDown = new Timer();
+                _mBoostCoolDown.SetTimer(Global.BOOST_COOLDOWN_TIME,
+                    () =>
+                    {
+                        _boostDurationTime = Global.BOOST_DURATION_TIME;
+                        _isBoosting = false;
+                    });
+            }
+        }
     }
 
 }

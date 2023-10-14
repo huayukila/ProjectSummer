@@ -4,18 +4,18 @@ public class Player2DropControl : DropPointControl
 {
     protected override void InstantiateDropPoint()
     {
-        GameObject pt = Instantiate(pointPrefab, transform.position, transform.rotation);
+        GameObject pt = Instantiate(pointPrefab, transform.position - transform.forward * offset, transform.rotation);
         pt.tag = "DropPoint2";
         DropPointManager.Instance.PlayerTwoAddPoint(pt);
     }
     protected override void SetTRProperties()
     {
-        tr.material = new Material(Shader.Find("Sprites/Default"));
-        tr.startColor = Global.PLAYER_TWO_TRACE_COLOR;
-        tr.endColor = Global.PLAYER_TWO_TRACE_COLOR;
-        tr.startWidth = 1.0f;
-        tr.endWidth = 1.0f;
-        tr.time = Global.DROP_POINT_ALIVE_TIME;
+        _mTrailRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        _mTrailRenderer.startColor = Global.PLAYER_TWO_TRACE_COLOR;
+        _mTrailRenderer.endColor = Global.PLAYER_TWO_TRACE_COLOR;
+        _mTrailRenderer.startWidth = 1.0f;
+        _mTrailRenderer.endWidth = 1.0f;
+        _mTrailRenderer.time = Global.DROP_POINT_ALIVE_TIME;
     }
 
     protected override void Update()
@@ -30,7 +30,7 @@ public class Player2DropControl : DropPointControl
                 new GradientColorKey[] { new GradientColorKey(Global.PLAYER_TWO_TRACE_COLOR, 0.0f), new GradientColorKey(Global.PLAYER_TWO_TRACE_COLOR, 1.0f) },
                 new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(alpha >= 0.05f ? alpha : 0.05f, 1.0f) }
             );
-            tr.colorGradient = gradient;
+            _mTrailRenderer.colorGradient = gradient;
         }
     }
 
@@ -42,6 +42,6 @@ public class Player2DropControl : DropPointControl
             new GradientColorKey[] { new GradientColorKey(Global.PLAYER_TWO_TRACE_COLOR, 0.0f), new GradientColorKey(Global.PLAYER_TWO_TRACE_COLOR, 1.0f) },
             new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) }
         );
-        tr.colorGradient = gradient;
+        _mTrailRenderer.colorGradient = gradient;
     }
 }

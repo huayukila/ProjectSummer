@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SmokeAnimator : MonoBehaviour
+public class DestroyAnim: MonoBehaviour
 {
     private Animator _animator;
 
