@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using Unity.VisualScripting;
 
 interface AudioPlayer
 {
@@ -80,6 +79,11 @@ public class AudioManager : Singleton<AudioManager>, AudioPlayer
         FXM_audioDic = audioDatabase.GetFXAudioDic();
         BGMAudioSource = gameObject.AddComponent<AudioSource>();
         BGMAudioSource.loop = true;
+    }
+
+    private void Update()
+    {
+        
     }
 
     public void StopAllMusic()
