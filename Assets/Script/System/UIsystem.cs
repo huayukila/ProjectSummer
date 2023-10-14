@@ -15,34 +15,33 @@ public static class UISystem
             ui.active = true;
         }
     }
-    public static void DisplayOff(GameObject ui)//UIを非表示
+    public static void DisplayOff(GameObject ui)//UIを非表示・隠す
     {
         if (ui.active == true)
         {
             ui.active = false;
         }
     }
-    public static void MoveToRight(GameObject ui)//UIを右に移動
+    public static void MoveToRight(GameObject ui, float x, float speed)//UIを右に移動(GameObject,移動の終点ｘ,移動のスピード)
     {
-
+        if (ui.transform.position.x <= x)
+        {
+            ui.transform.Translate(speed, 0, 0);
+        }
     }
-    public static void MoveToLeft(GameObject ui,float x,float speed)//UIを左に移動
+    public static void MoveToLeft(GameObject ui,float x,float speed)//UIを左に移動(GameObject,移動の終点ｘ,移動のスピード)
     {
         if (ui.transform.position.x >= x)
         {
             ui.transform.Translate(-speed, 0, 0);
         }    
     }
-    public static void TurnGray(GameObject ui)
-    {
-
-    }
-    public static float GetPositionX(GameObject ui)
+    public static float GetPositionX(GameObject ui)//UIのｘ座標を獲得
     {
         float x1 = ui.transform.position.x;
         return x1;
     }
-    public static float GetPositionY(GameObject ui)
+    public static float GetPositionY(GameObject ui)//UIのｙ座標を獲得
     {
         float y1 = ui.transform.position.y;
         return y1;
@@ -57,62 +56,20 @@ public static class UISystem
     {
         ui.transform.position = new Vector3(GetPositionX(ui) + x2, GetPositionY(ui) + y2, 0f);
     }
-    public static void SetLocalScale(GameObject ui,float x,float y,float z)
+    public static void SetLocalScale(GameObject ui,float x,float y,float z)//UIの大きさを変更
     {
         ui.transform.localScale=new Vector3(x,y,z);
     }
-    public static void SetAlphaTMP(GameObject ui,float alpha)
+    public static void SetAlphaTMP(GameObject ui,float alpha)//UIの透明度を変更
     {
         Color colorUI = ui.GetComponent<TextMeshProUGUI>().color;
         colorUI.a = alpha;
         ui.GetComponent<TextMeshProUGUI>().color=colorUI;
     }
-    public static void SetAlpha(GameObject ui, float alpha)
+    public static void SetAlpha(GameObject ui, float alpha)//UIの透明度を変更
     {
         Color colorUI = ui.GetComponent<Image>().color;
         colorUI.a = alpha;
         ui.GetComponent<Image>().color = colorUI;
     }
-    //public static float BlinkTMP(GameObject ui,float blinkTimer,float blinkSpeed, float blinkInterval)
-    //{
-    //    Color newColor = ui.GetComponent<TextMeshProUGUI>().color;
-    //    if (blinkTimer <  0.5f)
-    //    {
-    //        newColor.a -= blinkSpeed;
-    //    }
-    //    else
-    //    {
-    //        newColor.a += blinkSpeed;
-    //        //if (newColor.a >= 1.0f)
-    //        //{
-    //        //    newColor.a = 1.0f;
-    //        //    blinkTimer = 0f;
-    //        //}
-    //    }
-    //    ui.GetComponent<TextMeshProUGUI>().color = newColor;
-    //    return blinkTimer;
-    //}
-
-    //public static void BlinkTMP(GameObject ui, float blinkTimer, float blinkSpeed, float blinkInterval)
-    //{
-    //    blinkTimer += blinkSpeed;
-
-    //    Color newColor = ui.GetComponent<TextMeshProUGUI>().color;
-
-    //    if (blinkTimer < blinkInterval * 0.5f)
-    //    {
-    //        newColor.a -= blinkSpeed;
-    //    }
-    //    else
-    //    {
-    //        newColor.a += blinkSpeed;
-    //        blinkTimer = 0f;
-    //        if (newColor.a >= 1.0f)
-    //        {
-    //            newColor.a = 1.0f;
-    //            blinkTimer = 0f;
-    //        }
-    //    }
-    //    ui.GetComponent<TextMeshProUGUI>().color = newColor;
-    //}
 }

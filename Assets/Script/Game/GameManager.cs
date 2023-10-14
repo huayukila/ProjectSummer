@@ -8,7 +8,18 @@ public class GameManager : Singleton<GameManager>
     public GameObject playerTwo;
     public PlayerStatus p1Status { get; private set; }
     public PlayerStatus p2Status { get; private set; }
+    public GameObject bigSpiderPrefab
+    {
+        get
+        {
+            return _bigSpiderPrefab;
+        }
+
+    }
+
     private ItemSystem itemSystem;
+
+    private GameObject _bigSpiderPrefab;
 
     Timer _player1Timer;        // プレイヤー1の待機タイマー
     Timer _player2Timer;        // プレイヤー2の待機タイマー
@@ -30,15 +41,7 @@ public class GameManager : Singleton<GameManager>
         TypeEventSystem.Instance.Register<EndSceneSwitch>(e => { EndSceneSwitch(); });
         TypeEventSystem.Instance.Register<GameOver>(e => { EndSceneSwitch(); });
 
-        _player1Prefab = (GameObject)Resources.Load("Prefabs/Player1");
-        _player2Prefab = (GameObject)Resources.Load("Prefabs/Player2");
-
-        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
-        {
-            RespawnPlayer(e.player);
-
-        }).UnregisterWhenGameObjectDestroyed(gameObject);
-
+        Init();
         SceneManager.sceneLoaded += SceneLoaded;
 
         InputSystem.onDeviceChange += (device, change) =>
@@ -89,6 +92,7 @@ public class GameManager : Singleton<GameManager>
             }
         };
 
+        _bigSpiderPrefab = Resources.Load("Prefabs/BigSpider") as GameObject;
     }
 
     private void Start()
@@ -107,6 +111,7 @@ public class GameManager : Singleton<GameManager>
     void TitleSceneSwitch()
     {
         SceneManager.LoadScene("Title");
+        //ScoreSystem.Instance.ResetScore();
     }
     void MenuSceneSwitch()
     {
@@ -121,20 +126,39 @@ public class GameManager : Singleton<GameManager>
         SceneManager.LoadScene("End");
     }
 
+    private void Init()
+    {
+        _player1Prefab = (GameObject)Resources.Load("Prefabs/Player1");
+        _player2Prefab = (GameObject)Resources.Load("Prefabs/Player2");
+
+        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
+        {
+            RespawnPlayer(e.player);
+
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
+
+    }
     /// <summary>
     /// プレイヤーの復活タイミングをチェックする
     /// </summary>
     private void RespawnCheck()
     {
         // player1のタイマーの待機時間が終わったら
-        if (_player1Timer != null && _player1Timer.IsTimerFinished())
+        if (_player1Timer != null)
         {
-            _player1Timer = null;
+            if(_player1Timer.IsTimerFinished())
+            {
+                _player1Timer = null;
+            }
+
         }
         // player2のタイマーの待機時間が終わったら
-        if (_player2Timer != null && _player2Timer.IsTimerFinished())
+        if (_player2Timer != null)
         {
-            _player2Timer = null;
+            if (_player2Timer.IsTimerFinished())
+            {
+                _player2Timer = null;
+            }
         }
     }
 
@@ -179,8 +203,12 @@ public class GameManager : Singleton<GameManager>
         playerOne.transform.position = Global.PLAYER1_START_POSITION;
         playerOne.transform.forward = Vector3.right;
         playerOne.GetComponent<Player1Control>().SetStatus(PlayerStatus.Fine);
-        playerOne.GetComponent<TrailRenderer>().enabled = true;
+        playerOne.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerOne.GetComponent<DropPointControl>().enabled = true;
+        playerOne.GetComponent<Collider>().enabled = true;
+        GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, playerOne.transform.position, Quaternion.identity);
+        smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
+        smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
     }
 
     /// <summary>
@@ -191,8 +219,12 @@ public class GameManager : Singleton<GameManager>
         playerTwo.transform.position = Global.PLAYER2_START_POSITION;
         playerTwo.transform.forward = Vector3.left;
         playerTwo.GetComponent<Player2Control>().SetStatus(PlayerStatus.Fine);
-        playerTwo.GetComponent<TrailRenderer>().enabled = true;
+        playerTwo.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerTwo.GetComponent<DropPointControl>().enabled = true;
+        playerTwo.GetComponent<Collider>().enabled = true;
+        GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, playerTwo.transform.position, Quaternion.identity);
+        smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
+        smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
     }
 
     private void OnDestroy()

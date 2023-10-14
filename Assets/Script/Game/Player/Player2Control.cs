@@ -28,7 +28,6 @@ public class Player2Control : Player
         // ‹à‚Ì–Ô‚É“–‚½‚Á‚½‚ç
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
-            playerImage.color = Color.yellow;
             IsGotSilk = true;
             TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
@@ -43,7 +42,6 @@ public class Player2Control : Player
                     playerID = 2
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
-                playerImage.color = Color.white;
                 IsGotSilk = false;
             }
         }
@@ -53,11 +51,11 @@ public class Player2Control : Player
     protected override void SetDeadStatus()
     {
         base.SetDeadStatus();
+        transform.forward = Vector3.left;
         //TypeEventSystem.Instance.Send<Player2RespawnCntBegin>();
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();
         p2dc.ResetTrail();
-        transform.position = Global.PLAYER2_START_POSITION * 100.0f;
     }
     protected override void GroundColorCheck()
     {
@@ -137,6 +135,7 @@ public class Player2Control : Player
     }
     protected override void Awake()
     {
+        _mRespawnPos = Global.PLAYER2_START_POSITION;
         base.Awake();
         GameManager.Instance.playerTwo = gameObject;
         p2dc = GetComponent<Player2DropControl>();
