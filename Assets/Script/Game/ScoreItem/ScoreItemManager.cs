@@ -12,12 +12,15 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private Vector3 _awayFromEdgeStartPos;
     private Vector3 _awayFromEdgeEndPos;
     private bool _isStartAwayFromEdge;
+    private float _goalAnimationDurationTime = 0.5f;
 
     private GameObject _inSpaceSilk;            // 金の網
     private GameObject _goalPoint;              // ゴール
 
     private GameObject _silkShadow;
     private GameObject _silkAirdrop;
+
+    private Timer _goalSpawnAnimationTimer;
 
     /// <summary>
     /// 金の網の生成位置を決める関数
@@ -68,7 +71,13 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         float zRange = CalculateOvalRange(posX);
         float posZ = Random.Range(0, 1) == 0 ? Random.Range(zRange, Global.STAGE_WIDTH / 2.5f) : Random.Range(-Global.STAGE_WIDTH / 2.5f, -zRange);
 
-        _goalPoint.transform.position = new Vector3(posX, 0.64f, posZ);
+        _goalPoint.transform.position = new Vector3(posX, 0.32f, posZ);
+        _goalSpawnAnimationTimer = new Timer();
+        _goalSpawnAnimationTimer.SetTimer(_goalAnimationDurationTime,
+            () =>
+            {
+                _goalPoint.GetComponent<Collider>().enabled = true;
+            });
         _goalPoint.SetActive(true);
     }
 
@@ -93,6 +102,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             );
         _inSpaceSilk.SetActive(false);
         _goalPoint.SetActive(false);
+        _goalPoint.transform.localScale = Vector3.zero;
+        _goalPoint.GetComponent<Collider>().enabled = false;
     }
     /// <summary>
     /// 金の網が落ちたときのステータスを設定する
@@ -101,6 +112,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     {
         _inSpaceSilk.SetActive(true);
         _goalPoint.SetActive(false);
+        _goalPoint.transform.localScale = Vector3.zero;
+        _goalSpawnAnimationTimer = null;
     }
 
     /// <summary>
@@ -171,6 +184,9 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             GameObject goalPrefab = Resources.Load("Prefabs/Goal") as GameObject;
             _goalPoint = Instantiate(goalPrefab, Vector3.zero, Quaternion.identity);
+            _goalPoint.transform.localScale = Vector3.zero;
+            _goalPoint.GetComponent<Collider>().enabled = false;
+            _goldenSilkSpawnTimer = null;
         }
 
     }
@@ -200,6 +216,12 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         _silkShadow.transform.localScale = Vector3.zero;
         _silkShadow.GetComponent<Renderer>().material.color = new Color(0.0f,0.0f,0.0f,1.0f);
     }
+
+    private void PlayGoalAnimation()
+    {
+        _goalPoint.transform.localScale = _goalPoint.transform.localScale.x >= 1.0f ? Vector3.one : _goalPoint.transform.localScale + Vector3.one * Time.deltaTime / _goalAnimationDurationTime;
+
+    }
     private void Update()
     {
         if (_goldenSilkSpawnTimer != null)
@@ -213,6 +235,16 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
                 _goldenSilkSpawnTimer = null;
             }
         }
+
+        if (_goalSpawnAnimationTimer != null)
+        {
+            PlayGoalAnimation();
+            if(_goalSpawnAnimationTimer.IsTimerFinished())
+            {
+                _goalSpawnAnimationTimer = null;
+            }
+        }
+
     }
 
     private void FixedUpdate()

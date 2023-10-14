@@ -51,11 +51,11 @@ public class Player2Control : Player
     protected override void SetDeadStatus()
     {
         base.SetDeadStatus();
+        transform.forward = Vector3.left;
         //TypeEventSystem.Instance.Send<Player2RespawnCntBegin>();
         DropPointManager.Instance.ClearPlayerTwoDropPoints();
         p2dc.ClearTrail();
         p2dc.ResetTrail();
-        transform.position = Global.PLAYER2_START_POSITION * 100.0f;
     }
     protected override void GroundColorCheck()
     {
@@ -135,6 +135,7 @@ public class Player2Control : Player
     }
     protected override void Awake()
     {
+        _mRespawnPos = Global.PLAYER2_START_POSITION;
         base.Awake();
         GameManager.Instance.playerTwo = gameObject;
         p2dc = GetComponent<Player2DropControl>();

@@ -40,8 +40,16 @@ public abstract class Player : MonoBehaviour
     private float _boostDurationTime = Global.BOOST_DURATION_TIME;
     private bool _isBoosting = false;
     private SpriteRenderer _mSpriteRenderer;
-    
+    private GameObject _explosionPrefab;
+    private GameObject _bigSpider;
+    private LineRenderer _mBigSpiderLineRenderer;
 
+    //todo refactorying
+    protected Vector3 _mRespawnPos;
+    private string _mTag;
+    private int _mID;
+
+    private Timer _respawnAnimationTimer;
 
     // public InputActionReference rotateAction;
     public bool IsGotSilk { get; protected set; }
@@ -83,6 +91,24 @@ public abstract class Player : MonoBehaviour
         {
             UpdateFine();
         }
+        //todo
+        if (transform.forward.x < 0.0f)
+        {
+            _mSpriteRenderer.flipX = false;
+        }
+        else
+        {
+            _mSpriteRenderer.flipX = true;
+        }
+        if (_respawnAnimationTimer != null)
+        {
+            UpdateRespawnAnimation();
+            if(_respawnAnimationTimer.IsTimerFinished())
+            {
+                ResetRespawnAnimation();
+            }
+        }
+
     }
 
     private void UpdateFine()
@@ -97,15 +123,7 @@ public abstract class Player : MonoBehaviour
             _pSMain.startSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 2.0f;
             _pSMain.simulationSpeed = _currentMoveSpeed / Global.PLAYER_MAX_MOVE_SPEED * 4.0f + 1.0f;
             _pSMain.startLifetime = _pSMain.simulationSpeed * 0.5f;
-            //todo
-            if (transform.forward.x < 0.0f)
-            {
-                _mSpriteRenderer.flipX = false;
-            }
-            else
-            {
-                _mSpriteRenderer.flipX = true;
-            }
+
         };
 
         Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
@@ -188,6 +206,15 @@ public abstract class Player : MonoBehaviour
         _pSMain = _pS.main;
         _pSMain.startSize = 0.4f;
         _pSMain.startColor = Color.gray;
+
+        _explosionPrefab = Resources.Load("Prefabs/Explosion") as GameObject;
+        _bigSpider = Instantiate(GameManager.Instance.bigSpiderPrefab,_mRespawnPos,Quaternion.identity);
+        _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f,0.0f,100.0f);
+        _bigSpider.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        _mBigSpiderLineRenderer = _bigSpider.GetComponentInChildren<LineRenderer>();
+        _mBigSpiderLineRenderer.positionCount = 2;
+        _mBigSpiderLineRenderer.startWidth = 0.2f;
+        _mBigSpiderLineRenderer.endWidth = 0.2f;
     }
     /// <summary>
     /// プレイヤーの移動を制御する
@@ -206,9 +233,13 @@ public abstract class Player : MonoBehaviour
     /// </summary>
     protected virtual void SetDeadStatus()
     {
+        GameObject explosion = Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
+        explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        transform.position = _bigSpider.transform.position;
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
         status = PlayerStatus.Dead;
+        transform.localScale = Vector3.one;
         _currentMoveSpeed = 0.0f;
         IsGotSilk = false;
         _isBoosting = false;
@@ -221,10 +252,19 @@ public abstract class Player : MonoBehaviour
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
         GetComponent<DropPointControl>().enabled = false;
         GetComponentInChildren<TrailRenderer>().enabled = false;
+        GetComponent<Collider>().enabled = false;
         if(_pS.isPlaying)
         {
             _pS.Stop();
         }
+
+        _mBigSpiderLineRenderer.positionCount = 2;
+        _respawnAnimationTimer = new Timer();
+        _respawnAnimationTimer.SetTimer(Global.RESPAWN_TIME,
+            () =>
+            {
+                _respawnAnimationTimer = null;
+            });
     }
 
     //todo アクセス修飾子の変更予定
@@ -266,6 +306,30 @@ public abstract class Player : MonoBehaviour
 
     }
 
+    private void ResetRespawnAnimation()
+    {
+        _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f,0.0f,100.0f);
+        _mBigSpiderLineRenderer.positionCount = 0;
+
+    }
+
+    private void UpdateRespawnAnimation()
+    {
+        if(_respawnAnimationTimer.GetTime() >= Global.RESPAWN_TIME /2.0f)
+        {
+            _bigSpider.transform.Translate(new Vector3(0.0f, 0.0f,-16.0f * Time.deltaTime),Space.World);
+            transform.position = _bigSpider.transform.position + new Vector3(0.0f,0.5f,0.0f);
+        }
+        else
+        {
+            transform.Translate(-(_bigSpider.transform.position - _mRespawnPos) * 0.4f * Time.deltaTime,Space.World);
+            transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
+            Vector3[] temp = new Vector3[2];
+            temp[0] = _bigSpider.transform.position;
+            temp[1] = transform.position + new Vector3(0.0f,-0.5f,offset);
+            _mBigSpiderLineRenderer.SetPositions(temp);
+        }
+    }
     /// <summary>
     /// 地面の色をチェックする
     /// </summary>
