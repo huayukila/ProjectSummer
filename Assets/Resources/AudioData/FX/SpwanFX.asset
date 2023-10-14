@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55b7daab3d6e35d4a96bea18252b59d4, type: 3}
   m_Name: SpwanFX
   m_EditorClassIdentifier: 
-  audioName: BoomFX
-  audioClip: {fileID: 8300000, guid: 841e0e62f8989244080193d4a981d78c, type: 3}
+  audioName: SpwanFX
+  audioClip: {fileID: 8300000, guid: 7ea191b811be6964f9f32567058e7b9c, type: 3}
