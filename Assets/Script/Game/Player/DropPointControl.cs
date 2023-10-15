@@ -86,7 +86,6 @@ public abstract class DropPointControl : MonoBehaviour
     private void OnDestroy()
     {
         Resources.UnloadUnusedAssets();
-        Destroy(_mTrailRenderer.material);
     }
 }
 

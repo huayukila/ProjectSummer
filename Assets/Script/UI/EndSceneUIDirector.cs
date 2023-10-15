@@ -44,6 +44,7 @@ public class EndSceneUIDirector : MonoBehaviour
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
         _anyKeyAction.performed += OnSwitchScene;
         _isAnimationStopped = false;
+        AudioManager.Instance.PlayBGM("EndBGM", 0.3f);
     }
     private void Start()
     {

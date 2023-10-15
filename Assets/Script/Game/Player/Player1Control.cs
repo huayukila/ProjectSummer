@@ -27,6 +27,8 @@ public class Player1Control : Player
         else if (other.gameObject.CompareTag("GoldenSilk"))
         {
             IsGotSilk = true;
+            _mGotSilkImage.SetActive(true);
+            _mGotSilkImage.transform.position = transform.position + Vector3.forward * 6.5f;
             TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
         }
         // ÉSÅ[ÉãÇ…ìñÇΩÇ¡ÇΩÇÁ
@@ -41,6 +43,7 @@ public class Player1Control : Player
                 };
                 TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
                 IsGotSilk = false;
+                _mGotSilkImage.SetActive(false);
             }
         }
     }

@@ -81,6 +81,7 @@ public class TitleSceneUIDirector : MonoBehaviour
     { 
         if (context.performed)
         {
+            AudioManager.Instance.PlayFX("ClickFX",0.5f);
             isCurtainTurnBlack = true;       
         }
     }

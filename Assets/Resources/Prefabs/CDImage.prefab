@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 6138743725997096936}
   - component: {fileID: 4262092740584746330}
   - component: {fileID: 4498786533891711039}
-  - component: {fileID: 8172789157407442298}
   - component: {fileID: 4084795798915768158}
+  - component: {fileID: 2346988850314922536}
   m_Layer: 5
   m_Name: CDImage
   m_TagString: Untagged
@@ -78,22 +78,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!111 &8172789157407442298
-Animation:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1122931636287440717}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Animation: {fileID: 7400000, guid: 5e946c4d78a10f240b3baab4b0fa7056, type: 2}
-  m_Animations:
-  - {fileID: 7400000, guid: 5e946c4d78a10f240b3baab4b0fa7056, type: 2}
-  m_WrapMode: 0
-  m_PlayAutomatically: 0
-  m_AnimatePhysics: 0
-  m_CullingType: 0
 --- !u!114 &4084795798915768158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110,10 +94,26 @@ MonoBehaviour:
   - {fileID: -1927035945, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: 1531186191, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: -939105449, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
-  cdAnimation: {fileID: 8172789157407442298}
+  cdAnimator: {fileID: 2346988850314922536}
   cdIMG: {fileID: 4498786533891711039}
   fightAnimControl: {fileID: 8484226656315054606}
   upSpeed: 40
+--- !u!111 &2346988850314922536
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122931636287440717}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: 5e946c4d78a10f240b3baab4b0fa7056, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: 5e946c4d78a10f240b3baab4b0fa7056, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1 &1220691599925686836
 GameObject:
   m_ObjectHideFlags: 0
@@ -126,7 +126,7 @@ GameObject:
   - component: {fileID: 5640236453412571282}
   - component: {fileID: 8114821594301870940}
   - component: {fileID: 8484226656315054606}
-  - component: {fileID: 1976155938359925721}
+  - component: {fileID: 3820666222867505529}
   m_Layer: 5
   m_Name: FightImage
   m_TagString: Untagged
@@ -203,9 +203,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9118eb2efd86d3d4588dab062d7338c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FightAnimation: {fileID: 1976155938359925721}
+  TimeOutAnimator: {fileID: 3820666222867505529}
   FightIMG: {fileID: 8114821594301870940}
---- !u!111 &1976155938359925721
+--- !u!111 &3820666222867505529
 Animation:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

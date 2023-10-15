@@ -74,7 +74,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         float posZ = Random.Range(0, 1) == 0 ? Random.Range(zRange, Global.STAGE_WIDTH / 2.5f) : Random.Range(-Global.STAGE_WIDTH / 2.5f, -zRange);
 
         _goalPoint.transform.position = new Vector3(posX, 0.32f, posZ);
-        AudioManager.Instance.PlayFX("SpawnFX", 0.3f);
         _goalSpawnAnimationTimer = new Timer();
         _goalSpawnAnimationTimer.SetTimer(_goalAnimationDurationTime,
             () =>
@@ -149,6 +148,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {
+            AudioManager.Instance.PlayFX("GetFX", 0.7f);
             SetReachGoalProperties(e.playerID);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
@@ -160,7 +160,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }).UnregisterWhenGameObjectDestroyed(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
         {
-            AudioManager.Instance.PlayFX("GetFX",0.5f);
+            AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
             SetGoalPoint(_inSpaceSilk.transform.position);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
@@ -206,7 +206,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         if(_silkShadow.gameObject.activeSelf == false)
         {
             _silkShadow.SetActive(true);
-            _silkShadow.transform.position = _inSpaceSilk.transform.position - new Vector3(0.0f, 0.1f, 0.0f);
+            _silkShadow.transform.position = _inSpaceSilk.transform.position - new Vector3(0.0f, 0.6f, 0.0f);
         }
         _silkAirdrop.transform.Translate(0.0f,0.0f,-200.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
         _silkAirdrop.transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
@@ -235,7 +235,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
             {
                 if(_isPlayingFallFX == false)
                 {
-                    AudioManager.Instance.PlayFX("FallFX", 0.5f);
+                    AudioManager.Instance.PlayFX("FallFX", 0.7f);
                     _isPlayingFallFX = true;
                 }
                 PlayGoldenSilkAnimation();

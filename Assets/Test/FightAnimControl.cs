@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class FightAnimControl : MonoBehaviour
 {
-    public Animation FightAnimation;
+    public Animation TimeOutAnimator;
     public Image FightIMG;
 
     public bool isPlayDone { get; private set; } = false;
@@ -19,7 +19,7 @@ public class FightAnimControl : MonoBehaviour
     {
         isStartPlay=true;
         this.upSpeed = upSpeed;
-        FightAnimation.Play();
+        TimeOutAnimator.Play("TimeOutAnimation");
     }
 
     public void PlayFX()

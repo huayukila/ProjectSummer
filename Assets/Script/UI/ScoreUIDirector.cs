@@ -28,15 +28,26 @@ public class ScoreUIDirector : MonoBehaviour
     public Image TimeBarFront;
     public float timePercent;
 
+    //todo
+    public GameObject CDImage;
+    private CDAnimControl finishCDAnimControl;
+    private FightAnimControl fightAnimControl;
+
     void Start()
     {
+
+        finishCDAnimControl = CDImage.GetComponent<CDAnimControl>();
+        fightAnimControl = CDImage.GetComponentInChildren<FightAnimControl>();
         timePercent = 0.2f;
         timer = new Timer();
 
         player1Timer = Global.RESPAWN_TIME;//復活の時間を設定
         player2Timer = Global.RESPAWN_TIME;
 
-        timer.SetTimer(timerSetting, () => { Debug.Log("Timer finished!"); });
+        timer.SetTimer(timerSetting, () =>
+        { 
+
+        });
 
         UISystem.DisplayOff(p1RespawnUI);//復活のカウントダウンUIを隠す
         UISystem.DisplayOff(p2RespawnUI);
@@ -53,6 +64,7 @@ public class ScoreUIDirector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         p1ScoreUI.GetComponent<TextMeshProUGUI>().text =
             ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
         p2ScoreUI.GetComponent<TextMeshProUGUI>().text =
@@ -79,8 +91,13 @@ public class ScoreUIDirector : MonoBehaviour
             }
         }
 
-        if (timer.IsTimerFinished())                                    //タイマーが０になるとENDシーンに切り替える
+        if (timer.GetTime() <= 3.0f)
         {
+            finishCDAnimControl.StartCD();
+        }
+        if(fightAnimControl.isPlayDone == true)
+        {
+            AudioManager.Instance.StopBGM();
             TypeEventSystem.Instance.Send<GameOver>();                 //GameOver命令を発送、EndSceneへ切り替え
         }
 
