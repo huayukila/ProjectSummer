@@ -14,7 +14,7 @@ public class ScoreSystem:Singleton<ScoreSystem>
     }
 
     [Obsolete]
-    public void AddScore(int playerNumber) //ScoreSystem.AddScore(1or2)‚ÅƒXƒRƒA‚ğ‘‰Á‚·‚éB
+    public void AddScore(int playerNumber) //ScoreSystem.AddScore(1or2)ã§ã‚¹ã‚³ã‚¢ã‚’å¢—åŠ ã™ã‚‹ã€‚
     {
         if (playerNumber == 1)
         {
@@ -28,10 +28,10 @@ public class ScoreSystem:Singleton<ScoreSystem>
     }
 
     /// <summary>
-    /// w’è‚µ‚½ƒvƒŒƒCƒ„[‚ÉƒXƒRƒA‚ğ‰Á“_‚·‚éB
+    /// æŒ‡å®šã—ãŸãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«ã‚¹ã‚³ã‚¢ã‚’åŠ ç‚¹ã™ã‚‹ã€‚
     /// </summary>
-    /// <param name="playerNumber">ƒvƒŒƒCƒ„[‚Ì”Ô†‚ğ“ü—Í</param>
-    /// <param name="score">‘‰Á‚·‚éƒXƒRƒA‚ğ“ü—Í</param>
+    /// <param name="playerNumber">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç•ªå·ã‚’å…¥åŠ›</param>
+    /// <param name="score">å¢—åŠ ã™ã‚‹ã‚¹ã‚³ã‚¢ã‚’å…¥åŠ›</param>
     public void AddScore(int playerNumber, int score) 
     {
         if (playerNumber == 1)
@@ -53,5 +53,9 @@ public class ScoreSystem:Singleton<ScoreSystem>
     {
         return player2Score;
     }
-
+    public void ResetScore()
+    {
+        player1Score = 0;
+        player2Score = 0;
+    }
 }
