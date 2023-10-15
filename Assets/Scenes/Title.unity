@@ -578,11 +578,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pressBtn: {fileID: 633890546}
-  sceneSwitchCurtain: {fileID: 524942514}
   isShiningOn: 1
   blinkSpeed: 0.02
   blinkInterval: 1.5
   _anyValueAction: {fileID: -944628639613478452, guid: 79741ef418b3a464587f4b15f8f0dd64, type: 3}
+  sceneSwitchCurtain: {fileID: 524942514}
 --- !u!1 &1440808042
 GameObject:
   m_ObjectHideFlags: 0

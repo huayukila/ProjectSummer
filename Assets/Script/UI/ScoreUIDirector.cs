@@ -84,7 +84,10 @@ public class ScoreUIDirector : MonoBehaviour
             TypeEventSystem.Instance.Send<GameOver>();                 //GameOver–½—ß‚ğ”­‘—AEndScene‚ÖØ‚è‘Ö‚¦
         }
 
-        TimeBarFront.fillAmount = timePercent;
+        timerSetting-= Time.deltaTime;
+
+
+        TimeBarFront.fillAmount = timerSetting/ Global.SET_GAME_TIME;
 
         //ƒeƒXƒg—p]]]]]]]]
         //if (Input.GetKeyDown(KeyCode.Space))
