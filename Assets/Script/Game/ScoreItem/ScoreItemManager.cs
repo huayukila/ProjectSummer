@@ -22,6 +22,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
     private Timer _goalSpawnAnimationTimer;
 
+    private bool _isPlayingFallFX;
+
     /// <summary>
     /// ã‡ÇÃñ‘ÇÃê∂ê¨à íuÇåàÇﬂÇÈä÷êî
     /// ñ¢äÆê¨ÇÃÇΩÇﬂÅAå≈íËà íuÇ…ê∂ê¨ÇµÇƒÇ¢ÇÈ
@@ -72,6 +74,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         float posZ = Random.Range(0, 1) == 0 ? Random.Range(zRange, Global.STAGE_WIDTH / 2.5f) : Random.Range(-Global.STAGE_WIDTH / 2.5f, -zRange);
 
         _goalPoint.transform.position = new Vector3(posX, 0.32f, posZ);
+        AudioManager.Instance.PlayFX("SpawnFX", 0.3f);
         _goalSpawnAnimationTimer = new Timer();
         _goalSpawnAnimationTimer.SetTimer(_goalAnimationDurationTime,
             () =>
@@ -142,6 +145,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
         System.Random rand = new System.Random((int)Time.time);
+        _isPlayingFallFX = false;
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {
@@ -156,6 +160,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }).UnregisterWhenGameObjectDestroyed(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
         {
+            AudioManager.Instance.PlayFX("GetFX",0.5f);
             SetGoalPoint(_inSpaceSilk.transform.position);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
@@ -228,11 +233,17 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             if(_goldenSilkSpawnTimer.GetTime() <= Global.SILK_SPAWN_TIME / 2.0f)
             {
+                if(_isPlayingFallFX == false)
+                {
+                    AudioManager.Instance.PlayFX("FallFX", 0.5f);
+                    _isPlayingFallFX = true;
+                }
                 PlayGoldenSilkAnimation();
             }
             if (_goldenSilkSpawnTimer.IsTimerFinished())
             {
                 _goldenSilkSpawnTimer = null;
+                _isPlayingFallFX = false;
             }
         }
 
@@ -266,6 +277,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private void OnDestroy()
     {
         Resources.UnloadUnusedAssets();
+        _isPlayingFallFX = false;
+        _isStartAwayFromEdge = false;
     }
 
 }

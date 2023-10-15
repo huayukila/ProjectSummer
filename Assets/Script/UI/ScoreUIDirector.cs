@@ -34,7 +34,13 @@ public class ScoreUIDirector : MonoBehaviour
         bool player1RespawnCnt = false;
         bool player2RespawnCnt = false;
 
-        timer.SetTimer(timerSetting, () => { Debug.Log("Timer finished!"); });
+        timer.SetTimer(timerSetting, () => 
+        { 
+            Debug.Log("Timer finished!");
+            //todo Temporary code
+            AudioManager.Instance.StopBGM();
+            AudioManager.Instance.PlayBGM("EndBGM",0.3f);
+        });
 
         UISystem.DisplayOff(p1RespawnUI);//復活のカウントダウンUIを隠す
         UISystem.DisplayOff(p2RespawnUI);

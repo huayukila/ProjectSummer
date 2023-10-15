@@ -235,6 +235,7 @@ public abstract class Player : MonoBehaviour
     {
         GameObject explosion = Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        AudioManager.Instance.PlayFX("BoomFX",0.6f);
         transform.position = _bigSpider.transform.position;
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;

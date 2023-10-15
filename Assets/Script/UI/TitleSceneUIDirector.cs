@@ -78,6 +78,7 @@ public class TitleSceneUIDirector : MonoBehaviour
     {
         if (context.performed)
         {
+            AudioManager.Instance.PlayFX("ClickFX", 0.5f);
             TypeEventSystem.Instance.Send<MenuSceneSwitch>();
         }
     }
