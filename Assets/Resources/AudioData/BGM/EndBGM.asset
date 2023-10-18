@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: EndBGM
   m_EditorClassIdentifier: 
   audioName: EndBGM
-  audioClip: {fileID: 8300000, guid: 6985f525172b0144790f826d8788fe25, type: 3}
+  audioClip: {fileID: 8300000, guid: 07c78c860830c6a41935e45d5399a5b1, type: 3}

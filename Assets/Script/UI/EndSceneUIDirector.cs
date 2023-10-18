@@ -44,6 +44,7 @@ public class EndSceneUIDirector : MonoBehaviour
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
         _anyKeyAction.performed += OnSwitchScene;
         _isAnimationStopped = false;
+        AudioManager.Instance.PlayBGM("EndBGM", 0.3f);
     }
     private void Start()
     {
@@ -205,13 +206,16 @@ public class EndSceneUIDirector : MonoBehaviour
 
     private void OnSwitchScene(InputAction.CallbackContext context)
     {
-        Debug.Log("stopped");
         if (_isAnimationStopped)
         {
             
             if (context.performed)
             {
+                AudioManager.Instance.PlayFX("ClickFX", 0.5f);
+                AudioManager.Instance.StopBGM();
+                AudioManager.Instance.PlayBGM("TitleBGM", 0.3f);
                 TypeEventSystem.Instance.Send<TitleSceneSwitch>();
+                
             }
         }
     }

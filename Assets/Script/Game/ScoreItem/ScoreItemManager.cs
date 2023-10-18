@@ -22,6 +22,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
     private Timer _goalSpawnAnimationTimer;
 
+    private bool _isPlayingFallFX;
+
     /// <summary>
     /// ã‡ÇÃñ‘ÇÃê∂ê¨à íuÇåàÇﬂÇÈä÷êî
     /// ñ¢äÆê¨ÇÃÇΩÇﬂÅAå≈íËà íuÇ…ê∂ê¨ÇµÇƒÇ¢ÇÈ
@@ -142,9 +144,11 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         GenerateNewSilk();
         _isStartAwayFromEdge = false;
         System.Random rand = new System.Random((int)Time.time);
+        _isPlayingFallFX = false;
 
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {
+            AudioManager.Instance.PlayFX("GetFX", 0.7f);
             SetReachGoalProperties(e.playerID);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
@@ -156,6 +160,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }).UnregisterWhenGameObjectDestroyed(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
         {
+            AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
             SetGoalPoint(_inSpaceSilk.transform.position);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
@@ -201,7 +206,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         if(_silkShadow.gameObject.activeSelf == false)
         {
             _silkShadow.SetActive(true);
-            _silkShadow.transform.position = _inSpaceSilk.transform.position - new Vector3(0.0f, 0.1f, 0.0f);
+            _silkShadow.transform.position = _inSpaceSilk.transform.position - new Vector3(0.0f, 0.6f, 0.0f);
         }
         _silkAirdrop.transform.Translate(0.0f,0.0f,-200.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
         _silkAirdrop.transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
@@ -228,11 +233,17 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         {
             if(_goldenSilkSpawnTimer.GetTime() <= Global.SILK_SPAWN_TIME / 2.0f)
             {
+                if(_isPlayingFallFX == false)
+                {
+                    AudioManager.Instance.PlayFX("FallFX", 0.7f);
+                    _isPlayingFallFX = true;
+                }
                 PlayGoldenSilkAnimation();
             }
             if (_goldenSilkSpawnTimer.IsTimerFinished())
             {
                 _goldenSilkSpawnTimer = null;
+                _isPlayingFallFX = false;
             }
         }
 
@@ -266,6 +277,8 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private void OnDestroy()
     {
         Resources.UnloadUnusedAssets();
+        _isPlayingFallFX = false;
+        _isStartAwayFromEdge = false;
     }
 
 }

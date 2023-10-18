@@ -40,9 +40,13 @@ public abstract class Player : MonoBehaviour
     private float _boostDurationTime = Global.BOOST_DURATION_TIME;
     private bool _isBoosting = false;
     private SpriteRenderer _mSpriteRenderer;
+    private SpriteRenderer _mShadowSpriteRenderer;
     private GameObject _explosionPrefab;
     private GameObject _bigSpider;
     private LineRenderer _mBigSpiderLineRenderer;
+    private GameObject _mShadow;
+    //todo
+    protected GameObject _mGotSilkImage;
 
     //todo refactorying
     protected Vector3 _mRespawnPos;
@@ -83,6 +87,14 @@ public abstract class Player : MonoBehaviour
     {
         _mSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
         _mSpriteRenderer.transform.localPosition = Vector3.zero - new Vector3(0.0f,0.05f,0.0f);
+        _mShadow = Instantiate(Resources.Load("Prefabs/PlayerShadow") as GameObject,_mRespawnPos,Quaternion.identity);
+        _mShadow.transform.localScale = Vector3.zero;
+        _mShadow.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        _mShadowSpriteRenderer = _mShadow.GetComponent<SpriteRenderer>();
+
+        _mShadowSpriteRenderer.color = Color.clear;
+
+
     }
     private void Update()
     {
@@ -126,6 +138,10 @@ public abstract class Player : MonoBehaviour
 
         };
 
+        if(IsGotSilk == true)
+        {
+            _mGotSilkImage.transform.position = transform.position + Vector3.forward * 6.5f;
+        }
         Vector2 rotateInput = rotateAction.ReadValue<Vector2>();
         _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
         GroundColorCheck();
@@ -215,6 +231,11 @@ public abstract class Player : MonoBehaviour
         _mBigSpiderLineRenderer.positionCount = 2;
         _mBigSpiderLineRenderer.startWidth = 0.2f;
         _mBigSpiderLineRenderer.endWidth = 0.2f;
+
+        _mGotSilkImage = Instantiate(Resources.Load("Prefabs/GoldenSilkImage") as GameObject);
+        _mGotSilkImage.SetActive(false);
+
+
     }
     /// <summary>
     /// プレイヤーの移動を制御する
@@ -235,6 +256,9 @@ public abstract class Player : MonoBehaviour
     {
         GameObject explosion = Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+
+        AudioManager.Instance.PlayFX("BoomFX",0.7f);
+
         transform.position = _bigSpider.transform.position;
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
@@ -265,6 +289,8 @@ public abstract class Player : MonoBehaviour
             {
                 _respawnAnimationTimer = null;
             });
+
+        _mGotSilkImage.SetActive(false);
     }
 
     //todo アクセス修飾子の変更予定
@@ -310,6 +336,8 @@ public abstract class Player : MonoBehaviour
     {
         _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f,0.0f,100.0f);
         _mBigSpiderLineRenderer.positionCount = 0;
+        _mShadow.transform.localScale = Vector3.zero;
+        _mShadowSpriteRenderer.color = Color.clear;
 
     }
 
@@ -317,13 +345,15 @@ public abstract class Player : MonoBehaviour
     {
         if(_respawnAnimationTimer.GetTime() >= Global.RESPAWN_TIME /2.0f)
         {
-            _bigSpider.transform.Translate(new Vector3(0.0f, 0.0f,-16.0f * Time.deltaTime),Space.World);
+            _bigSpider.transform.Translate(new Vector3(0.0f, 0.0f,-20.0f * Time.deltaTime),Space.World);
             transform.position = _bigSpider.transform.position + new Vector3(0.0f,0.5f,0.0f);
         }
         else
         {
             transform.Translate(-(_bigSpider.transform.position - _mRespawnPos) * 0.4f * Time.deltaTime,Space.World);
             transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
+            _mShadowSpriteRenderer.color += Color.white * 0.4f * Time.deltaTime;
+            _mShadow.transform.localScale += Vector3.one * 0.4f * Time.deltaTime * 0.8f;
             Vector3[] temp = new Vector3[2];
             temp[0] = _bigSpider.transform.position;
             temp[1] = transform.position + new Vector3(0.0f,-0.5f,offset);

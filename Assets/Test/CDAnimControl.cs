@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class CDAnimControl : MonoBehaviour
 {
     public List<Sprite> cdSprites = new List<Sprite>();
-    public Animation cdAnimation;
+    public Animation cdAnimator;
     public Image cdIMG;
     public FightAnimControl fightAnimControl;
     public float upSpeed = 40f;
@@ -33,7 +33,7 @@ public class CDAnimControl : MonoBehaviour
         {
             if (!isPlayFX && countdownTimes != 0)
             {
-                cdAnimation.Play();
+                cdAnimator.Play("CDAnimation");
             }
             if (countdownTimes == 0 && !isPlayFX)
             {
@@ -48,7 +48,7 @@ public class CDAnimControl : MonoBehaviour
     }
 
     [Button]
-    void StartCD()
+    public void StartCD()
     {
         isStartCountDown = true;
     }

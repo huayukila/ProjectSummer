@@ -51,7 +51,12 @@ public class MenuSceneUIDirector : MonoBehaviour
     {
         if(context.performed)
         {
-            isCurtainTurnBlack = true;
+            if (isCurtainTurnBlack == false)
+            {
+                AudioManager.Instance.PlayFX("ClickFX", 0.5f);
+                isCurtainTurnBlack = true;
+            }
+
         }
 
     }
