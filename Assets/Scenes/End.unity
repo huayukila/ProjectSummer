@@ -1368,13 +1368,13 @@ Transform:
   - {fileID: 167306421}
   - {fileID: 810213752}
   - {fileID: 1830538627}
-  - {fileID: 623625414}
-  - {fileID: 1909000275}
-  - {fileID: 799278530}
-  - {fileID: 642992299}
   - {fileID: 1250970904}
   - {fileID: 1713857900}
   - {fileID: 1573066755}
+  - {fileID: 642992299}
+  - {fileID: 799278530}
+  - {fileID: 623625414}
+  - {fileID: 1909000275}
   - {fileID: 1668827706}
   m_Father: {fileID: 1461137078}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
