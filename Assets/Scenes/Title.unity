@@ -644,7 +644,6 @@ GameObject:
   - component: {fileID: 657673973}
   - component: {fileID: 657673976}
   - component: {fileID: 657673975}
-  - component: {fileID: 657673974}
   m_Layer: 5
   m_Name: LoadingPanel
   m_TagString: Untagged
@@ -668,28 +667,13 @@ RectTransform:
   - {fileID: 15950195}
   - {fileID: 332549598}
   - {fileID: 371961072}
-  - {fileID: 1504096677}
-  m_Father: {fileID: 1570307424}
+  m_Father: {fileID: 659967570}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &657673974
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 657673972}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc398caff67d726498104a367f277795, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _anyValueAction: {fileID: -944628639613478452, guid: 79741ef418b3a464587f4b15f8f0dd64, type: 3}
-  sceneSwitchCurtain: {fileID: 1504096676}
 --- !u!114 &657673975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -764,6 +748,8 @@ RectTransform:
   - {fileID: 1716191406}
   - {fileID: 543542821}
   - {fileID: 633890547}
+  - {fileID: 657673973}
+  - {fileID: 1504096677}
   m_Father: {fileID: 1570307424}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -954,11 +940,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 657673973}
+  m_Father: {fileID: 659967570}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -6.7738, y: 0.0010223}
+  m_AnchoredPosition: {x: -6.7738037, y: 0.0010986328}
   m_SizeDelta: {x: 1933.5, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1504096678
@@ -1094,7 +1080,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 659967570}
-  - {fileID: 657673973}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
