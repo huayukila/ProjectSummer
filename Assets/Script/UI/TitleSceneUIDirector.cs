@@ -51,7 +51,7 @@ public class TitleSceneUIDirector : MonoBehaviour
         UISystem.SetPos(LoadingSpider01, -1200f, 0f);//ロードシーンのスパイダーの位置を初期化
         UISystem.SetPos(LoadingSpider02, 1200f, 0f);
         loadingSceneTimer = 0f;//ロードシーンの継続時間のタイマー
-        loadingSceneTime = 3f;//ロードシーンの継続時間
+        loadingSceneTime = 2f;//ロードシーンの継続時間
     }
     private void FixedUpdate()
     {
@@ -106,7 +106,7 @@ public class TitleSceneUIDirector : MonoBehaviour
             }
             else//シーン切り替えのスイッチがoffの状態なら
             {
-            isCurtainTurnOn = true;//カーテンを戻るスイッチon！
+                isCurtainTurnOn = true;//カーテンを戻るスイッチon！
             }
         }
     }
