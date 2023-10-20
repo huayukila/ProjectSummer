@@ -1,0 +1,13 @@
+# 默?忽略的文件
+/shelf/
+/workspace.xml
+# Rider 忽略的文件
+/.idea.ProjectSummer.iml
+/projectSettingsUpdater.xml
+/modules.xml
+/contentModel.xml
+# 基于??器的 HTTP 客?端?求
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
