@@ -252,6 +252,7 @@ public class GameManager : Singleton<GameManager>
             inputManager.AddComponent<InputManager>();
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
+            ScoreSystem.Instance.ResetScore();
         }
         else
         {
