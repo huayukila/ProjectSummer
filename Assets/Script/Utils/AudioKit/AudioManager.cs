@@ -150,7 +150,7 @@ public class FXAudioPlayer : MonoBehaviour
 {
     AudioSource _audioSource;
     Action _callBack;
-    bool _isPlaying = false;
+    bool _isPlaying;
 
     private void Start()
     {
