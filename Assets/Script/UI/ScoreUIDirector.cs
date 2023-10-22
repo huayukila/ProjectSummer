@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Kit;
 
 public class ScoreUIDirector : MonoBehaviour
 {
@@ -18,36 +19,41 @@ public class ScoreUIDirector : MonoBehaviour
 
     public GameObject timeUI;
 
-    public Timer timer;
-
     bool isPlayer1Respawn;
     bool isPlayer2Respawn;
 
     float timerSetting = Global.SET_GAME_TIME;
 
     public Image TimeBarFront;
-    public float timePercent;
 
-    //todo
-    public GameObject CDImage;
-    private CDAnimControl finishCDAnimControl;
-    private FightAnimControl fightAnimControl;
+    bool aaa;
+
+    [Header("Prefab")]
+    public CountDownCtrler startCountDownCtrler;
+    public CountDownCtrler finishCountDownCtrler;
 
     void Start()
     {
-
-        finishCDAnimControl = CDImage.GetComponent<CDAnimControl>();
-        fightAnimControl = CDImage.GetComponentInChildren<FightAnimControl>();
-        timePercent = 0.2f;
-        timer = new Timer();
+        Time.timeScale = 0.0f;
+        startCountDownCtrler.StartCountDown(() => Time.timeScale = 1.0f);
 
         player1Timer = Global.RESPAWN_TIME;//復活の時間を設定
         player2Timer = Global.RESPAWN_TIME;
 
-        timer.SetTimer(timerSetting, () =>
-        { 
+        //タイマーをセット（Global.SET_GAME_TIME - 9f）、タイマーを終わると、カウントダウンを始める。
+        ActionKit.Delay(Global.SET_GAME_TIME - 9f, () =>
+        {
+            finishCountDownCtrler.StartCountDown(() =>
+            {
+                AudioManager.Instance.StopBGM();
+                TypeEventSystem.Instance.Send<GameOver>();
+            });
+        }).Start(this);
 
-        });
+        //timer.SetTimer(Global.SET_GAME_TIME - 9f, () =>
+        //{
+            
+        //});
 
         UISystem.DisplayOff(p1RespawnUI);//復活のカウントダウンUIを隠す
         UISystem.DisplayOff(p2RespawnUI);
@@ -64,13 +70,10 @@ public class ScoreUIDirector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
         p1ScoreUI.GetComponent<TextMeshProUGUI>().text =
             ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
         p2ScoreUI.GetComponent<TextMeshProUGUI>().text =
             ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
-        //timeUI.GetComponent<TextMeshProUGUI>().text =
-            //"TIME:"+ timer.GetTime().ToString("F2");     //タイマーのテキストの内容
 
         if (isPlayer1Respawn)
         {
@@ -91,15 +94,20 @@ public class ScoreUIDirector : MonoBehaviour
             }
         }
 
-        if (timer.GetTime() <= 3.0f)
-        {
-            finishCDAnimControl.StartCD();
-        }
-        if(fightAnimControl.isPlayDone == true)
-        {
-            AudioManager.Instance.StopBGM();
-            TypeEventSystem.Instance.Send<GameOver>();                 //GameOver命令を発送、EndSceneへ切り替え
-        }
+        //if (timer.GetTime() <= 9.0f)
+        //{
+            
+        //    startCountDownCtrler.StartCountDown(() => 
+        //    { 
+        //        AudioManager.Instance.StopBGM(); 
+        //        TypeEventSystem.Instance.Send<GameOver>(); 
+        //    });
+        //}
+        //if(fightAnimControl.isPlayDone == true)
+        //{
+        //    AudioManager.Instance.StopBGM();
+        //    TypeEventSystem.Instance.Send<GameOver>();                 //GameOver命令を発送、EndSceneへ切り替え
+        //}
 
         timerSetting-= Time.deltaTime;
 

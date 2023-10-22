@@ -31,7 +31,8 @@ public class Timer
         if (Time.time - startTime >= duration)
         {
             callback.Invoke();
-            return true;            
+            callback = null;
+            return true;
         }
         return false;
     }
