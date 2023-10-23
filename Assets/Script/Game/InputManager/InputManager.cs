@@ -9,14 +9,19 @@ public class InputManager : Singleton<InputManager>
 
     private void Start()
     {
-        for(int i = 0; i < PlayerInput.all.Count; ++i)
+
+    }
+
+    public void Init()
+    {
+        for (int i = 0; i < PlayerInput.all.Count; ++i)
         {
             PlayerInput.all[i].SwitchCurrentControlScheme(
             "Keyboard&Mouse",
             Keyboard.current);
             PlayerInput.all[i].neverAutoSwitchControlSchemes = true;
         }
-        for(int i = 0; i < Gamepad.all.Count;++i)
+        for (int i = 0; i < Gamepad.all.Count; ++i)
         {
             PlayerInput.all[i].SwitchCurrentControlScheme(
             "Gamepad",

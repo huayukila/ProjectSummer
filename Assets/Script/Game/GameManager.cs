@@ -242,14 +242,10 @@ public class GameManager : Singleton<GameManager>
             GameObject player2 = Instantiate(_player2Prefab, Global.PLAYER2_START_POSITION, Quaternion.identity);
             player2.transform.forward = Vector3.left;
 
-            GameObject scoreItemManager = new GameObject("ScoreItemManager");
-            scoreItemManager.AddComponent<ScoreItemManager>();
+            ScoreItemManager.Instance.Init();
+            DropPointManager.Instance.Init();
+            InputManager.Instance.Init();
 
-            GameObject dropPointManager = new GameObject("DropPointManager");
-            dropPointManager.AddComponent<DropPointManager>();
-
-            GameObject inputManager = new GameObject("InputManager");
-            inputManager.AddComponent<InputManager>();
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
         }
