@@ -5,33 +5,36 @@ using Unity.Mathematics;
 
 public class TitleSceneUIDirector : MonoBehaviour
 {
+    //press any button関連
     public GameObject pressBtn;　　　　　　　//PRESS ANY BUTTONのオブジェクト
-    public bool isShiningOn = true;          //ブタン点滅のスイッチ
-    public float blinkSpeed = 0.02f;         //ボタンの点滅変化の速度
-    public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
+    public GameObject pressBtn02;
+    public float blinkSpeed;         //ボタンの点滅変化の速度
+    private float blinkTimer;　　　　　//点滅のタイマー
+    //シーン切り替え関連
     public InputActionAsset _anyValueAction;
-
+    private InputAction _anyKeyAction;
     public GameObject sceneSwitchCurtain;//scene切り替えのカーテン
     private float sceneSwitchCurtainSpeed;//scene切り替えのカーテンを黒くなるスピード
     private float sceneSwitchCurtainAlpha;//シーン切り替えカーテンの初期値
 
-    private float blinkTimer = 0f;　　　　　//点滅のタイマー
-    private InputAction _anyKeyAction;
-
+    public GameObject InstructionScene;
     public GameObject loadingScene;
     public GameObject LoadingSpider01;
     public GameObject LoadingSpider02;
+    private bool isShiningOn = true;          //press any button点滅のスイッチ
     private bool isCurtainTurnBlackSwitchOn;
     private bool isCurtainTurnOn;
     private bool isLoadingAnimationOn;
     private bool isSceneSwitchOn;
     private bool isClickOnce;
-    private float loadingSceneTimer;//ロードシーンの継続時間のタイマー
+    private float sceneTimer;//ロードシーンの継続時間のタイマー
     private float loadingSceneTime;//ロードシーンの継続時間
     private float loadingSpider01x;
     private float loadingSpider02x;
     private float loadingSpider01MoveSpeed;
     private float loadingSpider02MoveSpeed;
+    private float INTSTRUCTON_SCENE_TIME;
+    int clickTimes;
 
     private void Awake()
     {
@@ -43,6 +46,7 @@ public class TitleSceneUIDirector : MonoBehaviour
         sceneSwitchCurtainAlpha = 0f;//カーテンの透明度初期値（完全透明）
         sceneSwitchCurtainSpeed = 0.05f;//カーテンを黒くなるスピード
         UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);//カーテンの状態を初期化
+        UISystem.DisplayOff(InstructionScene);//ゲーム操作方法紹介画面を隠す
         UISystem.DisplayOff(loadingScene);//ロードシーンを隠す
         loadingSpider01x = UISystem.GetPositionX(LoadingSpider01);//ロードシーンのスパイダーのx座標を獲得
         loadingSpider02x = UISystem.GetPositionX(LoadingSpider02);
@@ -50,32 +54,22 @@ public class TitleSceneUIDirector : MonoBehaviour
         loadingSpider02MoveSpeed = 40f;
         UISystem.SetPos(LoadingSpider01, -1200f, 0f);//ロードシーンのスパイダーの位置を初期化
         UISystem.SetPos(LoadingSpider02, 1200f, 0f);
-        loadingSceneTimer = 0f;//ロードシーンの継続時間のタイマー
+        sceneTimer = 0f;//ロードシーンの継続時間のタイマー
         loadingSceneTime = 2f;//ロードシーンの継続時間
+        INTSTRUCTON_SCENE_TIME = Global.INTSTRUCTON_SCENE_TIME;//ゲーム操作方法紹介画面 PRESS無効の時間
+        clickTimes = 0;//ボタンの押されて回数コントロラー
+
+        //press any button関連
+        UISystem.DisplayOff(pressBtn02); //ゲーム操作方法紹介画面のpress any buttonを隠す
+        blinkTimer = 0f;//点滅のタイマー
+        blinkSpeed = 2.2f;//ボタンの点滅変化の速度
     }
     private void FixedUpdate()
     {
-        if (isShiningOn==true)
+        if (isShiningOn==true)//press any button点滅のスイッチがonなら
         {
-            blinkTimer += Time.fixedDeltaTime;
-
-            Color newColor = pressBtn.GetComponent<TextMeshProUGUI>().color;
-
-            if (blinkTimer < blinkInterval * 0.5f)
-            {
-                newColor.a -= blinkSpeed;
-            }
-            else
-            {
-                newColor.a += blinkSpeed;
-                if (newColor.a >= 1.0f)
-                {
-                    newColor.a = 1.0f;
-                    blinkTimer = 0f;
-                    Mathf.Sin(blinkTimer);
-                }
-            }
-            pressBtn.GetComponent<TextMeshProUGUI>().color = newColor;
+            blink(pressBtn);//press any buttonを点滅
+            blink(pressBtn02);
         }
 
         if (isCurtainTurnBlackSwitchOn == true)//カーテンを黒くするスイッチon!
@@ -102,6 +96,7 @@ public class TitleSceneUIDirector : MonoBehaviour
             {
                 isSceneSwitchOn = false;//シーン切り替えのスイッチをoffにする
                 isClickOnce = false;//クリックされていない状態に戻る・クリック状態をリセット
+                clickTimes = 0;//クリック回数のコントロラーをリセット
                 TypeEventSystem.Instance.Send<GamingSceneSwitch>();//シーンを切り替え
             }
             else//シーン切り替えのスイッチがoffの状態なら
@@ -112,28 +107,60 @@ public class TitleSceneUIDirector : MonoBehaviour
     }
     private void CurtainTurnOnAndLoadingSceneOn()//カーテンを戻るとロードシーンを現す処理
     {
-        UISystem.DisplayOn(loadingScene);//ロードシーンを現す
-        sceneSwitchCurtainAlpha -= sceneSwitchCurtainSpeed;//カーテンを戻る
-        UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);//カーテンの状態
-        if (sceneSwitchCurtainAlpha <=0f)//カーテンを戻たら
+        if (clickTimes == 1)//クリックが第一回目のばい
         {
-            sceneSwitchCurtainAlpha = 0f;//カーテンのAlphaを固定
-            isCurtainTurnOn = false;//カーテンを戻るスイッチoff
-            isLoadingAnimationOn = true;//ロードシーンのアニメションon！
+            UISystem.DisplayOn(InstructionScene);//ゲーム操作方法紹介画面を現す
+            sceneSwitchCurtainAlpha -= sceneSwitchCurtainSpeed;//カーテンを戻る
+            UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);//カーテンの状態
+            if (sceneSwitchCurtainAlpha <= 0f)//カーテンを戻たら
+            {
+                sceneSwitchCurtainAlpha = 0f;//カーテンのAlphaを固定
+                sceneTimer += Time.fixedDeltaTime;//タイマーを起動
+                if(sceneTimer >= INTSTRUCTON_SCENE_TIME)//タイマーが一定の時間を満たす場合
+                {
+                    sceneTimer = 0f;//タイマーをリセット
+                    isClickOnce = false;//クリックを可能な状態になる
+                    isCurtainTurnOn = false;//カーテンを戻るスイッチoff
+                    UISystem.DisplayOn(pressBtn02);//ゲーム操作方法紹介画面のpress any buttonを現す
+                    isShiningOn = true;////press ant buttonの点滅状態をon
+                }
+            }
         }
+        if (clickTimes == 2)//クリックが第２回目のばい
+        {
+            UISystem.DisplayOn(loadingScene);//ロードシーンを現す
+            sceneSwitchCurtainAlpha -= sceneSwitchCurtainSpeed;//カーテンを戻る
+            UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);//カーテンの状態
+            if (sceneSwitchCurtainAlpha <= 0f)//カーテンを戻たら
+            {
+                sceneSwitchCurtainAlpha = 0f;//カーテンのAlphaを固定
+                isCurtainTurnOn = false;//カーテンを戻るスイッチoff
+                isLoadingAnimationOn = true;//ロードシーンのアニメションon！
+            }
+        } 
     }
     private void LoadingAnimationOn()//ロードシーンのアニメション
     {
-        loadingSceneTimer += Time.fixedDeltaTime;//ロードシーンの継続時間をカウント初める
+        sceneTimer += Time.fixedDeltaTime;//ロードシーンの継続時間をカウント初める
         UISystem.MoveToRight(LoadingSpider01, loadingSpider01x, loadingSpider01MoveSpeed);//スパイダーuiの行動処理
         UISystem.MoveToLeft(LoadingSpider02, loadingSpider02x, loadingSpider02MoveSpeed);//スパイダーuiの行動処理
-        if (loadingSceneTimer > loadingSceneTime)//ロードシーンの継続時間に到達
+        if (sceneTimer > loadingSceneTime)//ロードシーンの継続時間に到達
         {
-            loadingSceneTimer = 0;//タイマーをリセット
+            sceneTimer = 0;//タイマーをリセット
             isLoadingAnimationOn = false;//ロードシーンのアニメションをoff
             isSceneSwitchOn = true;//シーン切り替えのスイッチon!
             isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
         }
+    }
+    private void blink(GameObject pressBtn)
+    {
+        blinkTimer += Time.fixedDeltaTime;
+
+        Color newColor = pressBtn.GetComponent<TextMeshProUGUI>().color;
+
+        newColor.a = (math.cos(blinkTimer * blinkSpeed) *0.2f)+0.8f;//newColor.aのあたいを0.6~1.0の間繰り返す。
+
+        pressBtn.GetComponent<TextMeshProUGUI>().color = newColor;
     }
 
     private void OnEnable()=>_anyKeyAction.Enable();
@@ -146,9 +173,22 @@ public class TitleSceneUIDirector : MonoBehaviour
         {
             if(isClickOnce==false)//クリックされていない状態なら
             {
-                AudioManager.Instance.PlayFX("ClickFX",0.5f);//クリックの音を鳴らす
-                isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
-                isClickOnce = true;//クリック済みの状態にする
+                switch (clickTimes)
+                {
+                    case 0:
+                        clickTimes += 1;
+                        AudioManager.Instance.PlayFX("ClickFX", 0.5f);//クリックの音を鳴らす
+                        isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
+                        isClickOnce = true;//クリック済みの状態にする
+                        isShiningOn = false;//press ant buttonの点滅状態をoff
+                        break;
+                    case 1:
+                        clickTimes += 1;
+                        AudioManager.Instance.PlayFX("ClickFX", 0.5f);//クリックの音を鳴らす
+                        isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
+                        isClickOnce = true;//クリック済みの状態にする
+                        break;
+                }
             }
         }
     }
