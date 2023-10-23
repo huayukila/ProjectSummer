@@ -1,8 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public struct PlayerDropPoints
+{
+    public List<GameObject> playerPoints;
+    public GameObject pointGroup;
+}
 public class DropPointManager : Singleton<DropPointManager>
 {
+    private Dictionary<int, PlayerDropPoints> _playerDropPoints;
     List<GameObject> _player1Points;            // プレイヤー1が落としたDropPointをまとめて管理するリスト
     List<GameObject> _player2Points;            // プレイヤー2が落としたDropPointをまとめて管理するリスト
     GameObject _p1pointGroup;                   // プレイヤー1の生成したDropPointをHierarchyでまとめる空っぽのGameObject

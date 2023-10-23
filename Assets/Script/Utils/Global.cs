@@ -2,8 +2,20 @@ using UnityEngine;
 
 public static class Global
 {
+
+    public static readonly Vector3[] PLAYER_START_POSITIONS = { new(-80.0f, 0.64f, 0.0f) , 
+                                                                new(80.0f, 0.64f, 0.0f) };
+
+    public static readonly Vector3[] PLAYER_DEFAULT_FORWARD = { Vector3.right,
+                                                                Vector3.left,
+                                                                Vector3.back,
+                                                                Vector3.forward};
+
+    public static readonly Color[] PLAYER_TRACE_COLORS = { new Color(0.878f, 0.114f, 0.886f, 1.0f) ,
+                                                           new Color(0.267f, 0.541f, 0.792f, 1.0f) };
+
     public static readonly Vector3 PLAYER1_START_POSITION = new Vector3(-80.0f, 0.64f, 0.0f);    // プレイヤー１の初期位置
-    public static readonly Vector3 PLAYER2_START_POSITION = new Vector3( 80.0f, 0.64f, 0.0f);    // プレイヤー２の初期位置
+    public static readonly Vector3 PLAYER2_START_POSITION = new Vector3(80.0f, 0.64f, 0.0f);    // プレイヤー２の初期位置
 
     public static readonly float SPEED_DOWN_COEFFICIENT = 0.5f;                                  // 他のプレイヤーの領域上にいる時のスビート係数
     public static readonly float SPEED_UP_COEFFICIENT = 1.25f;                                   // 自分のプレイヤーの領域上にいる時のスビート係数
@@ -15,6 +27,7 @@ public static class Global
 
     public static readonly Color PLAYER_ONE_TRACE_COLOR = new Color(0.878f, 0.114f, 0.886f, 1.0f);          // プレイヤー１の痕跡の色
     public static readonly Color PLAYER_TWO_TRACE_COLOR = new Color(0.267f, 0.541f, 0.792f, 1.0f);          // プレイヤー２の痕跡の色
+
 
     public static readonly float PLAYER_MAX_MOVE_SPEED = 1800.0f;                                // プレイヤーの最大速度
     public static readonly float PLAYER_ACCELERATION = 700.0f;                                   // プレイヤーの加速度

@@ -1,13 +1,26 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
+public interface IPlayerSetStatus
+{
+    
+}
+public struct SpiderPlayer
+{
+    public GameObject gameObject;
+    public GameObject playerImage;
+    public PlayerStatus playerStatus;
+    public Timer spawnTimer;
+}
 public class GameManager : Singleton<GameManager>
 {
+    private static int maxPlayerCount = 2;
+    private Dictionary<int, SpiderPlayer> spiderPlayers;
+    private Dictionary<int, GameObject> players;
     public GameObject playerOne;
     public GameObject playerTwo;
-    public PlayerStatus p1Status { get; private set; }
-    public PlayerStatus p2Status { get; private set; }
     public GameObject bigSpiderPrefab
     {
         get
@@ -18,13 +31,14 @@ public class GameManager : Singleton<GameManager>
     }
 
     private ItemSystem itemSystem;
+    private GameResourceSystem gameResourceSystem;
 
     private GameObject _bigSpiderPrefab;
 
-    Timer _player1Timer;        // プレイヤー1の待機タイマー
-    Timer _player2Timer;        // プレイヤー2の待機タイマー
-    GameObject _player1Prefab;
-    GameObject _player2Prefab;
+    private Timer _player1Timer;        // プレイヤー1の待機タイマー
+    private Timer _player2Timer;        // プレイヤー2の待機タイマー
+    private GameObject _player1Prefab;
+    private GameObject _player2Prefab;
 
     protected override void Awake()
     {
@@ -33,6 +47,11 @@ public class GameManager : Singleton<GameManager>
         {
             itemSystem = ItemSystem.Instance;
             itemSystem.Init();
+        }
+
+        {
+            gameResourceSystem = GameResourceSystem.Instance;
+            gameResourceSystem.Init();
         }
         //シーンの移行命令を受け
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
@@ -130,7 +149,9 @@ public class GameManager : Singleton<GameManager>
     {
         _player1Prefab = (GameObject)Resources.Load("Prefabs/Player1");
         _player2Prefab = (GameObject)Resources.Load("Prefabs/Player2");
-
+        spiderPlayers = new Dictionary<int, SpiderPlayer>();
+        //TODO test
+        players = new Dictionary<int, GameObject>();
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
             RespawnPlayer(e.player);
@@ -231,17 +252,13 @@ public class GameManager : Singleton<GameManager>
     {
         Resources.UnloadUnusedAssets();
         SceneManager.sceneLoaded -= SceneLoaded;
+        gameResourceSystem.onDeleteResource();
     }
 
     private void SceneLoaded(Scene nextScene, LoadSceneMode mode)
     {
         if (nextScene.name == "Gaming")
         {
-            GameObject player1 = Instantiate(_player1Prefab, Global.PLAYER1_START_POSITION, Quaternion.identity);
-            player1.transform.forward = Vector3.right;
-            GameObject player2 = Instantiate(_player2Prefab, Global.PLAYER2_START_POSITION, Quaternion.identity);
-            player2.transform.forward = Vector3.left;
-
             ScoreItemManager.Instance.Init();
             DropPointManager.Instance.Init();
             InputManager.Instance.Init();
@@ -249,6 +266,17 @@ public class GameManager : Singleton<GameManager>
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreSystem.Instance.ResetScore();
+            //TODO test code
+            for (int i = 0; i < maxPlayerCount; ++i)
+            {
+                GameObject gameObject = Instantiate(GameResourceSystem.Instance.playerPrefabs[i], Global.PLAYER_START_POSITIONS[i],Quaternion.identity);
+                gameObject.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i], "Player" + (i + 1).ToString());
+                if(players.TryGetValue(i + 1, out GameObject value) == false)
+                {
+                    players.Add(i + 1, gameObject);
+                    gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
+                }
+            }
         }
         else
         {
