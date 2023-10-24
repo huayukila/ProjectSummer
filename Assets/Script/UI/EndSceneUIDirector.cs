@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Mathematics;
 
 public class EndSceneUIDirector : MonoBehaviour
 {
@@ -11,48 +12,68 @@ public class EndSceneUIDirector : MonoBehaviour
     public GameObject winYellow;
     public GameObject winRed;
     public GameObject pressAnyBtn;
+    public GameObject pressAnyBtn02;
+    public GameObject creditsScene;
 
-    float timer;
-    float timerCon;
-
-    float alphaSetTMP;
-    float alphachangeTMP;
-    float localScaleSetTMP;
-    float localScaleChangeTMP;
-    float alphaSet;
-    float alphachange;
-    float localScaleSet;
-    float localScaleChange;
+    private float timer;
+    private float timerCon;
+    private bool isTimerOn;
+    
+    private float alphaSetTMP;
+    private float alphachangeTMP;
+    private float localScaleSetTMP;
+    private float localScaleChangeTMP;
+    private float alphaSet;
+    private float alphachange;
+    private float localScaleSet;
+    private float localScaleChange;
 
     //Blink Initialization--------------------
-    public float blinkSpeed = 0.02f;       //ボタンの点滅変化の速度
-    public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
-    float blinkTimer = 0f;
+    public float blinkSpeed;       //ボタンの点滅変化の速度
+    //public float blinkInterval = 1.5f;       //ボタンの点滅一往復の時間
+    private float blinkTimer;
+    private bool isBlinking;
 
     public GameObject sceneSwitchCurtain;//scene切り替えのカーテン
     private float sceneSwitchCurtainSpeed;//scene切り替えのカーテンを黒くなるスピード
     private float sceneSwitchCurtainAlpha;//シーン切り替えカーテンの初期値
-    bool isCurtainTurnBlack;
+    private bool isCurtainTurnOn;
+    private bool isCurtainTurnBlack;
+    private float sceneTimer;
+    private float CREDITS_SCENE_TIME;
 
     private InputAction _anyKeyAction;
     public InputActionAsset _anyValueAction;
     [SerializeField]
-    private bool _isAnimationStopped;
+    //private bool _isAnimationStopped;
+    private int clickTimes;
+    private bool isClicked;
 
     private void Awake()
     {
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
         _anyKeyAction.performed += OnSwitchScene;
-        _isAnimationStopped = false;
+        //_isAnimationStopped = false;
         AudioManager.Instance.PlayBGM("EndBGM", 0.3f);
     }
     private void Start()
     {
         timer = 3f;
         timerCon = 0.6f;
+        isTimerOn = true;
+        clickTimes = 0;
+        isClicked = true;
+        isCurtainTurnOn = true;
+        isCurtainTurnBlack = false;
+
+        //press any button点滅関連--------------------
+        blinkTimer = 0f;
+        blinkSpeed = 3.2f;       //ボタンの点滅変化の速度
 
         sceneSwitchCurtainAlpha = 1f;//scene切り替えのカーテンの透明度初期値（完全透明）
-        sceneSwitchCurtainSpeed = 0.1f;//scene切り替えのカーテンを透明になるスピード
+        sceneSwitchCurtainSpeed = 0.05f;//scene切り替えのカーテンを透明になるスピード
+        sceneTimer= 0f;
+        CREDITS_SCENE_TIME = Global.CREDITS_SCENE_TIME;
         UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
 
         alphaSetTMP = 0.0f;
@@ -82,75 +103,82 @@ public class EndSceneUIDirector : MonoBehaviour
         UISystem.SetAlpha(winYellow, alphaSet);
 
         UISystem.DisplayOff(pressAnyBtn);
-
-        //UISystem.SetLocalScale(pressAnyBtn, 10f, 10f, 10f);
-        //UISystem.SetAlphaTMP(pressAnyBtn, alphaSet);
-
-        //Debug.Log(redScore.transform.position);
-
-
+        UISystem.DisplayOff(pressAnyBtn02);
+        UISystem.DisplayOff(creditsScene);
     }
     private void Update()
     {
         this.redScore.GetComponent<TextMeshProUGUI>().text =
-            "RED SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
+            "  SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
         this.yellowScore.GetComponent<TextMeshProUGUI>().text = 
-            "YELLOW SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容 
-        
+            "  SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容         
     }
     void FixedUpdate()
     {
-        timer -= Time.deltaTime;
-        if(timer <= 3.0f-timerCon)
+        if(isTimerOn==true)//タイマーがonなら
         {
-            UISystem.MoveToLeft(redScore, 900, 100);
+            timer -= Time.deltaTime;//カウントダウン開始
+            if (timer <= 3.0f - timerCon)
+            {
+                UISystem.MoveToLeft(redScore, 900, 100);
+            }
+            if (timer <= 2.6f - timerCon)
+            {
+                UISystem.MoveToLeft(yellowScore, 900, 100);
+            }
+            if (timer <= 2.0f - timerCon)
+            {
+                if (ScoreSystem.Instance.GetPlayer1Score() == ScoreSystem.Instance.GetPlayer2Score())
+                {
+                    TurnSmallAndAppearTMP(draw);
+                }
+                else
+                {
+                    TurnSmallAndAppearTMP(winner);
+                }
+            }
+            if (timer <= 1.4f - timerCon)
+            {
+                if (ScoreSystem.Instance.GetPlayer1Score() > ScoreSystem.Instance.GetPlayer2Score())
+                {
+                    TurnSmallAndAppear(winRed);
+                }
+                if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())
+                {
+                    TurnSmallAndAppear(winYellow);
+                }
+            }
+            if (timer <= 0.5f - timerCon)
+            {
+                timer = 3f;//タイマーをリセット
+                //todo true->can switch scene;false -> cant switch scene until animation is stopped
+                isClicked = false;//クリックできる状態になる
+                isBlinking = true;//press any buttonwの明滅をon
+                isTimerOn = false;//クリックできる状態になる
+            }
+        }
 
-        }
-        if (timer <= 2.6f - timerCon)
-        {
-            UISystem.MoveToLeft(yellowScore, 900, 100);
-        }
-        if (timer <= 2.0f - timerCon)
-        {
-            if (ScoreSystem.Instance.GetPlayer1Score() == ScoreSystem.Instance.GetPlayer2Score())
-            {
-                TurnSmallAndAppearTMP(draw);
-            }
-            else //if(ScoreSystem.Instance.GetPlayer1Score() >= ScoreSystem.Instance.GetPlayer2Score())
-            {
-                TurnSmallAndAppearTMP(winner);
-                
-            }      
-        }
-        if (timer <= 1.4f - timerCon)
-        {
-            if(ScoreSystem.Instance.GetPlayer1Score() > ScoreSystem.Instance.GetPlayer2Score())
-            {
-                TurnSmallAndAppear(winRed);
-            }
-            if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())
-            {
-                TurnSmallAndAppear(winYellow);
-            }         
-        }
-        if (timer <= 0.5f - timerCon) 
+        //press any buttonの処理
+        if (isBlinking == true) 
         {
             UISystem.DisplayOn(pressAnyBtn);
-            Blink();
-            //todo true->can switch scene;false -> cant switch scene until animation is stopped
-            _isAnimationStopped = true;
+            Blink(pressAnyBtn);
+            if (clickTimes == 1)
+            {
+                UISystem.DisplayOn(pressAnyBtn02);
+                Blink(pressAnyBtn02);
+            }
         }
 
         //scene切り替えのカーテンのコントロラー
-        if (isCurtainTurnBlack == false)
+        if (isCurtainTurnOn == true)//カーテンのコントロラーのスイッチがon
         {
-            sceneSwitchCurtainAlpha -= sceneSwitchCurtainSpeed;
-            UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
+            CurtainTurnOnAndDoSomethingElse();//カーテンのコントロラーが起動
         }
-        else
+        if(isCurtainTurnBlack == true)//カーテンが黒くなるスイッチがon
         {
-            CurtainTurnBlackAndSceneSwitch();
-        }
+            CurtainTurnBlack();//カーテンが黒くなる
+        }     
     }
     void TurnSmallAndAppearTMP(GameObject ui)
     {
@@ -172,50 +200,82 @@ public class EndSceneUIDirector : MonoBehaviour
             UISystem.SetLocalScale(ui, localScaleSet, localScaleSet, localScaleSet);
         }
     }
-    private void Blink()
+    private void Blink(GameObject pressBtn)
     {
         blinkTimer += Time.fixedDeltaTime;
 
-        Color newColor = pressAnyBtn.GetComponent<TextMeshProUGUI>().color;
+        Color newColor = pressBtn.GetComponent<TextMeshProUGUI>().color;
 
-        if (blinkTimer < blinkInterval * 0.5f)
+        newColor.a = (math.cos(blinkTimer * blinkSpeed) * 0.3f) + 0.7f;//newColor.aのあたいを0.4~1.0の間繰り返す。
+
+        pressBtn.GetComponent<TextMeshProUGUI>().color = newColor;
+    }
+    private void CurtainTurnBlack()//カーテンを黒くする処理開始
+    {
+        sceneSwitchCurtainAlpha += sceneSwitchCurtainSpeed;//カーテンを黒くする
+        UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);//カーテンの状態
+        if (sceneSwitchCurtainAlpha >= 1f)//カーテンが黒になった
         {
-            newColor.a -= blinkSpeed;
+            isCurtainTurnOn = true;//カーテンが戻る
+            isCurtainTurnBlack = false;//カーテンが黒くなるスイッチがoff
         }
-        else
+    }
+    private void CurtainTurnOnAndDoSomethingElse()//カーテンを戻ると諸処理
+    {
+        if (clickTimes == 0)//クリックされていない状態なら
         {
-            newColor.a += blinkSpeed;
-            if (newColor.a >= 1.0f)
+            sceneSwitchCurtainAlpha -= sceneSwitchCurtainSpeed;//カーテンを戻る
+            UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);//カーテンの状態
+            if (sceneSwitchCurtainAlpha <= 0f)//カーテンを戻たら
             {
-                newColor.a = 1.0f;
-                blinkTimer = 0f;
+                sceneSwitchCurtainAlpha = 0f;//カーテンのAlphaを固定
+                isCurtainTurnOn = false;//カーテンを戻るスイッチoff
             }
         }
-        pressAnyBtn.GetComponent<TextMeshProUGUI>().color = newColor;
-    }
-    private void CurtainTurnBlackAndSceneSwitch()
-    {
-        sceneSwitchCurtainAlpha += sceneSwitchCurtainSpeed;
-        UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);
-        if (sceneSwitchCurtainAlpha >= 1f)
+        if (clickTimes == 1)//クリックが第一回目済んだばい
         {
-            isCurtainTurnBlack = false;
-            TypeEventSystem.Instance.Send<GamingSceneSwitch>();
+            UISystem.DisplayOn(creditsScene);//ゲーム感謝画面を現す
+            sceneSwitchCurtainAlpha -= sceneSwitchCurtainSpeed;//カーテンを戻る
+            UISystem.SetAlpha(sceneSwitchCurtain, sceneSwitchCurtainAlpha);//カーテンの状態
+            if (sceneSwitchCurtainAlpha <= 0f)//カーテンを戻たら
+            {
+                sceneSwitchCurtainAlpha = 0f;//カーテンのAlphaを固定
+                sceneTimer += Time.fixedDeltaTime;//タイマーを起動
+                if (sceneTimer >= CREDITS_SCENE_TIME)//タイマーが一定の時間を満たす場合
+                {
+                    sceneTimer = 0f;//タイマーをリセット
+                    isClicked = false;//クリックを可能な状態になる
+                    isCurtainTurnOn = false;//カーテンを戻るスイッチoff
+                    UISystem.DisplayOn(pressAnyBtn02);//ゲーム感謝画面のpress any buttonを現す
+                    isBlinking = true;////press ant buttonの点滅状態をon
+                }
+            }
         }
     }
-
     private void OnSwitchScene(InputAction.CallbackContext context)
     {
-        if (_isAnimationStopped)
+        if (context.performed)
         {
-            
-            if (context.performed)
+            if (isClicked == false)//クリックできる状態なら
             {
-                AudioManager.Instance.PlayFX("ClickFX", 0.5f);
-                AudioManager.Instance.StopBGM();
-                AudioManager.Instance.PlayBGM("TitleBGM", 0.3f);
-                TypeEventSystem.Instance.Send<TitleSceneSwitch>();
-                
+                switch (clickTimes)
+                {
+                    case 0:
+                        isCurtainTurnBlack = true;//カーテンを黒くなる
+                        isBlinking = false;//press any buttonの明滅をoff
+                        AudioManager.Instance.PlayFX("ClickFX", 0.5f);
+                        AudioManager.Instance.StopBGM();
+                        clickTimes += 1;
+                        isClicked = true;//クリックできない状態になる
+                        break;
+                    case 1:
+                        AudioManager.Instance.PlayFX("ClickFX", 0.5f);
+                        AudioManager.Instance.StopBGM();
+                        AudioManager.Instance.PlayBGM("TitleBGM", 0.3f);
+                        TypeEventSystem.Instance.Send<TitleSceneSwitch>();
+                        isClicked = true;//クリックできない状態になる
+                        break;
+                }             
             }
         }
     }
