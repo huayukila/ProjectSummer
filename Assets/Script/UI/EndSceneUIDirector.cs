@@ -12,7 +12,7 @@ public class EndSceneUIDirector : MonoBehaviour
     public GameObject winYellow;
     public GameObject winRed;
     public GameObject pressAnyBtn;
-    public GameObject pressAnyBtn02;
+    //public GameObject pressAnyBtn02;
     public GameObject creditsScene;
 
     private float timer;
@@ -103,7 +103,7 @@ public class EndSceneUIDirector : MonoBehaviour
         UISystem.SetAlpha(winYellow, alphaSet);
 
         UISystem.DisplayOff(pressAnyBtn);
-        UISystem.DisplayOff(pressAnyBtn02);
+        //UISystem.DisplayOff(pressAnyBtn02);
         UISystem.DisplayOff(creditsScene);
     }
     private void Update()
@@ -163,11 +163,11 @@ public class EndSceneUIDirector : MonoBehaviour
         {
             UISystem.DisplayOn(pressAnyBtn);
             Blink(pressAnyBtn);
-            if (clickTimes == 1)
-            {
-                UISystem.DisplayOn(pressAnyBtn02);
-                Blink(pressAnyBtn02);
-            }
+            //if (clickTimes == 1)
+            //{
+            //    UISystem.DisplayOn(pressAnyBtn02);
+            //    Blink(pressAnyBtn02);
+            //}
         }
 
         //scene切り替えのカーテンのコントロラー
@@ -246,7 +246,7 @@ public class EndSceneUIDirector : MonoBehaviour
                     sceneTimer = 0f;//タイマーをリセット
                     isClicked = false;//クリックを可能な状態になる
                     isCurtainTurnOn = false;//カーテンを戻るスイッチoff
-                    UISystem.DisplayOn(pressAnyBtn02);//ゲーム感謝画面のpress any buttonを現す
+                    //UISystem.DisplayOn(pressAnyBtn02);//ゲーム感謝画面のpress any buttonを現す
                     isBlinking = true;////press ant buttonの点滅状態をon
                 }
             }
