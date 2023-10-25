@@ -12,8 +12,8 @@ public class DropPointManager : Singleton<DropPointManager>
     private Dictionary<int, PlayerDropPoints> _playerDropPoints;
     List<GameObject> _player1Points;            // プレイヤー1が落としたDropPointをまとめて管理するリスト
     List<GameObject> _player2Points;            // プレイヤー2が落としたDropPointをまとめて管理するリスト
-    GameObject _p1pointGroup;                   // プレイヤー1の生成したDropPointをHierarchyでまとめる空っぽのGameObject
-    GameObject _p2pointGroup;                   // プレイヤー2の生成したDropPointをHierarchyでまとめる空っぽのGameObject
+    GameObject _p1pointGroup;                   // プレイヤー1の生成したDropPointをHierarchyでまとめる親GameObject
+    GameObject _p2pointGroup;                   // プレイヤー2の生成したDropPointをHierarchyでまとめる親GameObject
 
     /// <summary>
     /// Listにある全てのDropPointのワールド座標を返す

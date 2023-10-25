@@ -112,6 +112,8 @@ public class GameManager : Singleton<GameManager>
         };
 
         _bigSpiderPrefab = Resources.Load("Prefabs/BigSpider") as GameObject;
+
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Start()
@@ -259,10 +261,6 @@ public class GameManager : Singleton<GameManager>
     {
         if (nextScene.name == "Gaming")
         {
-            ScoreItemManager.Instance.Init();
-            DropPointManager.Instance.Init();
-            InputManager.Instance.Init();
-
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreSystem.Instance.ResetScore();
@@ -277,6 +275,10 @@ public class GameManager : Singleton<GameManager>
                     gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
                 }
             }
+
+            ScoreItemManager.Instance.Init();
+            DropPointManager.Instance.Init();
+            InputManager.Instance.Init();
         }
         else
         {
