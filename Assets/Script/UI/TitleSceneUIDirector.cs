@@ -171,24 +171,32 @@ public class TitleSceneUIDirector : MonoBehaviour
     { 
         if (context.performed)
         {
-            if(isClicked==false)//クリックされていない状態なら
+            if (Keyboard.current[Key.Escape].wasPressedThisFrame)
             {
-                switch (clickTimes)
+                Application.Quit();
+            }
+            else
+            {
+                if (isClicked == false)//クリックされていない状態なら
                 {
-                    case 0:
-                        clickTimes += 1;
-                        AudioManager.Instance.PlayFX("ClickFX", 0.5f);//クリックの音を鳴らす
-                        isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
-                        isClicked = true;//クリック済みの状態にする
-                        isShiningOn = false;//press ant buttonの点滅状態をoff
-                        break;
-                    case 1:
-                        clickTimes += 1;
-                        AudioManager.Instance.PlayFX("ClickFX", 0.5f);//クリックの音を鳴らす
-                        isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
-                        isClicked = true;//クリック済みの状態にする
-                        break;
+                    switch (clickTimes)
+                    {
+                        case 0:
+                            clickTimes += 1;
+                            AudioManager.Instance.PlayFX("ClickFX", 0.5f);//クリックの音を鳴らす
+                            isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
+                            isClicked = true;//クリック済みの状態にする
+                            isShiningOn = false;//press ant buttonの点滅状態をoff
+                            break;
+                        case 1:
+                            clickTimes += 1;
+                            AudioManager.Instance.PlayFX("ClickFX", 0.5f);//クリックの音を鳴らす
+                            isCurtainTurnBlackSwitchOn = true;//カーテンを黒くするスイッチon!
+                            isClicked = true;//クリック済みの状態にする
+                            break;
+                    }
                 }
+
             }
         }
     }
