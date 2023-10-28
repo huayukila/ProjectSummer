@@ -7,7 +7,7 @@ public enum DropMode
     Edge
 };
 public class ScoreItemManager : Singleton<ScoreItemManager>
-{   
+{
     private Timer _goldenSilkSpawnTimer;        // 金の網を生成することを管理するタイマー
     private Vector3 _awayFromEdgeStartPos;
     private Vector3 _awayFromEdgeEndPos;
@@ -36,12 +36,12 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         float spawnAreaWidth = Global.STAGE_WIDTH / 2.5f;
         float posX = 0.0f;
         float posZ = 0.0f;
-        while(posX == 0.0f || posZ == 0.0f)
+        while (posX == 0.0f || posZ == 0.0f)
         {
             posX = Random.Range(-spawnAreaLength, spawnAreaLength);
             posZ = Random.Range(-spawnAreaWidth, spawnAreaWidth);
         }
-        return new Vector3(posX,0.64f,posZ);
+        return new Vector3(posX, 0.64f, posZ);
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// </summary>
     private void SetReachGoalProperties(int ID)
     {
-        ScoreSystem.Instance.AddScore(ID,Global.SILK_SCORE);
+        ScoreSystem.Instance.AddScore(ID, Global.SILK_SCORE);
         // 新しい金の網を生成する
         GenerateNewSilk();
     }
@@ -67,7 +67,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }
         else if (pos.x > 0.0f)
         {
-            posX = Random.Range(-Global.STAGE_LENGTH / 2.5f, -Global.STAGE_LENGTH / 5.0f ) ;
+            posX = Random.Range(-Global.STAGE_LENGTH / 2.5f, -Global.STAGE_LENGTH / 5.0f);
         }
 
         float zRange = CalculateOvalRange(posX);
@@ -89,23 +89,26 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     }
     private void GenerateNewSilk()
     {
-        _inSpaceSilk.transform.position = GetInSpaceRandomPosition();
-        ResetAnimationStatus();
-        _goldenSilkSpawnTimer = new Timer();
-        _goldenSilkSpawnTimer.SetTimer(Global.SILK_SPAWN_TIME,
-            () =>
-            {
-                ResetAnimationStatus();
-                _inSpaceSilk.SetActive(true);
-                GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, _inSpaceSilk.transform.position, Quaternion.identity);
-                smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
-                smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
-            }
-            );
-        _inSpaceSilk.SetActive(false);
-        _goalPoint.SetActive(false);
-        _goalPoint.transform.localScale = Vector3.zero;
-        _goalPoint.GetComponent<Collider>().enabled = false;
+        if(_goldenSilkSpawnTimer == null)
+        {
+            _inSpaceSilk.transform.position = GetInSpaceRandomPosition();
+            ResetAnimationStatus();
+            _goldenSilkSpawnTimer = new Timer();
+            _goldenSilkSpawnTimer.SetTimer(Global.SILK_SPAWN_TIME,
+                () =>
+                {
+                    ResetAnimationStatus();
+                    _inSpaceSilk.SetActive(true);
+                    GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, _inSpaceSilk.transform.position, Quaternion.identity);
+                    smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
+                    smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
+                }
+                );
+            _inSpaceSilk.SetActive(false);
+            _goalPoint.SetActive(false);
+            _goalPoint.transform.localScale = Vector3.zero;
+            _goalPoint.GetComponent<Collider>().enabled = false;
+        }
     }
     /// <summary>
     /// 金の網が落ちたときのステータスを設定する
@@ -121,9 +124,9 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// <summary>
     /// 金の網を持っていたプレイヤーが死んだら金の網をドロップする
     /// </summary>
-    private void DropGoldenSilk(DropMode mode , Vector3 pos)
+    private void DropGoldenSilk(DropMode mode, Vector3 pos)
     {
-        switch(mode)
+        switch (mode)
         {
             case DropMode.Standard:
                 _inSpaceSilk.transform.position = pos;
@@ -133,19 +136,44 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
                 _awayFromEdgeStartPos = pos;
                 _awayFromEdgeEndPos = (pos - new Vector3(0.0f, 0.64f, 0.0f)) * 0.7f + new Vector3(0.0f, 0.64f, 0.0f) * 0.3f;
                 _isStartAwayFromEdge = true;
-                break;      
+                break;
         }
         SetDropSilkStatus();
     }
 
     protected override void Awake()
     {
-        Init();
-        GenerateNewSilk();
+        EventRegister();
+    }
+
+    public void Init()
+    {
+        if (_inSpaceSilk == null)
+        {
+            GameObject silkPrefab = Resources.Load("Prefabs/GoldenSilk") as GameObject;
+            _inSpaceSilk = Instantiate(silkPrefab, GetInSpaceRandomPosition(), Quaternion.identity);
+            _silkAirdrop = Instantiate(silkPrefab, _inSpaceSilk.transform.position, Quaternion.identity);
+            _silkAirdrop.GetComponent<BoxCollider>().enabled = false;
+            _silkAirdrop.SetActive(false);
+            _silkShadow = Instantiate(Resources.Load("Prefabs/SilkShadow") as GameObject, _inSpaceSilk.transform.position - new Vector3(0.0f, 0.1f, 0.0f), Quaternion.identity);
+            _silkShadow.SetActive(false);
+        }
+        if (_goalPoint == null)
+        {
+            GameObject goalPrefab = Resources.Load("Prefabs/Goal") as GameObject;
+            _goalPoint = Instantiate(goalPrefab, Vector3.zero, Quaternion.identity);
+            _goalPoint.transform.localScale = Vector3.zero;
+            _goalPoint.GetComponent<Collider>().enabled = false;
+            _goldenSilkSpawnTimer = null;
+        }
         _isStartAwayFromEdge = false;
         System.Random rand = new System.Random((int)Time.time);
         _isPlayingFallFX = false;
+        GenerateNewSilk();
+    }
 
+    private void EventRegister()
+    {
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {
             AudioManager.Instance.PlayFX("GetFX", 0.7f);
@@ -155,7 +183,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
         TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
         {
-            DropGoldenSilk(e.dropMode,e.pos);
+            DropGoldenSilk(e.dropMode, e.pos);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
         TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
@@ -166,36 +194,6 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
     }
-
-    private void Init()
-    {
-        if(_inSpaceSilk == null)
-        {
-            GameObject silkPrefab = Resources.Load("Prefabs/GoldenSilk") as GameObject;
-            _inSpaceSilk = Instantiate(silkPrefab, GetInSpaceRandomPosition(),Quaternion.identity);
-            _silkAirdrop = Instantiate(silkPrefab, _inSpaceSilk.transform.position, Quaternion.identity);
-            _silkAirdrop.GetComponent<BoxCollider>().enabled = false;
-            _silkAirdrop.SetActive(false);
-            MeshRenderer mr1 = _silkAirdrop.GetComponent<MeshRenderer>();
-            mr1.sortingLayerName = "Default";
-            mr1.sortingOrder = 1;
-            _silkShadow = Instantiate(Resources.Load("Prefabs/SilkShadow") as GameObject, _inSpaceSilk.transform.position - new Vector3(0.0f,0.1f,0.0f), Quaternion.identity);
-            _silkShadow.SetActive(false);
-            MeshRenderer mr2 = _silkShadow.GetComponent<MeshRenderer>();
-            mr2.sortingLayerName = "Default";
-            mr2.sortingOrder = -1;
-        }
-        if(_goalPoint == null)
-        {
-            GameObject goalPrefab = Resources.Load("Prefabs/Goal") as GameObject;
-            _goalPoint = Instantiate(goalPrefab, Vector3.zero, Quaternion.identity);
-            _goalPoint.transform.localScale = Vector3.zero;
-            _goalPoint.GetComponent<Collider>().enabled = false;
-            _goldenSilkSpawnTimer = null;
-        }
-
-    }
-
     private void PlayGoldenSilkAnimation()
     {
         if(_silkAirdrop.gameObject.activeSelf == false)
@@ -279,6 +277,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         Resources.UnloadUnusedAssets();
         _isPlayingFallFX = false;
         _isStartAwayFromEdge = false;
+        _goalSpawnAnimationTimer = null;
     }
 
 }

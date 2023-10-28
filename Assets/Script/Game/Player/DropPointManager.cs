@@ -1,12 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public struct PlayerDropPoints
+{
+    public List<GameObject> playerPoints;
+    public GameObject pointGroup;
+}
 public class DropPointManager : Singleton<DropPointManager>
 {
+    private Dictionary<int, PlayerDropPoints> _playerDropPoints;
     List<GameObject> _player1Points;            // プレイヤー1が落としたDropPointをまとめて管理するリスト
     List<GameObject> _player2Points;            // プレイヤー2が落としたDropPointをまとめて管理するリスト
-    GameObject _p1pointGroup;                   // プレイヤー1の生成したDropPointをHierarchyでまとめる空っぽのGameObject
-    GameObject _p2pointGroup;                   // プレイヤー2の生成したDropPointをHierarchyでまとめる空っぽのGameObject
+    GameObject _p1pointGroup;                   // プレイヤー1の生成したDropPointをHierarchyでまとめる親GameObject
+    GameObject _p2pointGroup;                   // プレイヤー2の生成したDropPointをHierarchyでまとめる親GameObject
 
     /// <summary>
     /// Listにある全てのDropPointのワールド座標を返す
@@ -153,10 +160,6 @@ public class DropPointManager : Singleton<DropPointManager>
 
     protected override void Awake()
     {
-        _player1Points = new List<GameObject>();
-        _player2Points = new List<GameObject>();
-        _p1pointGroup = new GameObject("Player1DropPointGroup");
-        _p2pointGroup = new GameObject("Player2DropPointGroup");
     }
     private void FixedUpdate()
     {
@@ -168,4 +171,11 @@ public class DropPointManager : Singleton<DropPointManager>
 
     }
 
+    public void Init()
+    {
+        _player1Points = new List<GameObject>();
+        _player2Points = new List<GameObject>();
+        _p1pointGroup = new GameObject("Player1DropPointGroup");
+        _p2pointGroup = new GameObject("Player2DropPointGroup");
+    }
 }

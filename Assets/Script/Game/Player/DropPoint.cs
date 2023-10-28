@@ -60,4 +60,8 @@ public class DropPoint : MonoBehaviour
         }
     }
 
+    public void Init()
+    {
+
+    }
 }

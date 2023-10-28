@@ -144,6 +144,7 @@ public class AudioManager : Singleton<AudioManager>, AudioPlayer
             music.UnPause();
         }
     }
+
 }
 
 public class FXAudioPlayer : MonoBehaviour
@@ -177,4 +178,5 @@ public class FXAudioPlayer : MonoBehaviour
     {
         _callBack = callback;
     }
+
 }

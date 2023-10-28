@@ -481,7 +481,6 @@ MonoBehaviour:
   yellowSpiderImageGray: {fileID: 21314312}
   timeUI: {fileID: 2130800045}
   TimeBarFront: {fileID: 2025125306}
-  timePercent: 0
   startCountDownCtrler: {fileID: 973308493}
   finishCountDownCtrler: {fileID: 1425541817}
 --- !u!114 &65571327
