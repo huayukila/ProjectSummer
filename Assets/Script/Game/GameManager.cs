@@ -17,6 +17,7 @@ public struct SpiderPlayer
 public class GameManager : Singleton<GameManager>
 {
     private static int maxPlayerCount = 2;
+    private static int count = 0;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
     private Dictionary<int, GameObject> players;
     public GameObject playerOne;
@@ -43,6 +44,7 @@ public class GameManager : Singleton<GameManager>
     protected override void Awake()
     {
         base.Awake();
+        count++;
         //各システムの実例化と初期化
         {
             itemSystem = ItemSystem.Instance;
@@ -61,6 +63,7 @@ public class GameManager : Singleton<GameManager>
         TypeEventSystem.Instance.Register<GameOver>(e => { EndSceneSwitch(); });
 
         Init();
+        
         SceneManager.sceneLoaded += SceneLoaded;
 
         InputSystem.onDeviceChange += (device, change) =>
@@ -114,6 +117,9 @@ public class GameManager : Singleton<GameManager>
         _bigSpiderPrefab = Resources.Load("Prefabs/BigSpider") as GameObject;
 
         Cursor.lockState = CursorLockMode.Locked;
+
+        Debug.Log(count);
+        SceneManager.LoadScene("Title");
     }
 
     private void Start()
@@ -269,10 +275,10 @@ public class GameManager : Singleton<GameManager>
             {
                 GameObject gameObject = Instantiate(GameResourceSystem.Instance.playerPrefabs[i], Global.PLAYER_START_POSITIONS[i],Quaternion.identity);
                 gameObject.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i], "Player" + (i + 1).ToString());
-                if(players.TryGetValue(i + 1, out GameObject value) == false)
+                gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
+                if (players.TryGetValue(i + 1, out GameObject value) == false)
                 {
                     players.Add(i + 1, gameObject);
-                    gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
                 }
             }
 
@@ -282,8 +288,11 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
+            playerOne = null;
+            playerTwo = null;
             _player1Timer = null;
             _player2Timer = null;
+            players.Clear();
             //GameObject switchSceneInputManager = Instantiate(Resources.Load("Prefabs/SwitchSceneManager") as GameObject);
         }
     }
