@@ -10,41 +10,25 @@ public interface IPlayerSetStatus
 public struct SpiderPlayer
 {
     public GameObject gameObject;
-    public GameObject playerImage;
     public PlayerStatus playerStatus;
     public Timer spawnTimer;
 }
 public class GameManager : Singleton<GameManager>
 {
     private static int maxPlayerCount = 2;
-    private static int count = 0;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
     private Dictionary<int, GameObject> players;
     public GameObject playerOne;
     public GameObject playerTwo;
-    public GameObject bigSpiderPrefab
-    {
-        get
-        {
-            return _bigSpiderPrefab;
-        }
-
-    }
-
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
 
-    private GameObject _bigSpiderPrefab;
-
     private Timer _player1Timer;        // プレイヤー1の待機タイマー
     private Timer _player2Timer;        // プレイヤー2の待機タイマー
-    private GameObject _player1Prefab;
-    private GameObject _player2Prefab;
 
     protected override void Awake()
     {
         base.Awake();
-        count++;
         //各システムの実例化と初期化
         {
             itemSystem = ItemSystem.Instance;
@@ -88,11 +72,9 @@ public class GameManager : Singleton<GameManager>
                             }
                         }
                     }
-                    Debug.Log(device.displayName + " Added");
                     break;
                 case InputDeviceChange.Disconnected:
                     InputSystem.FlushDisconnectedDevices();
-                    Debug.LogWarning(device.displayName + " Disconnected");
                     break;
                 case InputDeviceChange.Removed:
                     if (device is Gamepad)
@@ -109,16 +91,12 @@ public class GameManager : Singleton<GameManager>
                         }
                     }
                     InputSystem.RemoveDevice(device);
-                    Debug.LogWarning(device.displayName + " Removed");
                     break;
             }
         };
 
-        _bigSpiderPrefab = Resources.Load("Prefabs/BigSpider") as GameObject;
-
         Cursor.lockState = CursorLockMode.Locked;
 
-        Debug.Log(count);
         SceneManager.LoadScene("Title");
     }
 
@@ -155,8 +133,6 @@ public class GameManager : Singleton<GameManager>
 
     private void Init()
     {
-        _player1Prefab = (GameObject)Resources.Load("Prefabs/Player1");
-        _player2Prefab = (GameObject)Resources.Load("Prefabs/Player2");
         spiderPlayers = new Dictionary<int, SpiderPlayer>();
         //TODO test
         players = new Dictionary<int, GameObject>();
@@ -231,7 +207,7 @@ public class GameManager : Singleton<GameManager>
     {
         playerOne.transform.position = Global.PLAYER1_START_POSITION;
         playerOne.transform.forward = Vector3.right;
-        playerOne.GetComponent<Player1Control>().SetStatus(PlayerStatus.Fine);
+        playerOne.GetComponent<Player>().SetStatus(PlayerStatus.Fine);
         playerOne.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerOne.GetComponent<DropPointControl>().enabled = true;
         playerOne.GetComponent<Collider>().enabled = true;
@@ -247,7 +223,7 @@ public class GameManager : Singleton<GameManager>
     {
         playerTwo.transform.position = Global.PLAYER2_START_POSITION;
         playerTwo.transform.forward = Vector3.left;
-        playerTwo.GetComponent<Player2Control>().SetStatus(PlayerStatus.Fine);
+        playerTwo.GetComponent<Player>().SetStatus(PlayerStatus.Fine);
         playerTwo.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerTwo.GetComponent<DropPointControl>().enabled = true;
         playerTwo.GetComponent<Collider>().enabled = true;
@@ -260,7 +236,7 @@ public class GameManager : Singleton<GameManager>
     {
         Resources.UnloadUnusedAssets();
         SceneManager.sceneLoaded -= SceneLoaded;
-        gameResourceSystem.onDeleteResource();
+        gameResourceSystem.Release();
     }
 
     private void SceneLoaded(Scene nextScene, LoadSceneMode mode)
@@ -273,14 +249,26 @@ public class GameManager : Singleton<GameManager>
             //TODO test code
             for (int i = 0; i < maxPlayerCount; ++i)
             {
-                GameObject gameObject = Instantiate(GameResourceSystem.Instance.playerPrefabs[i], Global.PLAYER_START_POSITIONS[i],Quaternion.identity);
-                gameObject.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i], "Player" + (i + 1).ToString());
-                gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
-                if (players.TryGetValue(i + 1, out GameObject value) == false)
+                GameObject playerPrefab = gameResourceSystem.GetResource("Player" + (i + 1).ToString());
+                if(playerPrefab != null)
                 {
-                    players.Add(i + 1, gameObject);
+                    GameObject gameObject = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
+                    gameObject.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
+                    gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
+                    gameObject.GetComponent<DropPointControl>().Init();
+                    if (players.TryGetValue(i + 1, out GameObject value) == false)
+                    {
+                        players.Add(i + 1, gameObject);
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Can't find Resource of Player" + (i + 1).ToString());
                 }
             }
+
+            playerOne = players[1];
+            playerTwo = players[2];
 
             ScoreItemManager.Instance.Init();
             DropPointManager.Instance.Init();
@@ -293,7 +281,6 @@ public class GameManager : Singleton<GameManager>
             _player1Timer = null;
             _player2Timer = null;
             players.Clear();
-            //GameObject switchSceneInputManager = Instantiate(Resources.Load("Prefabs/SwitchSceneManager") as GameObject);
         }
     }
 

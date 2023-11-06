@@ -104,6 +104,18 @@ public class DropPointManager : Singleton<DropPointManager>
         _player2Points.Add(ob);
     }
 
+    public void AddPoint(int id, GameObject ob)
+    {
+        switch(id)
+        {
+            case 1:
+                PlayerOneAddPoint(ob);
+                break;
+            case 2:
+                PlayerTwoAddPoint(ob);
+                break;
+        }
+    }
     /// <summary>
     /// プレイヤー1が落としたDropPointをリストから消す
     /// </summary>
@@ -146,6 +158,19 @@ public class DropPointManager : Singleton<DropPointManager>
         _player2Points.Clear();
     }
 
+    public void ClearDropPoints(int ID)
+    {
+        switch(ID)
+        {
+            case 1:
+                ClearPlayerOneDropPoints();
+                break;
+            case 2:
+                ClearPlayerTwoDropPoints();
+                break;
+        }
+    }
+
     /// <summary>
     /// プレイヤー1のDropPointの全てのワールド座標を返す
     /// </summary>
@@ -157,6 +182,21 @@ public class DropPointManager : Singleton<DropPointManager>
     /// </summary>
     /// <returns></returns>
     public Vector3[] GetPlayerTwoDropPoints() => GameObjectToVector3(_player2Points);
+
+    public Vector3[] GetPlayerDropPoints(int id)
+    {
+        Vector3[] ret = null;
+        switch(id)
+        {
+            case 1:
+                ret = GetPlayerOneDropPoints();
+                break;
+            case 2:
+                ret = GetPlayerTwoDropPoints();
+                break;
+        }
+        return ret;
+    }
 
     protected override void Awake()
     {

@@ -1,31 +1,27 @@
 using UnityEngine.InputSystem;
 
-public class InputManager : Singleton<InputManager>
+public class InputManager : SingletonBase<InputManager>
 {
-    protected override void Awake()
-    {
-        
-    }
-
-    private void Start()
-    {
-
-    }
-
+    private static int _gamepadCount = Gamepad.all.Count;   
     public void Init()
     {
-        for (int i = 0; i < PlayerInput.all.Count; ++i)
+        _gamepadCount = Gamepad.all.Count;
+        foreach (var playerinput in PlayerInput.all)
         {
-            PlayerInput.all[i].SwitchCurrentControlScheme(
+            playerinput.SwitchCurrentControlScheme(
             "Keyboard&Mouse",
             Keyboard.current);
-            PlayerInput.all[i].neverAutoSwitchControlSchemes = true;
+            playerinput.neverAutoSwitchControlSchemes = true;
         }
-        for (int i = 0; i < Gamepad.all.Count; ++i)
+        for (int i = 0; i < _gamepadCount; ++i)
         {
+            if (i >= PlayerInput.all.Count)
+                break;
             PlayerInput.all[i].SwitchCurrentControlScheme(
             "Gamepad",
             Gamepad.all[i]);
         }
+
+
     }
 }

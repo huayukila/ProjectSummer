@@ -1,19 +1,48 @@
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class GameResourceSystem : SingletonBase<GameResourceSystem>
+public interface IResourceManagement
 {
-    public GameObject[] playerPrefabs;
+    void Init();
+    void Release();
+    GameObject GetResource(string name);
+}
+public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceManagement
+{
+    private Dictionary<string, GameObject> prefabs;
 
     public void Init()
     {
-        if (playerPrefabs == null)
-        {
-            playerPrefabs = new GameObject[2] { Resources.Load("Prefabs/Player1") as GameObject, Resources.Load("Prefabs/Player2") as GameObject };
-        }
+        prefabs = new Dictionary<string, GameObject>();
     }
 
-    public void onDeleteResource()
+    public void Release()
     {
+        prefabs.Clear();
         Resources.UnloadUnusedAssets();
+    }
+
+    /// <summary>
+    /// プレハブを取得する関数
+    /// </summary>
+    /// <param name="name">プレハブの名前</param>
+    /// <returns></returns>
+    public GameObject GetResource(string name)
+    {
+        GameObject gameObject = null;
+        if(prefabs.TryGetValue(name,out GameObject value) == true)
+        {
+            gameObject = value;
+        }
+        else
+        {
+            gameObject = Resources.Load("Prefabs/" + name) as GameObject;
+            if(gameObject != null)
+            {
+                prefabs.Add(name, gameObject);
+            }
+        }
+        return gameObject;
     }
 }

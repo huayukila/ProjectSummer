@@ -2,13 +2,15 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using System;
+using System.Collections.Generic;
+
 public enum PlayerStatus
 {
     Fine,
     Dead
 }
 [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-public abstract class Player : MonoBehaviour
+public class Player : MonoBehaviour
 {
     [SerializeField]
     float maxMoveSpeed;                 // プレイヤーの最大速度
@@ -24,7 +26,7 @@ public abstract class Player : MonoBehaviour
     protected InputAction playerAction;
     private InputAction rotateAction;
     protected PlayerInput playerInput;
-    protected PlayerStatus status;
+    protected PlayerStatus mStatus;
     protected float offset;
 
     private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
@@ -50,9 +52,9 @@ public abstract class Player : MonoBehaviour
 
     //todo refactorying
     protected Vector3 _mRespawnPos;
-    private string _mName;
     private int _mID;
     private Color _mColor;
+    protected DropPointControl _mDropPointControl;
 
     private Timer _respawnAnimationTimer;
 
@@ -60,14 +62,19 @@ public abstract class Player : MonoBehaviour
     //todo
     private int _mSilkCount;
 
-    public void SetProperties(int ID , Color color, string name = "Player")
+    public void SetProperties(int ID , Color color)
     {
-        if(_mName == null)
+        if(_mID == -1)
         {
-            _mName = name;
-            this.name = _mName;
             _mID = ID;
             _mColor = color;
+            if(_mID <= Global.PLAYER_START_POSITIONS.Length)
+            {
+                _mRespawnPos = Global.PLAYER_START_POSITIONS[(_mID - 1)];
+                _bigSpider.transform.position += _mRespawnPos;
+                _mShadow.transform.position = _mRespawnPos;
+            }
+            name = "Player" + _mID.ToString();
         }
     }
     /// <summary>
@@ -92,6 +99,51 @@ public abstract class Player : MonoBehaviour
         SetDeadStatus();
     }
 
+    protected virtual void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.tag.Contains("DropPoint"))
+        {
+            if(other.gameObject.tag.Contains(_mID.ToString()) == false)
+            {
+                if (IsGotSilk)
+                {
+                    dropSilkEvent.pos = transform.position;
+                    TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
+                }
+                SetDeadStatus();
+            }
+        }
+        // 金の網に当たったら
+        if (other.gameObject.CompareTag("GoldenSilk"))
+        {
+            if (_mSilkCount == 3)
+                return;
+            //TODO 修正(3個まで追加)
+            IsGotSilk = true;
+            _mGotSilkImage.SetActive(true);
+            _mGotSilkImage.transform.position = transform.position + Vector3.forward * 6.5f;
+            TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
+            _mSilkCount++;
+        }
+        // ゴールに当たったら
+        if (other.gameObject.CompareTag("Goal"))
+        {
+            // 自分が金の網を持っていたら
+            if (IsGotSilk)
+            {
+                AddScoreEvent AddScoreEvent = new AddScoreEvent()
+                {
+                    playerID = _mID,
+                    silkCount = _mSilkCount
+                };
+                TypeEventSystem.Instance.Send<AddScoreEvent>(AddScoreEvent);
+                IsGotSilk = false;
+                _mGotSilkImage.SetActive(false);
+                _mSilkCount = 0;
+            }
+        }
+    }
+
     protected virtual void Awake()
     {
         // 初期化処理
@@ -103,7 +155,7 @@ public abstract class Player : MonoBehaviour
         _mSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
         // 通常状態じゃないと復活アニメーションを処理する
-        if (status != PlayerStatus.Fine　|| _respawnAnimationTimer != null)
+        if (mStatus != PlayerStatus.Fine　|| _respawnAnimationTimer != null)
         {
             // 復活アニメーションの処理
             UpdateRespawnAnimation();
@@ -199,7 +251,7 @@ public abstract class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(status != PlayerStatus.Fine)
+        if(mStatus != PlayerStatus.Fine)
         {
             return;
         }
@@ -233,10 +285,10 @@ public abstract class Player : MonoBehaviour
         rotateAction = playerInput.actions["Rotate"];
         playerAction = playerInput.actions["Boost"];
         playerAction.performed += OnBoost;
-        status = PlayerStatus.Fine;
+        mStatus = PlayerStatus.Fine;
         offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
 
-        _particlePrefab = Resources.Load("Prefabs/DustParticlePrefab") as GameObject;
+        _particlePrefab = GameResourceSystem.Instance.GetResource("DustParticlePrefab");
         _particleObject = Instantiate(_particlePrefab, transform);
         _particleObject.transform.localPosition = Vector3.zero;
         _particleObject.transform.rotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
@@ -245,16 +297,16 @@ public abstract class Player : MonoBehaviour
         _pSMain.startSize = 0.4f;
         _pSMain.startColor = Color.gray;
 
-        _explosionPrefab = Resources.Load("Prefabs/Explosion") as GameObject;
-        _bigSpider = Instantiate(GameManager.Instance.bigSpiderPrefab,_mRespawnPos,Quaternion.identity);
-        _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f,0.0f,100.0f);
+        _explosionPrefab = GameResourceSystem.Instance.GetResource("Explosion");
+        _bigSpider = Instantiate(GameResourceSystem.Instance.GetResource("BigSpider"),Vector3.zero,Quaternion.identity);
+        _bigSpider.transform.position = new Vector3(0.0f,0.0f,100.0f);
         _bigSpider.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         _mBigSpiderLineRenderer = _bigSpider.GetComponentInChildren<LineRenderer>();
         _mBigSpiderLineRenderer.positionCount = 2;
         _mBigSpiderLineRenderer.startWidth = 0.2f;
         _mBigSpiderLineRenderer.endWidth = 0.2f;
 
-        _mGotSilkImage = Instantiate(Resources.Load("Prefabs/GoldenSilkImage") as GameObject);
+        _mGotSilkImage = Instantiate(GameResourceSystem.Instance.GetResource("GoldenSilkImage"));
         _mGotSilkImage.SetActive(false);
 
         // プレイヤー自分の画像のレンダラーを取得する
@@ -262,7 +314,7 @@ public abstract class Player : MonoBehaviour
         // 表示順位を変換する
         _mSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
         // 復活するとき現れる影のプレハブをインスタンス化する
-        _mShadow = Instantiate(Resources.Load("Prefabs/PlayerShadow") as GameObject, _mRespawnPos, Quaternion.identity);
+        _mShadow = Instantiate(GameResourceSystem.Instance.GetResource("PlayerShadow"), Vector3.zero, Quaternion.identity);
         _mShadow.transform.localScale = Vector3.zero;
         //TODO 影の方向を変える
         _mShadow.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
@@ -271,8 +323,10 @@ public abstract class Player : MonoBehaviour
         _mShadowSpriteRenderer = _mShadow.GetComponent<SpriteRenderer>();
         _mShadowSpriteRenderer.color = Color.clear;
 
-        _mName = null;
+        _mSilkCount = 0;
+        _mID = -1;
 
+        _mDropPointControl = gameObject.AddComponent<DropPointControl>();
 
     }
     /// <summary>
@@ -291,7 +345,7 @@ public abstract class Player : MonoBehaviour
     /// <summary>
     /// プレイヤーの死亡状態を設定する
     /// </summary>
-    protected virtual void SetDeadStatus()
+    private void SetDeadStatus()
     {
         // 爆発エフェクト
         {
@@ -334,14 +388,13 @@ public abstract class Player : MonoBehaviour
     }
 
     //todo アクセス修飾子の変更予定
-    public PlayerStatus GetStatus() => status;
+    public PlayerStatus GetStatus() => mStatus;
     public int GetID() => _mID;
     public Color GetColor() => _mColor;
     public void SetStatus(PlayerStatus status)
     {
-        this.status = status;
+        mStatus = status;
     }
-
 
     /// <summary>
     /// プレイヤーのリジッドボディを回転させる
@@ -352,14 +405,6 @@ public abstract class Player : MonoBehaviour
         _rigidbody.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.fixedDeltaTime);
     }    
     
-    /// <summary>
-    /// 移動速度の係数を設定する
-    /// </summary>
-    /// <param name="coefficient"></param>
-    protected void SetMoveSpeedCoefficient(float coefficient)
-    {
-        _moveSpeedCoefficient = coefficient;
-    }
 
     /// <summary>
     /// プレイヤーの回転を制御する
@@ -420,26 +465,90 @@ public abstract class Player : MonoBehaviour
         transform.position = _bigSpider.transform.position;
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
-        status = PlayerStatus.Dead;
+        mStatus = PlayerStatus.Dead;
         transform.localScale = Vector3.one;
         _currentMoveSpeed = 0.0f;
         IsGotSilk = false;
         _isBoosting = false;
         _boostDurationTime = Global.BOOST_DURATION_TIME;
         _mBoostCoolDown = null;
+        _mSilkCount = 0;
+        transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_mID-1)];
+        DropPointManager.Instance.ClearDropPoints(_mID);
+        maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+        //TODO mix two func
+        _mDropPointControl.ClearTrail();
+        _mDropPointControl.ResetTrail();
+
     }
     /// <summary>
     /// 地面の色をチェックする
     /// </summary>
-    protected abstract void GroundColorCheck();
+    private void GroundColorCheck()
+    {
+        // 自分の領域にいたら
+        if (colorCheck.isTargetColor(Color.clear))
+        {
+            _moveSpeedCoefficient = 1.0f;
+        }
+        // 別のプレイヤーの領域にいたら
+        else if (colorCheck.isTargetColor(_mColor))
+        {
+            _moveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
+        }
+        else
+        {
+            _moveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
+        }
 
-    protected abstract void CheckCanPaint();
+    }
 
-    /// <summary>
-    /// 領域を描く
-    /// </summary>
-    /// <param name="object">当たった自分自身が落としたDropPoint</param>
-    protected abstract void PaintArea(GameObject @object);
+    private void CheckCanPaint()
+    {
+        Vector3[] dropPoints = DropPointManager.Instance.GetPlayerDropPoints(_mID);
+        if (dropPoints.Length >= 4)
+        {
+            //todo プレイヤーの大きさによってオフセットが変わる
+            Vector3 endPoint1 = transform.position + transform.forward * offset;
+            Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
+            int endIndex = dropPoints.Length - 2;
+            if (endPoint1 == endPoint2)
+            {
+                endPoint2 = dropPoints[endIndex];
+                endIndex--;
+            }
+            for (int i = 0; i < endIndex; ++i)
+            {
+                if (VectorMath.IsParallel(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1))
+                {
+                    continue;
+                }
+
+                float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
+                float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
+                float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
+                float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
+
+                if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
+                {
+                    isPainting = true;
+                    Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
+                    List<Vector3> verts = new List<Vector3>();
+                    for (int j = i + 1; j < dropPoints.Length; j++)
+                    {
+                        verts.Add(dropPoints[j]);
+                    }
+                    verts.Add(crossPoint);
+                    PolygonPaintManager.Instance.Paint(verts.ToArray(), _mID, _mColor);
+                    DropPointManager.Instance.ClearDropPoints(_mID);
+                    _mDropPointControl.ClearTrail();
+                    _mDropPointControl.ResetTrail();
+                    break;
+                }
+            }
+        }
+
+    }
 
     private void OnEnable()
     {
@@ -460,7 +569,7 @@ public abstract class Player : MonoBehaviour
     {
         if (context.performed)
         {
-            if(_isBoosting == false)
+            if(mStatus == PlayerStatus.Fine && _isBoosting == false)
             {
                 maxMoveSpeed *= 1.5f;
                 _currentMoveSpeed = maxMoveSpeed;

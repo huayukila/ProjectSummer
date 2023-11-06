@@ -47,9 +47,9 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     /// <summary>
     /// ã‡ÇÃñ‘ÇÕÉSÅ[ÉãÇ‹Ç≈â^î¿Ç≥ÇÍÇΩéûÇÃëÄçÏÇÇ∑ÇÈ
     /// </summary>
-    private void SetReachGoalProperties(int ID)
+    private void SetReachGoalProperties(int ID,int count)
     {
-        ScoreSystem.Instance.AddScore(ID, Global.SILK_SCORE);
+        ScoreSystem.Instance.AddScore(ID, Global.SILK_SCORE * count);
         // êVÇµÇ¢ã‡ÇÃñ‘Çê∂ê¨Ç∑ÇÈ
         GenerateNewSilk();
     }
@@ -177,7 +177,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         TypeEventSystem.Instance.Register<AddScoreEvent>(e =>
         {
             AudioManager.Instance.PlayFX("GetFX", 0.7f);
-            SetReachGoalProperties(e.playerID);
+            SetReachGoalProperties(e.playerID,e.silkCount);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
