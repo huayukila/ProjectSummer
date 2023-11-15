@@ -25,12 +25,13 @@ public class DropPointControl : MonoBehaviour
 
     private void Awake()
     {
-        pointPrefab = GameResourceSystem.Instance.GetResource("DropPoint");
+        pointPrefab = GameResourceSystem.Instance.GetPrefabResource("DropPoint");
         fadeOutTimer = 0.0f;
         offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
         _mPlayer = gameObject.GetOrAddComponent<Player>();
         _mTag = "DropPoint";
         _mID = -1;
+        _mColor = Color.clear;
         GameObject trail = new GameObject(name + "Trail");
         trail.transform.parent = transform;
         //todo take note
@@ -65,7 +66,7 @@ public class DropPointControl : MonoBehaviour
     {
         GameObject pt = Instantiate(pointPrefab, transform.position - transform.forward * offset, transform.rotation);
         pt.tag = _mTag;
-        DropPointManager.Instance.AddPoint(_mID,pt);
+        DropPointSystem.Instance.AddPoint(_mID,pt);
     }
 
     /// <summary>

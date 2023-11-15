@@ -1,33 +1,33 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
 
 public enum PlayerStatus
 {
     Fine,
-    Dead
+    Dead,
+    Invincible
 }
 [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
 public class Player : MonoBehaviour
 {
     [SerializeField]
-    float maxMoveSpeed;                 // プレイヤーの最大速度
+    private float maxMoveSpeed;                 // プレイヤーの最大速度
     [Min(0.0f)][SerializeField]
-    float acceleration;                 // プレイヤーの加速度
+    private float acceleration;                 // プレイヤーの加速度
     [Min(0.0f)][SerializeField]
-    float rotationSpeed;                // プレイヤーの回転速度
+    private float rotationSpeed;                // プレイヤーの回転速度
 
-    protected bool isPainting;                          // 地面に描けるかどうかの信号   
-    protected ColorCheck colorCheck;                    // カラーチェックコンポネント
-    protected DropSilkEvent dropSilkEvent;              // 金の網を落とすイベント
-    protected PickSilkEvent pickSilkEvent;              // 金の網を拾うイベント
-    protected InputAction playerAction;
+    private bool isPainting;                          // 地面に描けるかどうかの信号   
+    private ColorCheck colorCheck;                    // カラーチェックコンポネント
+    private DropSilkEvent dropSilkEvent;              // 金の網を落とすイベント
+    private PickSilkEvent pickSilkEvent;              // 金の網を拾うイベント
+    private InputAction playerAction;
     private InputAction rotateAction;
-    protected PlayerInput playerInput;
-    protected PlayerStatus mStatus;
-    protected float offset;
+    private PlayerInput playerInput;
+    private PlayerStatus mStatus;
+    private float offset;
 
     private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
     private float _currentMoveSpeed;                    // プレイヤーの現在速度
@@ -48,13 +48,13 @@ public class Player : MonoBehaviour
     private LineRenderer _mBigSpiderLineRenderer;
     private GameObject _mShadow;
     //todo
-    protected GameObject _mGotSilkImage;
+    private GameObject _mGotSilkImage;
 
     //todo refactorying
-    protected Vector3 _mRespawnPos;
+    private Vector3 _mRespawnPos;
     private int _mID;
     private Color _mColor;
-    protected DropPointControl _mDropPointControl;
+    private DropPointControl _mDropPointControl;
 
     private Timer _respawnAnimationTimer;
 
@@ -99,7 +99,7 @@ public class Player : MonoBehaviour
         SetDeadStatus();
     }
 
-    protected virtual void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
         if(other.gameObject.tag.Contains("DropPoint"))
         {
@@ -144,7 +144,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    protected virtual void Awake()
+    private void Awake()
     {
         // 初期化処理
         Init();
@@ -187,17 +187,9 @@ public class Player : MonoBehaviour
         }
 
         // プレイヤー画像の向きを変える
-        if (transform.forward.x < 0.0f)
-        {
-            _mSpriteRenderer.flipX = false;
-        }
-        else
-        {
-            _mSpriteRenderer.flipX = true;
-        }
-
+        FlipCharacterImage();
         // 金の網のを持っていれば、プレイヤー画像の上に表示する
-        if(IsGotSilk == true)
+        if (IsGotSilk == true)
         {
             _mGotSilkImage.transform.position = transform.position + Vector3.forward * 6.5f;
         }
@@ -288,7 +280,7 @@ public class Player : MonoBehaviour
         mStatus = PlayerStatus.Fine;
         offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
 
-        _particlePrefab = GameResourceSystem.Instance.GetResource("DustParticlePrefab");
+        _particlePrefab = GameResourceSystem.Instance.GetPrefabResource("DustParticlePrefab");
         _particleObject = Instantiate(_particlePrefab, transform);
         _particleObject.transform.localPosition = Vector3.zero;
         _particleObject.transform.rotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
@@ -297,8 +289,8 @@ public class Player : MonoBehaviour
         _pSMain.startSize = 0.4f;
         _pSMain.startColor = Color.gray;
 
-        _explosionPrefab = GameResourceSystem.Instance.GetResource("Explosion");
-        _bigSpider = Instantiate(GameResourceSystem.Instance.GetResource("BigSpider"),Vector3.zero,Quaternion.identity);
+        _explosionPrefab = GameResourceSystem.Instance.GetPrefabResource("Explosion");
+        _bigSpider = Instantiate(GameResourceSystem.Instance.GetPrefabResource("BigSpider"),Vector3.zero,Quaternion.identity);
         _bigSpider.transform.position = new Vector3(0.0f,0.0f,100.0f);
         _bigSpider.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         _mBigSpiderLineRenderer = _bigSpider.GetComponentInChildren<LineRenderer>();
@@ -306,7 +298,7 @@ public class Player : MonoBehaviour
         _mBigSpiderLineRenderer.startWidth = 0.2f;
         _mBigSpiderLineRenderer.endWidth = 0.2f;
 
-        _mGotSilkImage = Instantiate(GameResourceSystem.Instance.GetResource("GoldenSilkImage"));
+        _mGotSilkImage = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
         _mGotSilkImage.SetActive(false);
 
         // プレイヤー自分の画像のレンダラーを取得する
@@ -314,7 +306,7 @@ public class Player : MonoBehaviour
         // 表示順位を変換する
         _mSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
         // 復活するとき現れる影のプレハブをインスタンス化する
-        _mShadow = Instantiate(GameResourceSystem.Instance.GetResource("PlayerShadow"), Vector3.zero, Quaternion.identity);
+        _mShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("PlayerShadow"), Vector3.zero, Quaternion.identity);
         _mShadow.transform.localScale = Vector3.zero;
         //TODO 影の方向を変える
         _mShadow.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
@@ -342,6 +334,18 @@ public class Player : MonoBehaviour
 
     }
 
+    private void FlipCharacterImage()
+    {
+        if (transform.forward.x < 0.0f)
+        {
+            _mSpriteRenderer.flipX = false;
+        }
+        else
+        {
+            _mSpriteRenderer.flipX = true;
+        }
+
+    }
     /// <summary>
     /// プレイヤーの死亡状態を設定する
     /// </summary>
@@ -358,6 +362,8 @@ public class Player : MonoBehaviour
 
         // プレイヤーの状態をリセットする
         ResetPlayerStatus();
+        // プレイヤーの向きをリセットする
+        FlipCharacterImage();
         // コンポネントを無効化にする
         GetComponent<DropPointControl>().enabled = false;
         GetComponentInChildren<TrailRenderer>().enabled = false;
@@ -474,7 +480,7 @@ public class Player : MonoBehaviour
         _mBoostCoolDown = null;
         _mSilkCount = 0;
         transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_mID-1)];
-        DropPointManager.Instance.ClearDropPoints(_mID);
+        DropPointSystem.Instance.ClearDropPoints(_mID);
         maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
         //TODO mix two func
         _mDropPointControl.ClearTrail();
@@ -505,7 +511,7 @@ public class Player : MonoBehaviour
 
     private void CheckCanPaint()
     {
-        Vector3[] dropPoints = DropPointManager.Instance.GetPlayerDropPoints(_mID);
+        Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(_mID);
         if (dropPoints.Length >= 4)
         {
             //todo プレイヤーの大きさによってオフセットが変わる
@@ -540,7 +546,7 @@ public class Player : MonoBehaviour
                     }
                     verts.Add(crossPoint);
                     PolygonPaintManager.Instance.Paint(verts.ToArray(), _mID, _mColor);
-                    DropPointManager.Instance.ClearDropPoints(_mID);
+                    DropPointSystem.Instance.ClearDropPoints(_mID);
                     _mDropPointControl.ClearTrail();
                     _mDropPointControl.ResetTrail();
                     break;
@@ -563,8 +569,9 @@ public class Player : MonoBehaviour
     private void OnDestroy()
     {
         playerAction.performed -= OnBoost;
-        Resources.UnloadUnusedAssets();
     }
+
+    // 隠れ仕様
     private void OnBoost(InputAction.CallbackContext context)
     {
         if (context.performed)

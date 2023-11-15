@@ -11,6 +11,8 @@ public struct SpiderPlayer
 {
     public GameObject gameObject;
     public PlayerStatus playerStatus;
+    public int mID;
+
     public Timer spawnTimer;
 }
 public class GameManager : Singleton<GameManager>
@@ -22,6 +24,7 @@ public class GameManager : Singleton<GameManager>
     public GameObject playerTwo;
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
+    private DropPointSystem dropPointSystem;
 
     private Timer _player1Timer;        // プレイヤー1の待機タイマー
     private Timer _player2Timer;        // プレイヤー2の待機タイマー
@@ -38,6 +41,11 @@ public class GameManager : Singleton<GameManager>
         {
             gameResourceSystem = GameResourceSystem.Instance;
             gameResourceSystem.Init();
+        }
+
+        {
+            dropPointSystem = DropPointSystem.Instance;
+            dropPointSystem.Init();
         }
         //シーンの移行命令を受け
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
@@ -211,7 +219,7 @@ public class GameManager : Singleton<GameManager>
         playerOne.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerOne.GetComponent<DropPointControl>().enabled = true;
         playerOne.GetComponent<Collider>().enabled = true;
-        GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, playerOne.transform.position, Quaternion.identity);
+        GameObject smoke = Instantiate(gameResourceSystem.GetPrefabResource("Smoke"), playerOne.transform.position, Quaternion.identity);
         smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
         smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
     }
@@ -227,16 +235,15 @@ public class GameManager : Singleton<GameManager>
         playerTwo.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerTwo.GetComponent<DropPointControl>().enabled = true;
         playerTwo.GetComponent<Collider>().enabled = true;
-        GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, playerTwo.transform.position, Quaternion.identity);
+        GameObject smoke = Instantiate(gameResourceSystem.GetPrefabResource("Smoke"), playerTwo.transform.position, Quaternion.identity);
         smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
         smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
     }
 
     private void OnDestroy()
     {
-        Resources.UnloadUnusedAssets();
         SceneManager.sceneLoaded -= SceneLoaded;
-        gameResourceSystem.Release();
+        gameResourceSystem.Deinit();
     }
 
     private void SceneLoaded(Scene nextScene, LoadSceneMode mode)
@@ -249,7 +256,7 @@ public class GameManager : Singleton<GameManager>
             //TODO test code
             for (int i = 0; i < maxPlayerCount; ++i)
             {
-                GameObject playerPrefab = gameResourceSystem.GetResource("Player" + (i + 1).ToString());
+                GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player" + (i + 1).ToString());
                 if(playerPrefab != null)
                 {
                     GameObject gameObject = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
@@ -259,6 +266,7 @@ public class GameManager : Singleton<GameManager>
                     if (players.TryGetValue(i + 1, out GameObject value) == false)
                     {
                         players.Add(i + 1, gameObject);
+                        dropPointSystem.InitPlayerDropPointGroup(i + 1);
                     }
                 }
                 else
@@ -271,7 +279,6 @@ public class GameManager : Singleton<GameManager>
             playerTwo = players[2];
 
             ScoreItemManager.Instance.Init();
-            DropPointManager.Instance.Init();
             InputManager.Instance.Init();
         }
         else
@@ -281,6 +288,7 @@ public class GameManager : Singleton<GameManager>
             _player1Timer = null;
             _player2Timer = null;
             players.Clear();
+            dropPointSystem.Deinit();
         }
     }
 

@@ -5,8 +5,8 @@ using UnityEngine;
 public interface IResourceManagement
 {
     void Init();
-    void Release();
-    GameObject GetResource(string name);
+    void Deinit();
+    GameObject GetPrefabResource(string name);
 }
 public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceManagement
 {
@@ -17,7 +17,7 @@ public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceMan
         prefabs = new Dictionary<string, GameObject>();
     }
 
-    public void Release()
+    public void Deinit()
     {
         prefabs.Clear();
         Resources.UnloadUnusedAssets();
@@ -27,8 +27,8 @@ public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceMan
     /// プレハブを取得する関数
     /// </summary>
     /// <param name="name">プレハブの名前</param>
-    /// <returns></returns>
-    public GameObject GetResource(string name)
+    /// <returns>プレハブ,見つからない場合はnullを返す</returns>
+    public GameObject GetPrefabResource(string name)
     {
         GameObject gameObject = null;
         if(prefabs.TryGetValue(name,out GameObject value) == true)
