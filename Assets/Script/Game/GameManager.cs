@@ -136,6 +136,7 @@ public class GameManager : Singleton<GameManager>
     }
     void EndSceneSwitch()
     {
+        dropPointSystem.Deinit();
         SceneManager.LoadScene("End");
     }
 
@@ -275,6 +276,7 @@ public class GameManager : Singleton<GameManager>
                 }
             }
 
+            //TODO refactorying
             playerOne = players[1];
             playerTwo = players[2];
 
@@ -288,7 +290,6 @@ public class GameManager : Singleton<GameManager>
             _player1Timer = null;
             _player2Timer = null;
             players.Clear();
-            dropPointSystem.Deinit();
         }
     }
 

@@ -11,6 +11,7 @@ public class DropPointControl : MonoBehaviour
 
     protected float offset;
 
+    //TODO refactorying
     [SerializeField]
     private string _mTag;
     [SerializeField]
@@ -19,9 +20,6 @@ public class DropPointControl : MonoBehaviour
     private Color _mColor;
 
     private Player _mPlayer;
-
-    //TODO refactorying
-
 
     private void Awake()
     {
@@ -112,15 +110,11 @@ public class DropPointControl : MonoBehaviour
     }
 
     /// <summary>
-    /// TrailRendererの全ての点を消す
+    /// TrailRendererの状態をリセットする
     /// </summary>
-    public void ClearTrail()
-    {
-        _mTrailRenderer.Clear();
-    }
-
     public void ResetTrail()
     {
+        _mTrailRenderer.Clear();
         fadeOutTimer = 0.0f;
         Gradient gradient = new Gradient();
         gradient.SetKeys(

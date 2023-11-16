@@ -6,11 +6,19 @@ public static class VectorMath
     {
         return (endp1.x - point.x) * (endp2.z - point.z) - (endp2.x - point.x) * (endp1.z - point.z);
     }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="l1e1"></param>
+    /// <param name="l1e2"></param>
+    /// <param name="l2e1"></param>
+    /// <param name="l2e2"></param>
+    /// <returns></returns>
     public static bool IsParallel(Vector3 l1e1, Vector3 l1e2, Vector3 l2e1, Vector3 l2e2)
     {
         Vector3 line1 = l1e2 - l1e1;
         Vector3 line2 = l2e2 - l2e1;
-        return (line1.x * line2.z) - (line1.z * line2.x) == 0.0f;
+        return Mathf.Abs((line1.x * line2.z) - (line1.z * line2.x)) <= 0.001f;
     }
 
     public static Vector3 GetCrossPoint(Vector3 l1e1, Vector3 l1e2, Vector3 l2e1, Vector3 l2e2)

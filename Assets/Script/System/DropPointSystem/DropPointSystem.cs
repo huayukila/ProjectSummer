@@ -24,6 +24,25 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     // 各プレイヤーのPlayerDropPointsを管理する変数
     private Dictionary<int, PlayerDropPoints> _playerDropPoints;
 
+
+    /// <summary>
+    /// DropPointSystemを初期化する関数
+    /// </summary>
+    public void Init()
+    {
+        _playerDropPoints = new Dictionary<int, PlayerDropPoints>();
+    }
+
+    /// <summary>
+    /// DropPointSystemをデイニシャライゼーションする関数
+    /// </summary>
+    public void Deinit()
+    {
+        // Dictionaryを消す
+        _playerDropPoints.Clear();
+    }
+
+
     /// <summary>
     /// Listにある全てのDropPoint(GameObject)のワールド座標を返す
     /// </summary>
@@ -118,36 +137,18 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     }
 
     /// <summary>
-    /// DropPointSystemを初期化する関数
-    /// </summary>
-    public void Init()
-    {
-        _playerDropPoints = new Dictionary<int, PlayerDropPoints>();
-    }
-
-    /// <summary>
     /// プレイヤーのPlayerDropPointsを初期化する関数
     /// </summary>
     /// <param name="ID">プレイヤーのID</param>
     public void InitPlayerDropPointGroup(int ID)
     {
         // IDのプレイヤーが存在しない場合だったら
-        if(_playerDropPoints.TryGetValue(ID, out PlayerDropPoints value) == false)
+        if (_playerDropPoints.TryGetValue(ID, out PlayerDropPoints value) == false)
         {
             // 新しいプレイヤーのPlayerDropPointsを作る
             PlayerDropPoints player = CreatePlayerDropPoint(ID);
             _playerDropPoints.Add(ID, player);
         }
-    }
-
-    /// <summary>
-    /// DropPointSystemをデイニシャライゼーションする関数
-    /// </summary>
-    public void Deinit()
-    {
-        // Dictionaryを消す
-        _playerDropPoints.Clear();
-        _playerDropPoints = null;
     }
 
     /// <summary>
@@ -162,4 +163,6 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
         ret.playerPoints = new List<GameObject>();
         return ret;
     }
+
+
 }
