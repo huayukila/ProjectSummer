@@ -146,8 +146,11 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     public void Deinit()
     {
         // DictionaryÇè¡Ç∑
-        _playerDropPoints.Clear();
-        _playerDropPoints = null;
+        if(_playerDropPoints != null)
+        {
+            _playerDropPoints.Clear();
+            _playerDropPoints = null;
+        }
     }
 
     /// <summary>
