@@ -1,9 +1,9 @@
 using UnityEngine.InputSystem;
 
-public class InputManager : SingletonBase<InputManager>
+public static class InputSetting
 {
     private static int _gamepadCount = Gamepad.all.Count;   
-    public void Init()
+    public static void Init()
     {
         _gamepadCount = Gamepad.all.Count;
         foreach (var playerinput in PlayerInput.all)

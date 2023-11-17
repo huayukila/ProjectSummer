@@ -34,33 +34,32 @@ public class Player : MonoBehaviour
     private Vector3 _rotateDirection;                   // プレイヤーの回転方向
 
     //TODO コメント付く
-    private GameObject _particleObject;
-    private GameObject _particlePrefab;
-    private ParticleSystem _pS;
-    private ParticleSystem.MainModule _pSMain;
-    private Timer _mBoostCoolDown;
-    private float _boostDurationTime = Global.BOOST_DURATION_TIME;
-    private bool _isBoosting = false;
-    private SpriteRenderer _mSpriteRenderer;
-    private SpriteRenderer _mShadowSpriteRenderer;
-    private GameObject _explosionPrefab;
-    private GameObject _bigSpider;
-    private LineRenderer _mBigSpiderLineRenderer;
-    private GameObject _mShadow;
+    private GameObject _particleObject;                 // パーティクルシステムが入っているオブジェクト
+    private ParticleSystem _mParticleSystem;            // パーティクルシステム
+    private ParticleSystem.MainModule _pSMain;          // パーティクルシステムのプロパティを設定するための変数
+    private Timer _mBoostCoolDown;                      // ブーストタイマー（隠れ仕様）
+    private float _boostDurationTime;                   // ブースト持続時間（隠れ仕様）
+    private bool _isBoosting = false;                   // ブーストしているかのフラグ
+    private SpriteRenderer _mImageSpriteRenderer;       // プレイヤー画像のSpriteRenderer
+    private GameObject _mShadow;                        // プレイヤーが復活する時の影
+    private SpriteRenderer _mShadowSpriteRenderer;      // プレイヤーが復活する時の影のSpriteRenderer
+    private GameObject _bigSpider;                      // プレイヤーが復活するする時の大きい蜘蛛
+    private Timer _respawnAnimationTimer;               // プレイヤー復活用タイマー
+    private LineRenderer _mBigSpiderLineRenderer;       // プレイヤー復活する時の空中投下する時に繋がっている糸
+
+    private GameObject _explosionPrefab;                // 爆発アニメーションプレハブ  
     //todo
-    private GameObject _mGotSilkImage;
+    private GameObject _mGotSilkImage;                  // 金の糸を持っていることを示す画像
 
     //todo refactorying
-    private Vector3 _mRespawnPos;
-    private int _mID;
-    private Color _mColor;
-    private DropPointControl _mDropPointControl;
+    private Vector3 _mRespawnPos;                       // 復活する場所
+    private int _mID;                                   // プレイヤーID
+    private Color _mColor;                              // プレイヤーの領域の色
+    private DropPointControl _mDropPointControl;        // プレイヤーのDropPointControl
 
-    private Timer _respawnAnimationTimer;
-
-    public bool IsGotSilk { get; protected set; }
-    //todo
-    private int _mSilkCount;
+    public bool IsGotSilk { get; private set; }         // プレイヤーが金の糸を持っているかのフラグ
+    //TODO
+    private int _mSilkCount;                            // プレイヤーが持っている金の糸の数
 
     private void Awake()
     {
@@ -70,7 +69,7 @@ public class Player : MonoBehaviour
     private void Update()
     {
         // プレイヤー画像をずっと同じ方向に向くことにする
-        _mSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        _mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
         // 通常状態じゃないと復活アニメーションを処理する
         if (_mStatus != PlayerStatus.Fine || _respawnAnimationTimer != null)
@@ -112,7 +111,7 @@ public class Player : MonoBehaviour
         // 死亡したプレイヤーは金の網を持っていたら
         if (IsGotSilk == true)
         {
-            // 金の網のドロップ場所を設定する
+            // 金の糸のドロップ場所を設定する
             dropSilkEvent.pos = transform.position;
             // 壁にぶつかったら
             if (collision.gameObject.CompareTag("Wall"))
@@ -139,22 +138,24 @@ public class Player : MonoBehaviour
                 SetDeadStatus();
             }
         }
-        // 金の網に当たったら
+        // 金の糸に当たったら
         if (other.gameObject.CompareTag("GoldenSilk"))
         {
             if (_mSilkCount == 3)
                 return;
-            //TODO 修正(3個まで追加)
+            //TODO (3個まで追加)
+
+            // 金の糸の画像を表示
             IsGotSilk = true;
             _mGotSilkImage.SetActive(true);
-            _mGotSilkImage.transform.position = transform.position + Vector3.forward * 6.5f;
+            _mGotSilkImage.transform.position = transform.position + new Vector3(0, 0, _mImageSpriteRenderer.bounds.size.z);
             TypeEventSystem.Instance.Send<PickSilkEvent>(pickSilkEvent);
             _mSilkCount++;
         }
         // ゴールに当たったら
         if (other.gameObject.CompareTag("Goal"))
         {
-            // 自分が金の網を持っていたら
+            // 自分が金の糸を持っていたら
             if (IsGotSilk)
             {
                 AddScoreEvent AddScoreEvent = new AddScoreEvent()
@@ -174,9 +175,9 @@ public class Player : MonoBehaviour
     private void UpdateFine()
     {
         // エフェクトスタート
-        if (_pS.isStopped)
+        if (_mParticleSystem.isStopped)
         {
-            _pS.Play();
+            _mParticleSystem.Play();
         }
         // エフェクトの更新
         {
@@ -192,7 +193,7 @@ public class Player : MonoBehaviour
         if (IsGotSilk == true)
         {
             // キャラクター画像の縦の大きさを取得して画像の上で表示する
-            _mGotSilkImage.transform.position = transform.position + new Vector3(0, 0, _mSpriteRenderer.bounds.size.z);
+            _mGotSilkImage.transform.position = transform.position + new Vector3(0, 0, _mImageSpriteRenderer.bounds.size.z);
         }
 
         // プレイヤーインプットを取得する
@@ -248,14 +249,14 @@ public class Player : MonoBehaviour
         _mStatus = PlayerStatus.Fine;
         _mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
 
-        _particlePrefab = GameResourceSystem.Instance.GetPrefabResource("DustParticlePrefab");
-        _particleObject = Instantiate(_particlePrefab, transform);
+        _particleObject = Instantiate(GameResourceSystem.Instance.GetPrefabResource("DustParticlePrefab"), transform);
         _particleObject.transform.localPosition = Vector3.zero;
         _particleObject.transform.rotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
-        _pS = _particleObject.GetComponent<ParticleSystem>();
-        _pSMain = _pS.main;
+        _mParticleSystem = _particleObject.GetComponent<ParticleSystem>();
+        _pSMain = _mParticleSystem.main;
         _pSMain.startSize = 0.4f;
         _pSMain.startColor = Color.gray;
+        _boostDurationTime = Global.BOOST_DURATION_TIME;
 
         _explosionPrefab = GameResourceSystem.Instance.GetPrefabResource("Explosion");
         _bigSpider = Instantiate(GameResourceSystem.Instance.GetPrefabResource("BigSpider"),Vector3.zero,Quaternion.identity);
@@ -270,9 +271,9 @@ public class Player : MonoBehaviour
         _mGotSilkImage.SetActive(false);
 
         // プレイヤー自分の画像のレンダラーを取得する
-        _mSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        _mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
         // 表示順位を変換する
-        _mSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
+        _mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
         // 復活するとき現れる影のプレハブをインスタンス化する
         _mShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("PlayerShadow"), Vector3.zero, Quaternion.identity);
         _mShadow.transform.localScale = Vector3.zero;
@@ -304,17 +305,40 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
+    /// プレイヤーの回転を制御する
+    /// </summary>
+    private void PlayerRotation()
+    {
+        // 方向入力を取得する
+        if (_rotateDirection != Vector3.zero)
+        {
+            // 入力された方向へ回転する
+            Quaternion rotation = Quaternion.LookRotation(_rotateDirection, Vector3.up);
+            RotateRigidbody(rotation);
+        }
+    }
+
+    /// <summary>
+    /// プレイヤーのリジッドボディを回転させる
+    /// </summary>
+    /// <param name="quaternion">回転する方向</param>
+    private void RotateRigidbody(Quaternion quaternion)
+    {
+        _rigidbody.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.fixedDeltaTime);
+    }
+
+    /// <summary>
     /// キャラクターの画像を反転する関数
     /// </summary>
     private void FlipCharacterImage()
     {
         if (transform.forward.x < 0.0f)
         {
-            _mSpriteRenderer.flipX = false;
+            _mImageSpriteRenderer.flipX = false;
         }
         else
         {
-            _mSpriteRenderer.flipX = true;
+            _mImageSpriteRenderer.flipX = true;
         }
 
     }
@@ -349,9 +373,9 @@ public class Player : MonoBehaviour
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
 
         // エフェクトを止める
-        if(_pS.isPlaying)
+        if(_mParticleSystem.isPlaying)
         {
-            _pS.Stop();
+            _mParticleSystem.Stop();
         }
 
         // 復活アニメーションを初期化する
@@ -366,29 +390,6 @@ public class Player : MonoBehaviour
     }
 
 
-    /// <summary>
-    /// プレイヤーのリジッドボディを回転させる
-    /// </summary>
-    /// <param name="quaternion">回転する方向</param>
-    private void RotateRigidbody(Quaternion quaternion)
-    {
-        _rigidbody.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.fixedDeltaTime);
-    }
-
-
-    /// <summary>
-    /// プレイヤーの回転を制御する
-    /// </summary>
-    private void PlayerRotation()
-    {
-        // 方向入力を取得する
-        if (_rotateDirection != Vector3.zero)
-        {
-            // 入力された方向へ回転する
-            Quaternion rotation = Quaternion.LookRotation(_rotateDirection, Vector3.up);
-            RotateRigidbody(rotation);
-        }
-    }
 
     /// <summary>
     /// 復活アニメーションをリセットする
@@ -404,6 +405,7 @@ public class Player : MonoBehaviour
     /// <summary>
     /// 復活アニメーションを更新する関数
     /// </summary>
+    //TODO カメラを二つにする時に変更する予定
     private void UpdateRespawnAnimation()
     {
         // 復活アニメーション前半部分の処理
@@ -527,10 +529,12 @@ public class Player : MonoBehaviour
     }
 
 
-    //todo アクセス修飾子の変更予定
+    
     public PlayerStatus GetStatus() => _mStatus;
     public int GetID() => _mID;
     public Color GetColor() => _mColor;
+
+    //todo アクセス修飾子の変更予定
     public void SetStatus(PlayerStatus status)
     {
         _mStatus = status;

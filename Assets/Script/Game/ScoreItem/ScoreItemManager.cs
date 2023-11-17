@@ -8,13 +8,13 @@ public enum DropMode
 };
 public class ScoreItemManager : Singleton<ScoreItemManager>
 {
-    private Timer _goldenSilkSpawnTimer;        // 金の網を生成することを管理するタイマー
+    private Timer _goldenSilkSpawnTimer;        // 金の糸を生成することを管理するタイマー
     private Vector3 _awayFromEdgeStartPos;
     private Vector3 _awayFromEdgeEndPos;
     private bool _isStartAwayFromEdge;
     private float _goalAnimationDurationTime = 0.5f;
 
-    private GameObject _inSpaceSilk;            // 金の網
+    private GameObject _inSpaceSilk;            // 金の糸
     private GameObject _goalPoint;              // ゴール
 
     private GameObject _silkShadow;
@@ -23,6 +23,57 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
     private Timer _goalSpawnAnimationTimer;
 
     private bool _isPlayingFallFX;
+
+    //TODO monobehaviourを継承しないようにする
+    protected override void Awake()
+    {
+        EventRegister();
+    }
+
+    private void Update()
+    {
+        if (_goldenSilkSpawnTimer != null)
+        {
+            if (_goldenSilkSpawnTimer.GetTime() <= Global.SILK_SPAWN_TIME / 2.0f)
+            {
+                if (_isPlayingFallFX == false)
+                {
+                    AudioManager.Instance.PlayFX("FallFX", 0.7f);
+                    _isPlayingFallFX = true;
+                }
+                PlayGoldenSilkAnimation();
+            }
+            if (_goldenSilkSpawnTimer.IsTimerFinished())
+            {
+                _goldenSilkSpawnTimer = null;
+                _isPlayingFallFX = false;
+            }
+        }
+
+        if (_goalSpawnAnimationTimer != null)
+        {
+            PlayGoalAnimation();
+            if (_goalSpawnAnimationTimer.IsTimerFinished())
+            {
+                _goalSpawnAnimationTimer = null;
+            }
+        }
+
+        if (_isStartAwayFromEdge　== true)
+        {
+            Vector3 temp = Vector3.Lerp(_awayFromEdgeStartPos, _awayFromEdgeEndPos, 0.05f);
+            _awayFromEdgeStartPos = temp;
+            _inSpaceSilk.transform.position = _awayFromEdgeStartPos;
+            if ((_awayFromEdgeStartPos - _awayFromEdgeEndPos).magnitude <= 0.1f)
+            {
+                _isStartAwayFromEdge = false;
+                _awayFromEdgeStartPos = Vector3.zero;
+                _awayFromEdgeEndPos = Vector3.zero;
+            }
+        }
+
+
+    }
 
     /// <summary>
     /// 金の網の生成位置を決める関数
@@ -141,11 +192,7 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
         SetDropSilkStatus();
     }
 
-    protected override void Awake()
-    {
-        EventRegister();
-    }
-
+    
     public void Init()
     {
         if (_inSpaceSilk == null)
@@ -222,59 +269,14 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
     private void PlayGoalAnimation()
     {
-        _goalPoint.transform.localScale = _goalPoint.transform.localScale.x >= 1.0f ? Vector3.one : _goalPoint.transform.localScale + Vector3.one * Time.deltaTime / _goalAnimationDurationTime;
+        _goalPoint.transform.localScale = _goalPoint.transform.localScale.x >= 1.0f ? 
+                                          Vector3.one : 
+                                          _goalPoint.transform.localScale + Vector3.one * Time.deltaTime / _goalAnimationDurationTime;
 
-    }
-    private void Update()
-    {
-        if (_goldenSilkSpawnTimer != null)
-        {
-            if(_goldenSilkSpawnTimer.GetTime() <= Global.SILK_SPAWN_TIME / 2.0f)
-            {
-                if(_isPlayingFallFX == false)
-                {
-                    AudioManager.Instance.PlayFX("FallFX", 0.7f);
-                    _isPlayingFallFX = true;
-                }
-                PlayGoldenSilkAnimation();
-            }
-            if (_goldenSilkSpawnTimer.IsTimerFinished())
-            {
-                _goldenSilkSpawnTimer = null;
-                _isPlayingFallFX = false;
-            }
-        }
-
-        if (_goalSpawnAnimationTimer != null)
-        {
-            PlayGoalAnimation();
-            if(_goalSpawnAnimationTimer.IsTimerFinished())
-            {
-                _goalSpawnAnimationTimer = null;
-            }
-        }
-
-    }
-
-    private void FixedUpdate()
-    {
-        if (_isStartAwayFromEdge)
-        {
-            Vector3 temp = Vector3.Lerp(_awayFromEdgeStartPos, _awayFromEdgeEndPos, 0.05f);
-            _awayFromEdgeStartPos = temp;
-            _inSpaceSilk.transform.position = _awayFromEdgeStartPos;
-            if((_awayFromEdgeStartPos - _awayFromEdgeEndPos).magnitude <= 0.1f)
-            {
-                _isStartAwayFromEdge = false;
-                _awayFromEdgeStartPos = Vector3.zero;
-                _awayFromEdgeEndPos = Vector3.zero;
-            }
-        }
     }
 
     private void OnDestroy()
     {
-        Resources.UnloadUnusedAssets();
         _isPlayingFallFX = false;
         _isStartAwayFromEdge = false;
         _goalSpawnAnimationTimer = null;

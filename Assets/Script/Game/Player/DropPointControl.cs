@@ -3,13 +3,13 @@ using UnityEngine;
 
 public class DropPointControl : MonoBehaviour
 {
-    protected TrailRenderer _mTrailRenderer;                 // DropPointが繋がっていることを表すTrailRenderer
-    protected GameObject pointPrefab;           // DropPointのプレハブ
-    protected float fadeOutTimer;
+    private TrailRenderer _mTrailRenderer;      // DropPointが繋がっていることを表すTrailRenderer
+    private GameObject pointPrefab;             // DropPointのプレハブ
+    private float fadeOutTimer;
 
     private Timer _dropTimer;                   // DropPointのインスタンス化することを管理するタイマー
 
-    protected float offset;
+    private float trailOffset;
 
     //TODO refactorying
     [SerializeField]
@@ -25,17 +25,22 @@ public class DropPointControl : MonoBehaviour
     {
         pointPrefab = GameResourceSystem.Instance.GetPrefabResource("DropPoint");
         fadeOutTimer = 0.0f;
-        offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+        trailOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
         _mPlayer = gameObject.GetOrAddComponent<Player>();
         _mTag = "DropPoint";
         _mID = -1;
         _mColor = Color.clear;
+
+        // 尻尾を描画するGameObjectを作る
         GameObject trail = new GameObject(name + "Trail");
+        // プレイヤーを親にする
         trail.transform.parent = transform;
         //todo take note
+        // ワールド座標をローカル座標に変換する
         Vector3 localForward = transform.worldToLocalMatrix.MultiplyVector(transform.forward);
-        trail.transform.localPosition = Vector3.zero - localForward * offset + Vector3.down * 0.5f;
+        trail.transform.localPosition = Vector3.down * 0.5f - localForward * trailOffset;
         trail.transform.localScale = Vector3.one;
+        // TrailRendererをアタッチする
         _mTrailRenderer = trail.gameObject.AddComponent<TrailRenderer>();
 
     }
@@ -44,15 +49,17 @@ public class DropPointControl : MonoBehaviour
     {
         TryDropPoint();
         fadeOutTimer += Time.deltaTime;
+        // プレイヤーが場に一定時間を移動し続けたら（DropPointの生存時間の半分）
         if (fadeOutTimer >= Global.DROP_POINT_ALIVE_TIME / 2.0f && fadeOutTimer < Global.DROP_POINT_ALIVE_TIME)
         {
+            // 不透明度を計算する　※　y = -1.9x + 1.95;
             float alpha = (-1.9f / Global.DROP_POINT_ALIVE_TIME) * fadeOutTimer + 1.95f;
-            Gradient gradient = new Gradient();
-            gradient.SetKeys(
-                new GradientColorKey[] { new GradientColorKey(_mColor, 0.0f), new GradientColorKey(_mColor, 1.0f) },
-                new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(alpha >= 0.05f ? alpha : 0.05f, 1.0f) }
-            );
-            _mTrailRenderer.colorGradient = gradient;
+            // 不透明度の最小値を0.05に設定する
+            if(alpha < 0.5f)
+            {
+                alpha = 0.5f;
+            }
+            SetTrailGradient(alpha);
         }
 
     }
@@ -62,7 +69,7 @@ public class DropPointControl : MonoBehaviour
     /// </summary>
     private void InstantiateDropPoint()
     {
-        GameObject pt = Instantiate(pointPrefab, transform.position - transform.forward * offset, transform.rotation);
+        GameObject pt = Instantiate(pointPrefab, transform.position - transform.forward * trailOffset, transform.rotation);
         pt.tag = _mTag;
         DropPointSystem.Instance.AddPoint(_mID,pt);
     }
@@ -84,7 +91,7 @@ public class DropPointControl : MonoBehaviour
     }
 
     /// <summary>
-    /// DropPointを置く
+    /// DropPointを置いてみる関数
     /// </summary>    
     private void TryDropPoint()
     {
@@ -116,10 +123,19 @@ public class DropPointControl : MonoBehaviour
     {
         _mTrailRenderer.Clear();
         fadeOutTimer = 0.0f;
+        SetTrailGradient(1.0f);
+    }
+
+    /// <summary>
+    /// TrailRendererのグラディエントを設定する
+    /// </summary>
+    /// <param name="alpha">一番後ろの不透明度</param>
+    private void SetTrailGradient(float alpha)
+    {
         Gradient gradient = new Gradient();
         gradient.SetKeys(
             new GradientColorKey[] { new GradientColorKey(_mColor, 0.0f), new GradientColorKey(_mColor, 1.0f) },
-            new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) }
+            new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(alpha, 1.0f) }
         );
         _mTrailRenderer.colorGradient = gradient;
     }

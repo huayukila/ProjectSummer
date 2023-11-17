@@ -281,7 +281,7 @@ public class GameManager : Singleton<GameManager>
             playerTwo = players[2];
 
             ScoreItemManager.Instance.Init();
-            InputManager.Instance.Init();
+            InputSetting.Init();
         }
         else
         {
