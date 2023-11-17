@@ -276,6 +276,7 @@ public class GameManager : Singleton<GameManager>
                 }
             }
 
+            //TODO refactorying
             playerOne = players[1];
             playerTwo = players[2];
 

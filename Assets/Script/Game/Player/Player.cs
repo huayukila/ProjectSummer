@@ -13,27 +13,27 @@ public enum PlayerStatus
 public class Player : MonoBehaviour
 {
     [SerializeField]
-    private float maxMoveSpeed;                 // プレイヤーの最大速度
+    private float maxMoveSpeed;                         // プレイヤーの最大速度
     [Min(0.0f)][SerializeField]
-    private float acceleration;                 // プレイヤーの加速度
+    private float acceleration;                         // プレイヤーの加速度
     [Min(0.0f)][SerializeField]
-    private float rotationSpeed;                // プレイヤーの回転速度
+    private float rotationSpeed;                        // プレイヤーの回転速度
 
-    private bool isPainting;                          // 地面に描けるかどうかの信号   
-    private ColorCheck colorCheck;                    // カラーチェックコンポネント
-    private DropSilkEvent dropSilkEvent;              // 金の網を落とすイベント
-    private PickSilkEvent pickSilkEvent;              // 金の網を拾うイベント
-    private InputAction playerAction;
-    private InputAction rotateAction;
-    private PlayerInput playerInput;
-    private PlayerStatus mStatus;
-    private float offset;
-
-    private Timer _paintableTimer;                      // 領域を描く間隔を管理するタイマー
+    private ColorCheck colorCheck;                      // カラーチェックコンポネント
+    private DropSilkEvent dropSilkEvent;                // 金の網を落とすイベント
+    private PickSilkEvent pickSilkEvent;                // 金の網を拾うイベント
+    //TODO 二つを一つにする
+    private InputAction boostAction;                    // プレイヤーのブースト入力
+    private InputAction rotateAction;                   // プレイヤーの回転入力
+    private PlayerInput playerInput;                    // playerInputAsset
+    private PlayerStatus _mStatus;                      // プレイヤーのステータス
+    private float _mColliderOffset;                     // プレイヤーコライダーの長さ（正方形）
     private float _currentMoveSpeed;                    // プレイヤーの現在速度
     private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
     private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
-    private Vector3 _rotateDirection;
+    private Vector3 _rotateDirection;                   // プレイヤーの回転方向
+
+    //TODO コメント付く
     private GameObject _particleObject;
     private GameObject _particlePrefab;
     private ParticleSystem _pS;
@@ -62,21 +62,47 @@ public class Player : MonoBehaviour
     //todo
     private int _mSilkCount;
 
-    public void SetProperties(int ID , Color color)
+    private void Awake()
     {
-        if(_mID == -1)
-        {
-            _mID = ID;
-            _mColor = color;
-            if(_mID <= Global.PLAYER_START_POSITIONS.Length)
-            {
-                _mRespawnPos = Global.PLAYER_START_POSITIONS[(_mID - 1)];
-                _bigSpider.transform.position += _mRespawnPos;
-                _mShadow.transform.position = _mRespawnPos;
-            }
-            name = "Player" + _mID.ToString();
-        }
+        // 初期化処理
+        Init();
     }
+    private void Update()
+    {
+        // プレイヤー画像をずっと同じ方向に向くことにする
+        _mSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+
+        // 通常状態じゃないと復活アニメーションを処理する
+        if (_mStatus != PlayerStatus.Fine || _respawnAnimationTimer != null)
+        {
+            // 復活アニメーションの処理
+            UpdateRespawnAnimation();
+            if (_respawnAnimationTimer.IsTimerFinished())
+            {
+                ResetRespawnAnimation();
+            }
+            return;
+        }
+        // 通常状態の処理
+        UpdateFine();
+
+
+    }
+
+    private void FixedUpdate()
+    {
+        // プレイヤーが「通常」状態じゃないと動きに関する関数を実行しない
+        if (_mStatus != PlayerStatus.Fine)
+        {
+            return;
+        }
+        // プレイヤーの動き
+        PlayerMovement();
+        // プレイヤーの回転
+        PlayerRotation();
+    }
+
+
     /// <summary>
     /// 衝突があったとき処理する
     /// </summary>
@@ -144,32 +170,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void Awake()
-    {
-        // 初期化処理
-        Init();
-    }
-    private void Update()
-    {
-        // プレイヤー画像をずっと同じ方向に向くことにする
-        _mSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
-
-        // 通常状態じゃないと復活アニメーションを処理する
-        if (mStatus != PlayerStatus.Fine　|| _respawnAnimationTimer != null)
-        {
-            // 復活アニメーションの処理
-            UpdateRespawnAnimation();
-            if (_respawnAnimationTimer.IsTimerFinished())
-            {
-                ResetRespawnAnimation();
-            }
-            return;
-        }
-        // 通常状態の処理
-        UpdateFine();
-
-
-    }
 
     private void UpdateFine()
     {
@@ -191,7 +191,8 @@ public class Player : MonoBehaviour
         // 金の網のを持っていれば、プレイヤー画像の上に表示する
         if (IsGotSilk == true)
         {
-            _mGotSilkImage.transform.position = transform.position + Vector3.forward * 6.5f;
+            // キャラクター画像の縦の大きさを取得して画像の上で表示する
+            _mGotSilkImage.transform.position = transform.position + new Vector3(0, 0, _mSpriteRenderer.bounds.size.z);
         }
 
         // プレイヤーインプットを取得する
@@ -200,33 +201,12 @@ public class Player : MonoBehaviour
         _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
 
         // プレイヤーがいるところの地面の色をチェックする
-        GroundColorCheck();
-        // 描画を制限する（α版）
-        if (!isPainting)
-        {
-            // 陣取りができるかどうかをチェックする
-            CheckCanPaint();
-        }
-        else
-        {
-            // 一回の陣取りにつき0.3秒の間隔を設ける
-            if (_paintableTimer == null)
-            {
-                _paintableTimer = new Timer();
-                _paintableTimer.SetTimer(0.3f,
-                    () =>
-                    {
-                        isPainting = false;
-                    }
-                    );
-            }
-            if (_paintableTimer.IsTimerFinished())
-            {
-                _paintableTimer = null;
-            }
-        }
+        CheckGroundColor();
 
-        //TODO ブースト
+        // 領域は描画できるかどうかをチェックする
+        CheckCanPaint();
+
+        //TODO ブースト（隠れ仕様）
         if(_mBoostCoolDown != null)
         {
             _boostDurationTime -= Time.deltaTime;
@@ -241,24 +221,12 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
-    {
-        if(mStatus != PlayerStatus.Fine)
-        {
-            return;
-        }
-        // プレイヤーの動き
-        PlayerMovement();
-        // プレイヤーの回転
-        PlayerRotation();
-    }
 
     /// <summary>
     /// プレイヤーのプロパティを初期化する
     /// </summary>
     private void Init()
     {
-        isPainting = false;
         _currentMoveSpeed = 0.0f;
         _rigidbody = GetComponent<Rigidbody>();
         colorCheck = GetComponent<ColorCheck>();
@@ -275,10 +243,10 @@ public class Player : MonoBehaviour
 
         playerInput = GetComponent<PlayerInput>();
         rotateAction = playerInput.actions["Rotate"];
-        playerAction = playerInput.actions["Boost"];
-        playerAction.performed += OnBoost;
-        mStatus = PlayerStatus.Fine;
-        offset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+        boostAction = playerInput.actions["Boost"];
+        boostAction.performed += OnBoost;
+        _mStatus = PlayerStatus.Fine;
+        _mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
 
         _particlePrefab = GameResourceSystem.Instance.GetPrefabResource("DustParticlePrefab");
         _particleObject = Instantiate(_particlePrefab, transform);
@@ -318,6 +286,7 @@ public class Player : MonoBehaviour
         _mSilkCount = 0;
         _mID = -1;
 
+        // DropPointControlコンポネントを追加する
         _mDropPointControl = gameObject.AddComponent<DropPointControl>();
 
     }
@@ -334,6 +303,9 @@ public class Player : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// キャラクターの画像を反転する関数
+    /// </summary>
     private void FlipCharacterImage()
     {
         if (transform.forward.x < 0.0f)
@@ -393,14 +365,6 @@ public class Player : MonoBehaviour
         _mGotSilkImage.SetActive(false);
     }
 
-    //todo アクセス修飾子の変更予定
-    public PlayerStatus GetStatus() => mStatus;
-    public int GetID() => _mID;
-    public Color GetColor() => _mColor;
-    public void SetStatus(PlayerStatus status)
-    {
-        mStatus = status;
-    }
 
     /// <summary>
     /// プレイヤーのリジッドボディを回転させる
@@ -409,8 +373,8 @@ public class Player : MonoBehaviour
     private void RotateRigidbody(Quaternion quaternion)
     {
         _rigidbody.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.fixedDeltaTime);
-    }    
-    
+    }
+
 
     /// <summary>
     /// プレイヤーの回転を制御する
@@ -431,7 +395,7 @@ public class Player : MonoBehaviour
     /// </summary>
     private void ResetRespawnAnimation()
     {
-        _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f,0.0f,100.0f);
+        _bigSpider.transform.position = _mRespawnPos + new Vector3(0.0f, 0.0f, 100.0f);
         _mBigSpiderLineRenderer.positionCount = 0;
         _mShadow.transform.localScale = Vector3.zero;
         _mShadowSpriteRenderer.color = Color.clear;
@@ -443,22 +407,22 @@ public class Player : MonoBehaviour
     private void UpdateRespawnAnimation()
     {
         // 復活アニメーション前半部分の処理
-        if(_respawnAnimationTimer.GetTime() >= Global.RESPAWN_TIME /2.0f)
+        if (_respawnAnimationTimer.GetTime() >= Global.RESPAWN_TIME / 2.0f)
         {
-            _bigSpider.transform.Translate(new Vector3(0.0f, 0.0f,-20.0f * Time.deltaTime),Space.World);
-            transform.position = _bigSpider.transform.position + new Vector3(0.0f,0.5f,0.0f);
+            _bigSpider.transform.Translate(new Vector3(0.0f, 0.0f, -20.0f * Time.deltaTime), Space.World);
+            transform.position = _bigSpider.transform.position + new Vector3(0.0f, 0.5f, 0.0f);
         }
         // 復活アニメーション後半部分の処理
         else
         {
             //TODO
-            transform.Translate(-(_bigSpider.transform.position - _mRespawnPos) * 0.4f * Time.deltaTime,Space.World);
+            transform.Translate(-(_bigSpider.transform.position - _mRespawnPos) * 0.4f * Time.deltaTime, Space.World);
             transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
             _mShadowSpriteRenderer.color += Color.white * 0.4f * Time.deltaTime;
             _mShadow.transform.localScale += Vector3.one * 0.4f * Time.deltaTime * 0.8f;
             Vector3[] temp = new Vector3[2];
             temp[0] = _bigSpider.transform.position;
-            temp[1] = transform.position + new Vector3(0.0f,-0.5f,offset);
+            temp[1] = transform.position + new Vector3(0.0f, -0.5f, _mColliderOffset);
             _mBigSpiderLineRenderer.SetPositions(temp);
         }
     }
@@ -471,7 +435,7 @@ public class Player : MonoBehaviour
         transform.position = _bigSpider.transform.position;
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
-        mStatus = PlayerStatus.Dead;
+        _mStatus = PlayerStatus.Dead;
         transform.localScale = Vector3.one;
         _currentMoveSpeed = 0.0f;
         IsGotSilk = false;
@@ -479,18 +443,16 @@ public class Player : MonoBehaviour
         _boostDurationTime = Global.BOOST_DURATION_TIME;
         _mBoostCoolDown = null;
         _mSilkCount = 0;
-        transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_mID-1)];
+        transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_mID - 1)];
         DropPointSystem.Instance.ClearDropPoints(_mID);
         maxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-        //TODO mix two func
-        _mDropPointControl.ClearTrail();
         _mDropPointControl.ResetTrail();
 
     }
     /// <summary>
     /// 地面の色をチェックする
     /// </summary>
-    private void GroundColorCheck()
+    private void CheckGroundColor()
     {
         // 自分の領域にいたら
         if (colorCheck.isTargetColor(Color.clear))
@@ -502,6 +464,7 @@ public class Player : MonoBehaviour
         {
             _moveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
         }
+        // 塗られていない地面にいたら
         else
         {
             _moveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
@@ -509,45 +472,52 @@ public class Player : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// プレイヤー領域を描画してみる関数
+    /// </summary>
     private void CheckCanPaint()
     {
         Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(_mID);
+        // DropPointは4個以上あれば描画できる
         if (dropPoints.Length >= 4)
         {
-            //todo プレイヤーの大きさによってオフセットが変わる
-            Vector3 endPoint1 = transform.position + transform.forward * offset;
+            // プレイヤーの先頭座標
+            Vector3 endPoint1 = transform.position + transform.forward * _mColliderOffset;
+            // プレイヤーが直前にインスタンス化したDropPoint
             Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
-            int endIndex = dropPoints.Length - 2;
-            if (endPoint1 == endPoint2)
+
+            // endPoint1とendPoint2で作ったベクトルとendPoint2以外のDropPointを先頭から順番で2個ずつで作ったベクトルが交わっているかどうかをチェックする
+            for (int i = 0; i < dropPoints.Length - 2; ++i)
             {
-                endPoint2 = dropPoints[endIndex];
-                endIndex--;
-            }
-            for (int i = 0; i < endIndex; ++i)
-            {
+                // 二つのベクトルが平行したらcontinue
                 if (VectorMath.IsParallel(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1))
                 {
                     continue;
                 }
 
+                // それぞれの座標点と自分自身以外のベクトルの位置関係を計算する(0より大きいならベクトルの左側、0より小さいならベクトルの右側、0ならベクトルの中)
                 float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
                 float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
                 float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
                 float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
 
+                // 二つのベクトルが交わっていたら描画する
                 if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
                 {
-                    isPainting = true;
+                    // 交点を計算する
                     Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
+                    // 描画する領域の頂点を取得する
                     List<Vector3> verts = new List<Vector3>();
                     for (int j = i + 1; j < dropPoints.Length; j++)
                     {
                         verts.Add(dropPoints[j]);
                     }
                     verts.Add(crossPoint);
+                    // 描画する
                     PolygonPaintManager.Instance.Paint(verts.ToArray(), _mID, _mColor);
+                    // 全てのDropPointを消す
                     DropPointSystem.Instance.ClearDropPoints(_mID);
-                    _mDropPointControl.ClearTrail();
+                    // 尻尾のTrailRendererの状態をリセットする
                     _mDropPointControl.ResetTrail();
                     break;
                 }
@@ -556,19 +526,46 @@ public class Player : MonoBehaviour
 
     }
 
+
+    //todo アクセス修飾子の変更予定
+    public PlayerStatus GetStatus() => _mStatus;
+    public int GetID() => _mID;
+    public Color GetColor() => _mColor;
+    public void SetStatus(PlayerStatus status)
+    {
+        _mStatus = status;
+    }
+
+    public void SetProperties(int ID, Color color)
+    {
+        if (_mID == -1)
+        {
+            _mID = ID;
+            _mColor = color;
+            if (_mID <= Global.PLAYER_START_POSITIONS.Length)
+            {
+                _mRespawnPos = Global.PLAYER_START_POSITIONS[(_mID - 1)];
+                _bigSpider.transform.position += _mRespawnPos;
+                _mShadow.transform.position = _mRespawnPos;
+            }
+            name = "Player" + _mID.ToString();
+        }
+    }
+
+
     private void OnEnable()
     {
         rotateAction.Enable();
-        playerAction.Enable();
+        boostAction.Enable();
     }
     private void OnDisable()
     {
         rotateAction.Disable();
-        playerAction.Disable();
+        boostAction.Disable();
     }
     private void OnDestroy()
     {
-        playerAction.performed -= OnBoost;
+        boostAction.performed -= OnBoost;
     }
 
     // 隠れ仕様
@@ -576,7 +573,7 @@ public class Player : MonoBehaviour
     {
         if (context.performed)
         {
-            if(mStatus == PlayerStatus.Fine && _isBoosting == false)
+            if(_mStatus == PlayerStatus.Fine && _isBoosting == false)
             {
                 maxMoveSpeed *= 1.5f;
                 _currentMoveSpeed = maxMoveSpeed;
