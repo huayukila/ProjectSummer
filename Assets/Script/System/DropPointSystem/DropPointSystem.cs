@@ -23,6 +23,7 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
 {
     // 各プレイヤーのPlayerDropPointsを管理する変数
     private Dictionary<int, PlayerDropPoints> _playerDropPoints;
+    private bool deinited = false;
 
     /// <summary>
     /// Listにある全てのDropPoint(GameObject)のワールド座標を返す
@@ -31,12 +32,12 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     private Vector3[] GameObjectToVector3(List<GameObject> list)
     {
         // Listのコピーを作る
-        List<GameObject> retList = new List<GameObject>(list);
+        //List<GameObject> retList = new List<GameObject>(list);
         // 戻り値用配列を作る
-        Vector3[] retPos = new Vector3[retList.Count];
+        Vector3[] retPos = new Vector3[list.Count];
         int index = 0;
         // Listの全てのGameObjectのワールド座標を戻り値用配列に入れる
-        foreach (GameObject ob in retList)
+        foreach (GameObject ob in list)
         {
             retPos[index++] = ob.transform.position;
         }
@@ -122,7 +123,10 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     /// </summary>
     public void Init()
     {
-        _playerDropPoints = new Dictionary<int, PlayerDropPoints>();
+        if(_playerDropPoints == null)
+        {
+            _playerDropPoints = new Dictionary<int, PlayerDropPoints>();
+        }
     }
 
     /// <summary>
@@ -146,10 +150,10 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     public void Deinit()
     {
         // Dictionaryを消す
-        if(_playerDropPoints != null)
+        if(deinited == false)
         {
             _playerDropPoints.Clear();
-            _playerDropPoints = null;
+            deinited = true;
         }
     }
 

@@ -10,7 +10,7 @@ public interface IPlayerSetStatus
 public struct SpiderPlayer
 {
     public GameObject gameObject;
-    public PlayerStatus playerStatus;
+    public Player.Status playerStatus;
     public int mID;
 
     public Timer spawnTimer;
@@ -216,7 +216,7 @@ public class GameManager : Singleton<GameManager>
     {
         playerOne.transform.position = Global.PLAYER1_START_POSITION;
         playerOne.transform.forward = Vector3.right;
-        playerOne.GetComponent<Player>().SetStatus(PlayerStatus.Fine);
+        playerOne.GetComponent<Player>().SetStatus(Player.Status.Fine);
         playerOne.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerOne.GetComponent<DropPointControl>().enabled = true;
         playerOne.GetComponent<Collider>().enabled = true;
@@ -232,7 +232,7 @@ public class GameManager : Singleton<GameManager>
     {
         playerTwo.transform.position = Global.PLAYER2_START_POSITION;
         playerTwo.transform.forward = Vector3.left;
-        playerTwo.GetComponent<Player>().SetStatus(PlayerStatus.Fine);
+        playerTwo.GetComponent<Player>().SetStatus(Player.Status.Fine);
         playerTwo.GetComponentInChildren<TrailRenderer>().enabled = true;
         playerTwo.GetComponent<DropPointControl>().enabled = true;
         playerTwo.GetComponent<Collider>().enabled = true;

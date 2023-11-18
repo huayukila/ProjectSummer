@@ -29,8 +29,8 @@ public static class Global
     public static readonly Color PLAYER_TWO_TRACE_COLOR = new Color(0.267f, 0.541f, 0.792f, 1.0f);          // プレイヤー２の痕跡の色
 
 
-    public static readonly float PLAYER_MAX_MOVE_SPEED = 1800.0f;                                // プレイヤーの最大速度
-    public static readonly float PLAYER_ACCELERATION = 700.0f;                                   // プレイヤーの加速度
+    public static readonly float PLAYER_MAX_MOVE_SPEED = 36.0f;                                // プレイヤーの最大速度
+    public static readonly float PLAYER_ACCELERATION = 0.3f;                                   // プレイヤーの加速度
     public static readonly float PLAYER_ROTATION_SPEED = 3.0f;                                   // プレイヤーの回転速度
 
     public static readonly float STAGE_LENGTH = 174.0f;

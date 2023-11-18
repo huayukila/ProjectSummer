@@ -61,7 +61,9 @@ public class ScoreItemManager : Singleton<ScoreItemManager>
 
         if (_isStartAwayFromEdgeÅ@== true)
         {
-            Vector3 temp = Vector3.Lerp(_awayFromEdgeStartPos, _awayFromEdgeEndPos, 0.05f);
+            
+            Vector3 temp = Vector3.Lerp(_awayFromEdgeStartPos, _awayFromEdgeEndPos, 0.005f);
+            Debug.Log(temp);
             _awayFromEdgeStartPos = temp;
             _inSpaceSilk.transform.position = _awayFromEdgeStartPos;
             if ((_awayFromEdgeStartPos - _awayFromEdgeEndPos).magnitude <= 0.1f)

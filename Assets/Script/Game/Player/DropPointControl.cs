@@ -55,9 +55,9 @@ public class DropPointControl : MonoBehaviour
             // 不透明度を計算する　※　y = -1.9x + 1.95;
             float alpha = (-1.9f / Global.DROP_POINT_ALIVE_TIME) * fadeOutTimer + 1.95f;
             // 不透明度の最小値を0.05に設定する
-            if(alpha < 0.5f)
+            if(alpha < 0.05f)
             {
-                alpha = 0.5f;
+                alpha = 0.05f;
             }
             SetTrailGradient(alpha);
         }
