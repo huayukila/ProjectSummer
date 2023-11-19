@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-public class Player : MonoBehaviour
+public class Player : Character
 {
     public enum Status
     {
@@ -12,43 +12,31 @@ public class Player : MonoBehaviour
         Dead,
         Invincible
     }
-
-    [SerializeField]
-    private float mMaxMoveSpeed;                         // プレイヤーの最大速度
-    [Min(0.0f)][SerializeField]
-    private float mAcceleration;                         // プレイヤーの加速度
-    [Min(0.0f)][SerializeField]
-    private float mRotationSpeed;                        // プレイヤーの回転速度
-
-    private ColorCheck mColorCheck;                      // カラーチェックコンポネント
+    private ColorCheck mColorCheck;                     // カラーチェックコンポネント
     //TODO 二つを一つにする
-    private InputAction mBoostAction;                    // プレイヤーのブースト入力
-    private InputAction mRotateAction;                   // プレイヤーの回転入力
-    private PlayerInput mPlayerInput;                    // playerInputAsset
-    private Status mStatus;                            // プレイヤーのステータス
-    private float mColliderOffset;                     // プレイヤーコライダーの長さ（正方形）
+    private InputAction mBoostAction;                   // プレイヤーのブースト入力
+    private InputAction mRotateAction;                  // プレイヤーの回転入力
+    private PlayerInput mPlayerInput;                   // playerInputAsset
+    private Status mStatus;                             // プレイヤーのステータス
+    private float mColliderOffset;                      // プレイヤーコライダーの長さ（正方形）
     private float mCurrentMoveSpeed;                    // プレイヤーの現在速度
     private float mMoveSpeedCoefficient;                // プレイヤーの移動速度の係数
     private Rigidbody mRigidbody;                       // プレイヤーのRigidbody
     private Vector3 mRotateDirection;                   // プレイヤーの回転方向
-
-    private Timer _mBoostCoolDown;                      // ブーストタイマー（隠れ仕様）
-    private float _boostDurationTime;                   // ブースト持続時間（隠れ仕様）
-    private bool _isBoosting = false;                   // ブーストしているかのフラグ
-    private SpriteRenderer _mImageSpriteRenderer;       // プレイヤー画像のSpriteRenderer
-    private PlayerAnim _mAnim;
-    private CharacterParticleSystem mParticleSystem;
-    //TODO
-    private GameObject _mHasSilkImage;                  // 金の糸を持っていることを示す画像
+    private Timer mBoostCoolDownTimer = null;           // ブーストタイマー（隠れ仕様）
+    private float mBoostDurationTime;                   // ブースト持続時間（隠れ仕様）
+    private bool isBoosting = false;                    // ブーストしているかのフラグ
+    private SpriteRenderer mImageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
+    private PlayerAnim mAnim;
+    private DropPointControl mDropPointControl;         // プレイヤーのDropPointControl
+    private PlayerParticleSystemControl mParticleSystemControl;
 
     //TODO refactorying
-    private int _mID;                                   // プレイヤーID
-    private Color _mColor;                              // プレイヤーの領域の色
-    private DropPointControl _mDropPointControl;        // プレイヤーのDropPointControl
-
-    public bool hasSilk { get; private set; }         // プレイヤーが金の糸を持っているかのフラグ
-    //TODO
-    private int _mSilkCount;                            // プレイヤーが持っている金の糸の数
+    private int mID;                                    // プレイヤーID
+    private Color mColor;                               // プレイヤーの領域の色
+    private bool hasSilk;                               // プレイヤーが金の糸を持っているかのフラグ
+    private int mSilkCount;                             // プレイヤーが持っている金の糸の数
+    private GameObject mHasSilkImage;                   // 金の糸を持っていることを示す画像
 
     private void Awake()
     {
@@ -58,7 +46,7 @@ public class Player : MonoBehaviour
     private void Update()
     {
         // プレイヤー画像をずっと同じ方向に向くことにする
-        _mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
         // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
         if (mStatus != Status.Fine)
@@ -114,7 +102,7 @@ public class Player : MonoBehaviour
     {
         if(other.gameObject.tag.Contains("DropPoint"))
         {
-            if(other.gameObject.tag.Contains(_mID.ToString()) == false)
+            if(other.gameObject.tag.Contains(mID.ToString()) == false)
             {
                 if (hasSilk == true)
                 {
@@ -129,85 +117,78 @@ public class Player : MonoBehaviour
             }
         }
         // 金の糸に当たったら
-        if (other.gameObject.CompareTag("GoldenSilk"))
+        else if (other.gameObject.CompareTag("GoldenSilk"))
         {
-            if (_mSilkCount == 3)
+            if (mSilkCount == 3)
                 return;
             //TODO (3個まで追加)
 
             // 金の糸の画像を表示
             hasSilk = true;
-            _mHasSilkImage.SetActive(true);
-            _mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, _mImageSpriteRenderer.bounds.size.z);
+            mHasSilkImage.SetActive(true);
+            mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
             TypeEventSystem.Instance.Send<PickSilkEvent>();
-            _mSilkCount++;
+            mSilkCount++;
         }
         // ゴールに当たったら
-        if (other.gameObject.CompareTag("Goal"))
+        else if (other.gameObject.CompareTag("Goal"))
         {
             // 自分が金の糸を持っていたら
             if (hasSilk == true)
             {
                 AddScoreEvent addScoreEvent = new AddScoreEvent()
                 {
-                    playerID = _mID,
-                    silkCount = _mSilkCount
+                    playerID = mID,
+                    silkCount = mSilkCount
                 };
 
                 TypeEventSystem.Instance.Send<AddScoreEvent>(addScoreEvent);
                 hasSilk = false;
-                _mHasSilkImage.SetActive(false);
-                _mSilkCount = 0;
+                mHasSilkImage.SetActive(false);
+                mSilkCount = 0;
             }
         }
     }
-
+    #region
 
     private void UpdateFine()
     {
-
+        mParticleSystemControl.Play();
         // プレイヤー画像の向きを変える
         FlipCharacterImage();
         // 金の網のを持っていれば、プレイヤー画像の上に表示する
         if (hasSilk == true)
         {
             // キャラクター画像の縦の大きさを取得して画像の上で表示する
-            _mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, _mImageSpriteRenderer.bounds.size.z);
+            mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
         }
-
         // プレイヤーインプットを取得する
         Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
         // 回転方向を決める
         mRotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-
         // プレイヤーがいるところの地面の色をチェックする
         CheckGroundColor();
-
         // 領域は描画できるかどうかをチェックする
         CheckCanPaint();
-
         //TODO ブースト（隠れ仕様）
-        if(_mBoostCoolDown != null)
+        if(mBoostCoolDownTimer != null)
         {
-            _boostDurationTime -= Time.deltaTime;
-            if(_boostDurationTime <= 0.0f)
+            mBoostDurationTime -= Time.deltaTime;
+            if(mBoostDurationTime <= 0.0f)
             {
                 mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             }
-            if(_mBoostCoolDown.IsTimerFinished())
+            if(mBoostCoolDownTimer.IsTimerFinished())
             {
-                _mBoostCoolDown = null;
+                mBoostCoolDownTimer = null;
             }
         }
-
-        mParticleSystem.Play();
     }
-
 
     /// <summary>
     /// プレイヤーのプロパティを初期化する
     /// </summary>
-    private void Init()
+    protected override void Init()
     {
         mCurrentMoveSpeed = 0.0f;
         mRigidbody = GetComponent<Rigidbody>();
@@ -217,33 +198,28 @@ public class Player : MonoBehaviour
         mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
         mAcceleration = Global.PLAYER_ACCELERATION;
         mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
-
         mPlayerInput = GetComponent<PlayerInput>();
         mRotateAction = mPlayerInput.actions["Rotate"];
         mBoostAction = mPlayerInput.actions["Boost"];
         mBoostAction.performed += OnBoost;
         mStatus = Status.Fine;
         mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
-
-        _boostDurationTime = Global.BOOST_DURATION_TIME;
-
-        _mHasSilkImage = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
-        _mHasSilkImage.SetActive(false);
-
+        mBoostDurationTime = Global.BOOST_DURATION_TIME;
+        mHasSilkImage = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
+        mHasSilkImage.SetActive(false);
         // プレイヤー自分の画像のレンダラーを取得する
-        _mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
         // 表示順位を変換する
-        _mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
-        _mSilkCount = 0;
-        _mID = -1;
-
+        mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
+        mSilkCount = 0;
+        mID = -1;
         // DropPointControlコンポネントを追加する
-        _mDropPointControl = gameObject.AddComponent<DropPointControl>();
+        mDropPointControl = gameObject.AddComponent<DropPointControl>();
         // PlayerAnimコンポネントを追加する
-        _mAnim = gameObject.AddComponent<PlayerAnim>();
-        mParticleSystem = gameObject.AddComponent<CharacterParticleSystem>();
-
+        mAnim = gameObject.AddComponent<PlayerAnim>();
+        mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
     }
+
     /// <summary>
     /// プレイヤーの移動を制御する
     /// </summary>
@@ -254,7 +230,6 @@ public class Player : MonoBehaviour
         // 前向きの移動をする
         Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient;
         mRigidbody.velocity = moveDirection;
-
     }
 
     /// <summary>
@@ -267,17 +242,8 @@ public class Player : MonoBehaviour
         {
             // 入力された方向へ回転する
             Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
-            RotateRigidbody(rotation);
+            mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mRotationSpeed * Time.fixedDeltaTime);
         }
-    }
-
-    /// <summary>
-    /// プレイヤーのリジッドボディを回転させる
-    /// </summary>
-    /// <param name="quaternion">回転する方向</param>
-    private void RotateRigidbody(Quaternion quaternion)
-    {
-        mRigidbody.rotation = Quaternion.Slerp(transform.rotation, quaternion, mRotationSpeed * Time.fixedDeltaTime);
     }
 
     /// <summary>
@@ -287,20 +253,21 @@ public class Player : MonoBehaviour
     {
         if (transform.forward.x < 0.0f)
         {
-            _mImageSpriteRenderer.flipX = false;
+            mImageSpriteRenderer.flipX = false;
         }
         else
         {
-            _mImageSpriteRenderer.flipX = true;
+            mImageSpriteRenderer.flipX = true;
         }
-
     }
+
     /// <summary>
     /// プレイヤーの死亡状態を設定する
     /// </summary>
     private void SetDeadStatus()
     {
-        _mAnim.Play(AnimType.Explode);
+        mAnim.SwitchAnimState(AnimType.Explode);
+        mAnim.Play();
         // プレイヤーの状態をリセットする
         ResetStatus();
         // プレイヤーの向きをリセットする
@@ -309,19 +276,16 @@ public class Player : MonoBehaviour
         GetComponent<DropPointControl>().enabled = false;
         GetComponentInChildren<TrailRenderer>().enabled = false;
         GetComponent<Collider>().enabled = false;
-
         // プレイヤー復活イベントを喚起する
         PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
         {
             player = gameObject
         };
         TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
-
-        _mHasSilkImage.SetActive(false);
-
-        _mAnim.Play(AnimType.Respawn);
-        mParticleSystem.Stop();
-
+        mHasSilkImage.SetActive(false);
+        mAnim.SwitchAnimState(AnimType.Respawn);
+        mAnim.Play();
+        mParticleSystemControl.Stop();
     }
 
     /// <summary>
@@ -335,15 +299,14 @@ public class Player : MonoBehaviour
         transform.localScale = Vector3.one;
         mCurrentMoveSpeed = 0.0f;
         hasSilk = false;
-        _isBoosting = false;
-        _boostDurationTime = Global.BOOST_DURATION_TIME;
-        _mBoostCoolDown = null;
-        _mSilkCount = 0;
-        transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_mID - 1)];
-        DropPointSystem.Instance.ClearDropPoints(_mID);
+        isBoosting = false;
+        mBoostDurationTime = Global.BOOST_DURATION_TIME;
+        mBoostCoolDownTimer = null;
+        mSilkCount = 0;
+        transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
+        DropPointSystem.Instance.ClearDropPoints(mID);
         mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-        _mDropPointControl.ResetTrail();
-
+        mDropPointControl.ResetTrail();
     }
     /// <summary>
     /// 地面の色をチェックする
@@ -356,7 +319,7 @@ public class Player : MonoBehaviour
             mMoveSpeedCoefficient = 1.0f;
         }
         // 別のプレイヤーの領域にいたら
-        else if (mColorCheck.isTargetColor(_mColor))
+        else if (mColorCheck.isTargetColor(mColor))
         {
             mMoveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
         }
@@ -365,7 +328,6 @@ public class Player : MonoBehaviour
         {
             mMoveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
         }
-
     }
 
     /// <summary>
@@ -373,7 +335,7 @@ public class Player : MonoBehaviour
     /// </summary>
     private void CheckCanPaint()
     {
-        Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(_mID);
+        Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(mID);
         // DropPointは4個以上あれば描画できる
         if (dropPoints.Length >= 4)
         {
@@ -381,7 +343,6 @@ public class Player : MonoBehaviour
             Vector3 endPoint1 = transform.position + transform.forward * mColliderOffset;
             // プレイヤーが直前にインスタンス化したDropPoint
             Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
-
             // endPoint1とendPoint2で作ったベクトルとendPoint2以外のDropPointを先頭から順番で2個ずつで作ったベクトルが交わっているかどうかをチェックする
             for (int i = 0; i < dropPoints.Length - 2; ++i)
             {
@@ -390,13 +351,11 @@ public class Player : MonoBehaviour
                 {
                     continue;
                 }
-
                 // それぞれの座標点と自分自身以外のベクトルの位置関係を計算する(0より大きいならベクトルの左側、0より小さいならベクトルの右側、0ならベクトルの中)
                 float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
                 float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
                 float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
                 float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
-
                 // 二つのベクトルが交わっていたら描画する
                 if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
                 {
@@ -410,43 +369,16 @@ public class Player : MonoBehaviour
                     }
                     verts.Add(crossPoint);
                     // 描画する
-                    PolygonPaintManager.Instance.Paint(verts.ToArray(), _mID, _mColor);
+                    PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
                     // 全てのDropPointを消す
-                    DropPointSystem.Instance.ClearDropPoints(_mID);
+                    DropPointSystem.Instance.ClearDropPoints(mID);
                     // 尻尾のTrailRendererの状態をリセットする
-                    _mDropPointControl.ResetTrail();
+                    mDropPointControl.ResetTrail();
                     break;
                 }
             }
         }
-
     }
-
-    public int GetID() => _mID;
-    public Color GetColor() => _mColor;
-    public float GetCurrentMoveSpeed() => mCurrentMoveSpeed;
-
-    //todo アクセス修飾子の変更予定
-    public void SetStatus(Status status)
-    {
-        mStatus = status;
-    }
-
-    public void SetProperties(int ID, Color color)
-    {
-        if (_mID == -1)
-        {
-            _mID = ID;
-            _mColor = color;
-            if (_mID <= Global.PLAYER_START_POSITIONS.Length)
-            {
-                _mAnim.Init();
-            }
-            name = "Player" + _mID.ToString();
-        }
-    }
-
-
     private void OnEnable()
     {
         mRotateAction.Enable();
@@ -461,26 +393,46 @@ public class Player : MonoBehaviour
     {
         mBoostAction.performed -= OnBoost;
     }
-
     // 隠れ仕様
     private void OnBoost(InputAction.CallbackContext context)
     {
         if (context.performed)
         {
-            if(mStatus == Status.Fine && _isBoosting == false)
+            if (mStatus == Status.Fine && isBoosting == false)
             {
                 mMaxMoveSpeed *= 1.5f;
                 mCurrentMoveSpeed = mMaxMoveSpeed;
-                _isBoosting = true;
-                _mBoostCoolDown = new Timer();
-                _mBoostCoolDown.SetTimer(Global.BOOST_COOLDOWN_TIME,
+                isBoosting = true;
+                mBoostCoolDownTimer = new Timer();
+                mBoostCoolDownTimer.SetTimer(Global.BOOST_COOLDOWN_TIME,
                     () =>
                     {
-                        _boostDurationTime = Global.BOOST_DURATION_TIME;
-                        _isBoosting = false;
+                        mBoostDurationTime = Global.BOOST_DURATION_TIME;
+                        isBoosting = false;
                     });
             }
         }
     }
 
+    #endregion
+    public int GetID() => mID;
+    public Color GetColor() => mColor;
+    public float GetCurrentMoveSpeed() => mCurrentMoveSpeed;
+
+    //todo アクセス修飾子の変更予定
+    public void SetStatus(Status status) => mStatus = status;
+
+    public void SetProperties(int ID, Color color)
+    {
+        if (mID == -1)
+        {
+            mID = ID;
+            mColor = color;
+            if (mID <= Global.PLAYER_START_POSITIONS.Length)
+            {
+                mAnim.Init();
+            }
+            name = "Player" + mID.ToString();
+        }
+    }
 }

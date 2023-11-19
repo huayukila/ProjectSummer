@@ -260,13 +260,13 @@ public class GameManager : Singleton<GameManager>
                 GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player" + (i + 1).ToString());
                 if(playerPrefab != null)
                 {
-                    GameObject gameObject = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
-                    gameObject.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
-                    gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
-                    gameObject.GetComponent<DropPointControl>().Init();
+                    GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
+                    player.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
+                    player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
+                    player.GetComponent<DropPointControl>().Init();
                     if (players.TryGetValue(i + 1, out GameObject value) == false)
                     {
-                        players.Add(i + 1, gameObject);
+                        players.Add(i + 1, player);
                         dropPointSystem.InitPlayerDropPointGroup(i + 1);
                     }
                 }

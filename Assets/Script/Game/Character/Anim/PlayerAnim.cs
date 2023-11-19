@@ -2,20 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AnimType
-{
-    Explode,
-    Respawn
-}
-
-public interface IAnim
-{
-    public void Play(AnimType type);
-
-    public void Stop();
-}
-
-public class PlayerAnim : MonoBehaviour,IAnim
+public class PlayerAnim : CharacterAnim
 {
 
     private GameObject mShadow;                        // プレイヤーが復活する時の影
@@ -50,6 +37,7 @@ public class PlayerAnim : MonoBehaviour,IAnim
 
         mPlayer = GetComponent<Player>();
 
+
     }
     // Start is called before the first frame update
     void Start()
@@ -68,6 +56,8 @@ public class PlayerAnim : MonoBehaviour,IAnim
             if (mRespawnAnimationTimer.IsTimerFinished())
             {
                 ResetRespawnAnimation();
+                isStopped = true;
+                SwitchAnimState(AnimType.None);
             }
         }
 
@@ -117,10 +107,12 @@ public class PlayerAnim : MonoBehaviour,IAnim
         mBigSpider.transform.position += Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1];
         mShadow.transform.position = Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1];
     }
-    public void Play(AnimType type)
+    public override void Play()
     {
-        switch(type)
+        switch(mType)
         {
+            case AnimType.None:
+                break;
             // 爆発
             case AnimType.Explode:
                 // 爆発アニメーション
@@ -143,15 +135,15 @@ public class PlayerAnim : MonoBehaviour,IAnim
                         {
                             mRespawnAnimationTimer = null;
                         });
-
+                    isStopped = false;
                     break;
                 }
         }
        
     }
 
-    public void Stop()
+    public override void Stop()
     {
-        
+
     }
 }
