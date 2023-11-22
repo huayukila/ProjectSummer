@@ -1,3 +1,4 @@
+using Character;
 public interface IPlayer2ItemSystem
 {
     public bool HadSilk { get; }

@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Character;
 
 public class PlayerAnim : CharacterAnim
 {
@@ -121,6 +120,7 @@ public class PlayerAnim : CharacterAnim
                     explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
                     // ”š”­‚ÌŒø‰Ê‰¹‚ð—¬‚·
                     AudioManager.Instance.PlayFX("BoomFX", 0.7f);
+                    SwitchAnimState(AnimType.None);
                 }
                 break;
             // •œ‹A
@@ -142,7 +142,7 @@ public class PlayerAnim : CharacterAnim
        
     }
 
-    public override void Stop()
+    public override void Pause()
     {
 
     }
