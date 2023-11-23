@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
+using Gaming.PowerUp;
 
 namespace Character
 {
@@ -104,6 +105,7 @@ namespace Character
         {
             if(other.gameObject.tag.Contains("DropPoint"))
             {
+                // 自分のDropPoint以外のDropPointに当たったら
                 if(other.gameObject.tag.Contains(mID.ToString()) == false)
                 {
                     if (hasSilk == true)
@@ -170,8 +172,8 @@ namespace Character
             mRotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
             // プレイヤーがいるところの地面の色をチェックする
             CheckGroundColor();
-            // 領域は描画できるかどうかをチェックする
-            CheckCanPaint();
+            // 領域を描画してみる
+            TryPaintArea();
             //TODO ブースト（隠れ仕様）
             if(mBoostCoolDownTimer != null)
             {
@@ -335,7 +337,7 @@ namespace Character
         /// <summary>
         /// プレイヤー領域を描画してみる関数
         /// </summary>
-        private void CheckCanPaint()
+        private void TryPaintArea()
         {
             Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(mID);
             // DropPointは4個以上あれば描画できる

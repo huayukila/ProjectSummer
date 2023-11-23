@@ -1,4 +1,5 @@
 using UnityEngine;
+using Gaming.PowerUp;
 
 public struct AddScoreEvent
 {
@@ -10,6 +11,10 @@ public struct PickSilkEvent
 {
 
 }
+public struct SpawnSilkEvent
+{
+    public GameObject silk;
+}
 public struct DropSilkEvent
 {
     public DropMode dropMode;
@@ -20,3 +25,4 @@ public struct PlayerRespawnEvent
 {
     public GameObject player;
 }
+

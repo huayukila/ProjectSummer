@@ -281,8 +281,9 @@ public class GameManager : Singleton<GameManager>
             playerOne = players[1];
             playerTwo = players[2];
 
-            ScoreItemManager.Instance.Init();
-            InputSetting.Init();
+            Gaming.PowerUp.GoldenSilkSystem.Instance.Init();
+            GoldenSilkManager goldenSilkManager = GoldenSilkManager.Instance;
+            DeviceSetting.Init();
         }
         else
         {

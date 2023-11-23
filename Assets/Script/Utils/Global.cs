@@ -37,6 +37,7 @@ public static class Global
     public static readonly float STAGE_WIDTH = 72.0f;
 
     public static readonly int SILK_SCORE = 100;
+    public static readonly int MAX_SILK_COUNT = 3;
 
     public static readonly float SET_GAME_TIME = 180.0f;　　　　　　　　　　　　　　　　　　　　　//ゲーム時間
 
@@ -47,5 +48,8 @@ public static class Global
 
     public static readonly float BOOST_DURATION_TIME = 1.0f;
     public static readonly float BOOST_COOLDOWN_TIME = 5.0f;
+
+    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(0, 1000.0f, 0);           //生成されたオブジェクトの保存座標
+
 
 }

@@ -1,6 +1,6 @@
 using UnityEngine.InputSystem;
 
-public static class InputSetting
+public static class DeviceSetting
 {
     private static int _gamepadCount = Gamepad.all.Count;   
     public static void Init()

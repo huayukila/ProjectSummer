@@ -21,8 +21,6 @@ public interface IAnim
 
 public abstract class CharacterAnim : MonoBehaviour, IAnim
 {
-
-
     protected AnimType mType = AnimType.None;
     public bool isStopped { get; set; } = true;
     public abstract void Play();
