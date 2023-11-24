@@ -6,24 +6,27 @@ namespace Gaming.PowerUp
 {
     public interface IGoldenSilk
     {
-        void SetState(State state);
-        void SetDropMode(DropMode dropMode);
+        void StartDrop(Vector3 position);
+        void StartDropSilkStandard();
+        void StartDropSilkEdge();
     }
-    public enum State
-    {
-        Active,         // 場にある
-        Inactive,       // 生成されていない
-        Droping,        // 落下中
-        Captured        // プレイヤーに取られた
-    }
-    public enum DropMode
-    {
-        None,            
-        Standard,       // 普通のとき
-        Edge            // 壁際にあるとき
-    };
+
     public class GoldenSilkControl : MonoBehaviour, IGoldenSilk
     {
+        private enum State
+        {
+            Active,         // 場にある
+            Inactive,       // 生成されていない
+            Droping,        // 落下中
+            Captured        // プレイヤーに取られた
+        }
+
+        private enum DropMode
+        {
+            None,
+            Standard,       // 普通のとき
+            Edge            // 壁際にあるとき
+        };
 
         private Timer mSpawnTimer;          // 金の糸を生成することを管理するタイマー
         private GameObject mSilkShadow;     // 金の糸の影
@@ -31,8 +34,8 @@ namespace Gaming.PowerUp
         private Vector3 _awayFromEdgeStartPos = Vector3.zero;
         private Vector3 _awayFromEdgeEndPos = Vector3.zero;
         [SerializeField]
-        public State CurrentState { get; private set; } = State.Inactive;
-        public DropMode Mode { get; private set; } = DropMode.None;
+        private State currentState = State.Inactive;
+        private DropMode mode = DropMode.None;
 
         // Start is called before the first frame update
         void Start()
@@ -44,7 +47,7 @@ namespace Gaming.PowerUp
         // Update is called once per frame
         void Update()
         {
-            switch (CurrentState)
+            switch (currentState)
             {
                 // 生成されていないときは処理しない
                 case State.Inactive:
@@ -76,14 +79,12 @@ namespace Gaming.PowerUp
             transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
             mSilkShadow.transform.localScale += Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
         }
-        
+
         /// <summary>
         /// 落下アニメーションを初期化する関数
         /// </summary>
         private void InitSpawnAnimation()
         {
-            mSilkShadow.transform.position = GoldenSilkSystem.Instance.GetInSpaceRandomPosition() - new Vector3(0, 0.2f, 0);
-            transform.position = mSilkShadow.transform.position + Vector3.forward * 150 + new Vector3(0, 0.2f, 0);
             transform.localScale = Vector3.one * 1.9f;
             AudioManager.Instance.PlayFX("FallFX", 0.7f);
             mSpawnTimer = new Timer();
@@ -94,7 +95,7 @@ namespace Gaming.PowerUp
                     GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
                     smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                     smoke.transform.position -= new Vector3(0.0f, 0.2f, 0.0f);
-                    CurrentState = State.Active;
+                    currentState = State.Active;
                 }
                 );
 
@@ -110,18 +111,31 @@ namespace Gaming.PowerUp
             mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
         }
 
-        private void OnSetState(State state) => CurrentState = state;
-        private void OnSetDropMode(DropMode dropMode) => Mode = dropMode;
+        private void OnSetState(State state) => currentState = state;
+        private void OnSetDropMode(DropMode dropMode) => mode = dropMode;
 
-        public void SetState(State state)
+        public void StartDrop(Vector3 position)
         {
-            OnSetState(state);
+            SetPosition(position);
+            OnSetState(State.Droping);
         }
 
-        public void SetDropMode(DropMode dropMode)
+        public void StartDropSilkStandard()
         {
-            OnSetDropMode(dropMode);
+            OnSetDropMode(DropMode.Standard);
         }
+        
+        public void StartDropSilkEdge()
+        {
+            OnSetDropMode(DropMode.Edge);
+        }
+
+        private void SetPosition(Vector3 position)
+        {
+            mSilkShadow.transform.position = position - new Vector3(0, 0.2f, 0);
+            transform.position = mSilkShadow.transform.position + Vector3.forward * 150 + new Vector3(0, 0.2f, 0);
+        }
+
 
     }
 

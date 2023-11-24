@@ -5,13 +5,18 @@ using TMPro.EditorUtilities;
 
 namespace Gaming.PowerUp
 {
+    public interface ISilkEvent
+    {
+        GameObject DropNewSilk();
+        void RecycleSilk(GameObject silk);
+    }
 
-    public class GoldenSilkSystem : SingletonBase<GoldenSilkSystem>
+    public class GoldenSilkSystem : SingletonBase<GoldenSilkSystem>, ISilkEvent
     {
         private GameObject mGoldenSilkPrefab;            // 金の糸のプレハブ
 
         private Stack<GameObject> mGoldenSilkPool = new Stack<GameObject>();        // 金の糸を保存するスタック
-        private GameObjectFactory mFactory;                                         // GameObjectを作成するファクトリー
+        private IGameObjectFactory mFactory;                                         // GameObjectを作成するファクトリー
 
         // 生成されてた金の糸の数
         public int CurrentSilkCount
@@ -39,7 +44,7 @@ namespace Gaming.PowerUp
         /// 未完成のため、固定位置に生成している
         /// </summary>
         /// <returns></returns>
-        public Vector3 GetInSpaceRandomPosition()
+        private Vector3 GetInSpaceRandomPosition()
         {
             // ステージの一定範囲内にインスタンス化する
             float spawnAreaLength = Global.STAGE_LENGTH / 2.5f;
@@ -64,22 +69,22 @@ namespace Gaming.PowerUp
         /// <summary>
         /// 金の網を持っていたプレイヤーが死んだら金の網をドロップする
         /// </summary>
-        private void DropGoldenSilk(DropMode mode, Vector3 pos)
+        private void DropGoldenSilk(Vector3 pos)
         {
-            switch (mode)
-            {
-                case DropMode.Standard:
-                    mGoldenSilkPrefab.transform.position = pos;
-                    break;
-                case DropMode.Edge:
-                    mGoldenSilkPrefab.transform.position = pos;
+            //switch (mode)
+            //{
+            //    case DropMode.Standard:
+            //        mGoldenSilkPrefab.transform.position = pos;
+            //        break;
+            //    case DropMode.Edge:
+                    //mGoldenSilkPrefab.transform.position = pos;
                     /*
                     _awayFromEdgeStartPos = pos;
                     _awayFromEdgeEndPos = (pos - new Vector3(0.0f, 0.64f, 0.0f)) * 0.7f + new Vector3(0.0f, 0.64f, 0.0f) * 0.3f;
                     _isStartAwayFromEdge = true;
                     */
-                    break;
-            }
+                    //break;
+            //}
             SetDropSilkStatus();
         }
 
@@ -88,11 +93,6 @@ namespace Gaming.PowerUp
         /// </summary>
         private void EventRegister()
         {
-            TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
-            {
-                DropGoldenSilk(e.dropMode, e.pos);
-
-            });
             TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
             {
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
@@ -104,24 +104,47 @@ namespace Gaming.PowerUp
         /// 金の糸を配給する
         /// </summary>
         /// <returns>金の糸</returns>
-        public GameObject Allocate()
+        public GameObject DropNewSilk()
         {
             // プールにないときは新しいのを作って返す
-            return mGoldenSilkPool.Count == 0 ? mFactory.CreateObject() : mGoldenSilkPool.Pop();
+            GameObject newSilk = Allocate();
+
+            //生成したGoldenSilkのセットアップ
+            GoldenSilkControl ctrl = newSilk.GetComponent<GoldenSilkControl>();
+            ctrl.StartDrop(GetInSpaceRandomPosition());
+
+            return newSilk;
         }
+
         /// <summary>
-        /// 使い切ったオブジェクトを回収する
+        /// 使い切った金の糸を回収する
         /// </summary>
-        /// <param name="obj">オブジェクト</param>
-        public void Recycle(GameObject obj)
+        /// <param name="obj">金の糸</param>
+        public void RecycleSilk(GameObject obj)
         {
             if (mGoldenSilkPool.Count < Global.MAX_SILK_COUNT && obj != null)
             {
-                obj.transform.position = Global.GAMEOBJECT_STACK_POS;
-                mGoldenSilkPool.Push(obj);
+                if (obj.GetComponent<GoldenSilkControl>() != null)
+                {
+                    obj.transform.position = Global.GAMEOBJECT_STACK_POS;
+                    Recycle(obj);
+
+                }
             }
         }
 
+        private GameObject Allocate()
+        {
+            return mGoldenSilkPool.Count == 0 ? mFactory.CreateObject() : mGoldenSilkPool.Pop();
+        }
+
+        private void Recycle(GameObject obj)
+        {
+            if(mGoldenSilkPool.Count < Global.MAX_SILK_COUNT)
+            {
+                mGoldenSilkPool.Push(obj);
+            }
+        }
     }
 
 }

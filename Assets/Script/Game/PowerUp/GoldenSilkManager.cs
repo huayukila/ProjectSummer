@@ -17,7 +17,7 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>
         // ƒCƒxƒ“ƒg‚ð“o˜^‚·‚é
         TypeEventSystem.Instance.Register<SpawnSilkEvent>(e =>
         {
-            e.silk.GetComponent<GoldenSilkControl>()?.SetState(State.Droping);
+            //e.silk.GetComponent<GoldenSilkControl>()?.SetState(State.Droping);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
@@ -25,31 +25,37 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>
     // Update is called once per frame
     void Update()
     {
-        if ( mDropSilkTimer != null )
-        {
-            if (mDropSilkTimer.IsTimerFinished())
+        if (mDropSilkTimer != null){
+            mDropSilkTimer.IsTimerFinished();
+        }
+
+        SetSilkSpawnTimer();
+    }
+
+    void SetSilkSpawnTimer()
+    {
+        if (mDropSilkTimer != null)
+            return;
+        
+        if (GoldenSilkSystem.Instance.CurrentSilkCount >= Global.MAX_SILK_COUNT)
+            return;
+
+        mDropSilkTimer = new Timer();
+        mDropSilkTimer.SetTimer(
+            Global.SILK_SPAWN_TIME,
+            () =>
             {
+                GameObject obj = GoldenSilkSystem.Instance.Allocate();
+                if (obj != null)
+                {
+                    SpawnSilkEvent spawnSilkEvent = new SpawnSilkEvent{
+                        silk = obj,
+                    };
+                    TypeEventSystem.Instance.Send<SpawnSilkEvent>(spawnSilkEvent);
+                }
+
                 mDropSilkTimer = null;
             }
-        }
-        else if(GoldenSilkSystem.Instance.CurrentSilkCount < Global.MAX_SILK_COUNT)
-        {
-            mDropSilkTimer = new Timer();
-            mDropSilkTimer.SetTimer(Global.SILK_SPAWN_TIME,
-                () =>
-                {
-                    GameObject obj = GoldenSilkSystem.Instance.Allocate();
-                    if(obj != null)
-                    {
-                        SpawnSilkEvent spawnSilkEvent = new SpawnSilkEvent
-                        {
-                            silk = obj,
-                        };
-                        TypeEventSystem.Instance.Send<SpawnSilkEvent>(spawnSilkEvent);
-
-                    }
-                }
-                );
-        }
+        );
     }
 }
