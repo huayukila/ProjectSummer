@@ -67,28 +67,6 @@ namespace Gaming.PowerUp
         }
 
         /// <summary>
-        /// 金の網を持っていたプレイヤーが死んだら金の網をドロップする
-        /// </summary>
-        private void DropGoldenSilk(Vector3 pos)
-        {
-            //switch (mode)
-            //{
-            //    case DropMode.Standard:
-            //        mGoldenSilkPrefab.transform.position = pos;
-            //        break;
-            //    case DropMode.Edge:
-                    //mGoldenSilkPrefab.transform.position = pos;
-                    /*
-                    _awayFromEdgeStartPos = pos;
-                    _awayFromEdgeEndPos = (pos - new Vector3(0.0f, 0.64f, 0.0f)) * 0.7f + new Vector3(0.0f, 0.64f, 0.0f) * 0.3f;
-                    _isStartAwayFromEdge = true;
-                    */
-                    //break;
-            //}
-            SetDropSilkStatus();
-        }
-
-        /// <summary>
         /// イベントを登録する関数
         /// </summary>
         private void EventRegister()

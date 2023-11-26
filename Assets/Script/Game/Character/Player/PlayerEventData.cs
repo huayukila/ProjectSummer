@@ -17,12 +17,11 @@ public struct SpawnSilkEvent
 }
 public struct DropSilkEvent
 {
-    public DropMode dropMode;
     public Vector3 pos;
 }
 
 public struct PlayerRespawnEvent
 {
-    public GameObject player;
+    public int ID;
 }
 

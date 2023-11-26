@@ -28,11 +28,10 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>
         if (mDropSilkTimer != null){
             mDropSilkTimer.IsTimerFinished();
         }
-
         SetSilkSpawnTimer();
     }
 
-    void SetSilkSpawnTimer()
+    private void SetSilkSpawnTimer()
     {
         if (mDropSilkTimer != null)
             return;
@@ -45,7 +44,7 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>
             Global.SILK_SPAWN_TIME,
             () =>
             {
-                GameObject obj = GoldenSilkSystem.Instance.Allocate();
+                GameObject obj = GoldenSilkSystem.Instance.DropNewSilk();
                 if (obj != null)
                 {
                     SpawnSilkEvent spawnSilkEvent = new SpawnSilkEvent{

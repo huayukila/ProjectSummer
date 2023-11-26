@@ -15,15 +15,15 @@ namespace Gaming.PowerUp
     {
         private enum State
         {
+            Inactive = 0,   // ¶¬‚³‚ê‚Ä‚¢‚È‚¢
             Active,         // ê‚É‚ ‚é
-            Inactive,       // ¶¬‚³‚ê‚Ä‚¢‚È‚¢
             Droping,        // —‰º’†
             Captured        // ƒvƒŒƒCƒ„[‚Éæ‚ç‚ê‚½
         }
 
         private enum DropMode
         {
-            None,
+            None = 0,
             Standard,       // •’Ê‚Ì‚Æ‚«
             Edge            // •ÇÛ‚É‚ ‚é‚Æ‚«
         };

@@ -11,6 +11,7 @@ namespace Character
     {
         public enum Status
         {
+            None = 0,
             Fine,
             Dead,
             Invincible
@@ -28,7 +29,7 @@ namespace Character
         private Vector3 mRotateDirection;                   // プレイヤーの回転方向
         private Timer mBoostCoolDownTimer = null;           // ブーストタイマー（隠れ仕様）
         private float mBoostDurationTime;                   // ブースト持続時間（隠れ仕様）
-        private bool isBoosting = false;                    // ブーストしているかのフラグ
+        private bool mIsBoosting = false;                    // ブーストしているかのフラグ
         private SpriteRenderer mImageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
         private PlayerAnim mAnim;
         private DropPointControl mDropPointControl;         // プレイヤーのDropPointControl
@@ -37,7 +38,7 @@ namespace Character
         //TODO refactorying
         private int mID;                                    // プレイヤーID
         private Color mColor;                               // プレイヤーの領域の色
-        private bool hasSilk;                               // プレイヤーが金の糸を持っているかのフラグ
+        private bool mHasSilk;                               // プレイヤーが金の糸を持っているかのフラグ
         private int mSilkCount;                             // プレイヤーが持っている金の糸の数
         private GameObject mHasSilkImage;                   // 金の糸を持っていることを示す画像
 
@@ -81,19 +82,18 @@ namespace Character
         private void OnCollisionEnter(Collision collision)
         {
             // 死亡したプレイヤーは金の網を持っていたら
-            if (hasSilk == true)
+            if (mHasSilk == true)
             {
                 DropSilkEvent dropSilkEvent = new DropSilkEvent()
                 {
                     pos = transform.position,
-                    dropMode = DropMode.Standard
                 };
                 // 金の糸のドロップ場所を設定する
 
                 // 壁にぶつかったら
                 if (collision.gameObject.CompareTag("Wall"))
                 {
-                    dropSilkEvent.dropMode = DropMode.Edge; 
+
                 }
                 TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
             }
@@ -108,12 +108,11 @@ namespace Character
                 // 自分のDropPoint以外のDropPointに当たったら
                 if(other.gameObject.tag.Contains(mID.ToString()) == false)
                 {
-                    if (hasSilk == true)
+                    if (mHasSilk == true)
                     {
                         DropSilkEvent dropSilkEvent = new DropSilkEvent()
                         {
                             pos = transform.position,
-                            dropMode = DropMode.Standard
                         };
                         TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
                     }
@@ -128,7 +127,7 @@ namespace Character
                 //TODO (3個まで追加)
 
                 // 金の糸の画像を表示
-                hasSilk = true;
+                mHasSilk = true;
                 mHasSilkImage.SetActive(true);
                 mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
                 TypeEventSystem.Instance.Send<PickSilkEvent>();
@@ -138,7 +137,7 @@ namespace Character
             else if (other.gameObject.CompareTag("Goal"))
             {
                 // 自分が金の糸を持っていたら
-                if (hasSilk == true)
+                if (mHasSilk == true)
                 {
                     AddScoreEvent addScoreEvent = new AddScoreEvent()
                     {
@@ -147,7 +146,7 @@ namespace Character
                     };
 
                     TypeEventSystem.Instance.Send<AddScoreEvent>(addScoreEvent);
-                    hasSilk = false;
+                    mHasSilk = false;
                     mHasSilkImage.SetActive(false);
                     mSilkCount = 0;
                 }
@@ -161,7 +160,7 @@ namespace Character
             // プレイヤー画像の向きを変える
             FlipCharacterImage();
             // 金の網のを持っていれば、プレイヤー画像の上に表示する
-            if (hasSilk == true)
+            if (mHasSilk == true)
             {
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
                 mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
@@ -283,7 +282,7 @@ namespace Character
             // プレイヤー復活イベントを喚起する
             PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
             {
-                player = gameObject
+                ID = mID
             };
             TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
             mHasSilkImage.SetActive(false);
@@ -302,8 +301,8 @@ namespace Character
             mStatus = Status.Dead;
             transform.localScale = Vector3.one;
             mCurrentMoveSpeed = 0.0f;
-            hasSilk = false;
-            isBoosting = false;
+            mHasSilk = false;
+            mIsBoosting = false;
             mBoostDurationTime = Global.BOOST_DURATION_TIME;
             mBoostCoolDownTimer = null;
             mSilkCount = 0;
@@ -402,17 +401,17 @@ namespace Character
         {
             if (context.performed)
             {
-                if (mStatus == Status.Fine && isBoosting == false)
+                if (mStatus == Status.Fine && mIsBoosting == false)
                 {
                     mMaxMoveSpeed *= 1.5f;
                     mCurrentMoveSpeed = mMaxMoveSpeed;
-                    isBoosting = true;
+                    mIsBoosting = true;
                     mBoostCoolDownTimer = new Timer();
                     mBoostCoolDownTimer.SetTimer(Global.BOOST_COOLDOWN_TIME,
                         () =>
                         {
                             mBoostDurationTime = Global.BOOST_DURATION_TIME;
-                            isBoosting = false;
+                            mIsBoosting = false;
                         });
                 }
             }
@@ -422,10 +421,6 @@ namespace Character
         public int GetID() => mID;
         public Color GetColor() => mColor;
         public float GetCurrentMoveSpeed() => mCurrentMoveSpeed;
-
-        //todo アクセス修飾子の変更予定
-        public void SetStatus(Status status) => mStatus = status;
-
         public void SetProperties(int ID, Color color)
         {
             if (mID == -1)
@@ -437,6 +432,22 @@ namespace Character
                     mAnim.Init();
                 }
                 name = "Player" + mID.ToString();
+            }
+        }
+
+        public void StartRespawn()
+        {
+            if(mStatus == Status.Dead)
+            {
+                transform.position = Global.PLAYER_START_POSITIONS[mID - 1];
+                transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
+                mStatus = Status.Fine;
+                GetComponentInChildren<TrailRenderer>().enabled = true;
+                GetComponent<DropPointControl>().enabled = true;
+                GetComponent<Collider>().enabled = true;
+                GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
+                smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
+                smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
             }
         }
     }
