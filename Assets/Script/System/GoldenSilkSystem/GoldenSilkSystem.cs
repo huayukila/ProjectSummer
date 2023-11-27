@@ -58,24 +58,13 @@ namespace Gaming.PowerUp
             }
             return new Vector3(posX, 0.54f, posZ);
         }
-        /// <summary>
-        /// 金の網が落ちたときのステータスを設定する
-        /// </summary>
-        private void SetDropSilkStatus()
-        {
-            mGoldenSilkPrefab.SetActive(true);
-        }
 
         /// <summary>
         /// イベントを登録する関数
         /// </summary>
         private void EventRegister()
         {
-            TypeEventSystem.Instance.Register<PickSilkEvent>(e =>
-            {
-                AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
 
-            });
         }
 
         /// <summary>

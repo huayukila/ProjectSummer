@@ -389,6 +389,7 @@ namespace Character
             // ‹à‚ÌŽ…‚Ì‰æ‘œ‚ð•\Ž¦
             if(IsPickedNew)
             {
+                AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
                 mHasSilk = true;
                 mHasSilkImage.SetActive(true);
                 mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
