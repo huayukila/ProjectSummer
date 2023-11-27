@@ -189,7 +189,6 @@ public class GameManager : Singleton<GameManager>
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreSystem.Instance.ResetScore();
-            //TODO test code
             for (int i = 0; i < maxPlayerCount; ++i)
             {
                 GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player" + (i + 1).ToString());
@@ -199,7 +198,7 @@ public class GameManager : Singleton<GameManager>
                     player.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
                     player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
                     player.GetComponent<DropPointControl>().Init();
-                    if (spiderPlayers.TryGetValue(i + 1, out SpiderPlayer value) == false)
+                    if (!spiderPlayers.ContainsKey(i + 1))
                     {
                         SpiderPlayer spiderPlayer = new SpiderPlayer
                         {

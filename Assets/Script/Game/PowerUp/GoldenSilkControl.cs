@@ -18,7 +18,6 @@ namespace Gaming.PowerUp
             Inactive = 0,   // ê∂ê¨Ç≥ÇÍÇƒÇ¢Ç»Ç¢
             Active,         // èÍÇ…Ç†ÇÈ
             Droping,        // óéâ∫íÜ
-            Captured        // ÉvÉåÉCÉÑÅ[Ç…éÊÇÁÇÍÇΩ
         }
 
         private enum DropMode
@@ -120,6 +119,13 @@ namespace Gaming.PowerUp
             OnSetState(State.Droping);
         }
 
+        public void StartInactive()
+        {
+            mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
+            transform.position = Global.GAMEOBJECT_STACK_POS;
+            OnSetState(State.Inactive);
+        }
+
         public void StartDropSilkStandard()
         {
             OnSetDropMode(DropMode.Standard);
@@ -129,7 +135,6 @@ namespace Gaming.PowerUp
         {
             OnSetDropMode(DropMode.Edge);
         }
-
         private void SetPosition(Vector3 position)
         {
             mSilkShadow.transform.position = position - new Vector3(0, 0.2f, 0);

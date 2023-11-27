@@ -12,9 +12,9 @@ public interface IParticleSystem
 public abstract class ParticleSystemBase : MonoBehaviour,IParticleSystem
 {
     protected Dictionary<string, GameObject> mParticleObjects;
-    protected GameObject mParticleObject;                         // パーティクルシステムが入っているオブジェクト
-    protected ParticleSystem mParticleSystem;                     // パーティクルシステム
-    protected ParticleSystem.MainModule mMainModule;              // パーティクルシステムのプロパティを設定するための変数
+    protected GameObject mParticleObject;                       // パーティクルシステムが入っているオブジェクト
+    protected ParticleSystem mParticleSystem;                   // パーティクルシステム
+    protected MainModule mMainModule;                           // パーティクルシステムのプロパティを設定するための変数
 
     protected virtual void Awake() {}
     public void Play()

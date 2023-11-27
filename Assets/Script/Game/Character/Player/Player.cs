@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
+using Math;
 
 namespace Character
 {
@@ -38,14 +39,22 @@ namespace Character
         //TODO refactorying
         private int mID;                                    // プレイヤーID
         private Color mColor;                               // プレイヤーの領域の色
-        private bool mHasSilk;                               // プレイヤーが金の糸を持っているかのフラグ
+        private bool mHasSilk;                              // プレイヤーが金の糸を持っているかのフラグ
         private int mSilkCount;                             // プレイヤーが持っている金の糸の数
         private GameObject mHasSilkImage;                   // 金の糸を持っていることを示す画像
+        private GameObject silkCountImage;
+        //TODO テスト用
+        public Sprite[] silkCountSprites;
 
         private void Awake()
         {
             // 初期化処理
             Init();
+        }
+
+        private void Start()
+        {
+            mParticleSystemControl.Play();
         }
         private void Update()
         {
@@ -119,44 +128,12 @@ namespace Character
                     SetDeadStatus();
                 }
             }
-            // 金の糸に当たったら
-            else if (other.gameObject.CompareTag("GoldenSilk"))
-            {
-                if (mSilkCount == 3)
-                    return;
-                //TODO (3個まで追加)
-
-                // 金の糸の画像を表示
-                mHasSilk = true;
-                mHasSilkImage.SetActive(true);
-                mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
-                TypeEventSystem.Instance.Send<PickSilkEvent>();
-                mSilkCount++;
-            }
-            // ゴールに当たったら
-            else if (other.gameObject.CompareTag("Goal"))
-            {
-                // 自分が金の糸を持っていたら
-                if (mHasSilk == true)
-                {
-                    AddScoreEvent addScoreEvent = new AddScoreEvent()
-                    {
-                        playerID = mID,
-                        silkCount = mSilkCount
-                    };
-
-                    TypeEventSystem.Instance.Send<AddScoreEvent>(addScoreEvent);
-                    mHasSilk = false;
-                    mHasSilkImage.SetActive(false);
-                    mSilkCount = 0;
-                }
-            }
         }
         #region
 
         private void UpdateFine()
         {
-            mParticleSystemControl.Play();
+
             // プレイヤー画像の向きを変える
             FlipCharacterImage();
             // 金の網のを持っていれば、プレイヤー画像の上に表示する
@@ -164,6 +141,7 @@ namespace Character
             {
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
                 mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
+                silkCountImage.transform.position = mHasSilkImage.transform.position + new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
             }
             // プレイヤーインプットを取得する
             Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
@@ -210,6 +188,8 @@ namespace Character
             mBoostDurationTime = Global.BOOST_DURATION_TIME;
             mHasSilkImage = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
             mHasSilkImage.SetActive(false);
+            silkCountImage = Instantiate(GameResourceSystem.Instance.GetPrefabResource("SilkCount"));
+            silkCountImage.SetActive(false);
             // プレイヤー自分の画像のレンダラーを取得する
             mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
             // 表示順位を変換する
@@ -221,6 +201,7 @@ namespace Character
             // PlayerAnimコンポネントを追加する
             mAnim = gameObject.AddComponent<PlayerAnim>();
             mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
+
         }
 
         /// <summary>
@@ -269,8 +250,7 @@ namespace Character
         /// </summary>
         private void SetDeadStatus()
         {
-            mAnim.SwitchAnimState(AnimType.Explode);
-            mAnim.Play();
+            mAnim.StartExplosionAnim();
             // プレイヤーの状態をリセットする
             ResetStatus();
             // プレイヤーの向きをリセットする
@@ -285,9 +265,7 @@ namespace Character
                 ID = mID
             };
             TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
-            mHasSilkImage.SetActive(false);
-            mAnim.SwitchAnimState(AnimType.Respawn);
-            mAnim.Play();
+            mAnim.StartRespawnAnim();
             mParticleSystemControl.Stop();
         }
 
@@ -310,6 +288,9 @@ namespace Character
             DropPointSystem.Instance.ClearDropPoints(mID);
             mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             mDropPointControl.ResetTrail();
+            mHasSilkImage.SetActive(false);
+            silkCountImage.SetActive(false);
+            silkCountImage.GetComponent<SpriteRenderer>().sprite = silkCountSprites[0];
         }
         /// <summary>
         /// 地面の色をチェックする
@@ -373,6 +354,7 @@ namespace Character
                         verts.Add(crossPoint);
                         // 描画する
                         PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
+                        TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
                         DropPointSystem.Instance.ClearDropPoints(mID);
                         // 尻尾のTrailRendererの状態をリセットする
@@ -380,6 +362,40 @@ namespace Character
                         break;
                     }
                 }
+            }
+        }
+
+        private void TryCaptureObject(Vector3[] verts)
+        {
+            Vector3[] silkPos = GoldenSilkManager.Instance.GetOnFieldSilkPos();
+            List<Vector3> caputuredSilk = new List<Vector3>();
+            bool IsPickedNew = false;
+            foreach(Vector3 pos in silkPos)
+            {
+                if(VectorMath.InPolygon(pos,verts))
+                {
+                    mSilkCount++;
+                    caputuredSilk.Add(pos);
+                    IsPickedNew = true;
+
+                }
+            }
+            SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
+            {
+                ID = mID,
+                positions = caputuredSilk.ToArray()
+            };
+            TypeEventSystem.Instance.Send<SilkCapturedEvent>(silkCapturedEvent);
+            // 金の糸の画像を表示
+            if(IsPickedNew)
+            {
+                mHasSilk = true;
+                mHasSilkImage.SetActive(true);
+                mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
+                silkCountImage.SetActive(true);
+                silkCountImage.transform.position = mHasSilkImage.transform.position + new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
+                silkCountImage.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkCount];
+                Debug.Log(name + " has " + mSilkCount + " Silks");
             }
         }
         private void OnEnable()
@@ -427,10 +443,6 @@ namespace Character
             {
                 mID = ID;
                 mColor = color;
-                if (mID <= Global.PLAYER_START_POSITIONS.Length)
-                {
-                    mAnim.Init();
-                }
                 name = "Player" + mID.ToString();
             }
         }
@@ -448,6 +460,7 @@ namespace Character
                 GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
                 smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                 smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
+                mParticleSystemControl.Play();
             }
         }
     }

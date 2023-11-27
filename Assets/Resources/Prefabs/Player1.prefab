@@ -163,6 +163,11 @@ MonoBehaviour:
   mMaxMoveSpeed: 0
   mAcceleration: 0
   mRotationSpeed: 0
+  silkCountSprites:
+  - {fileID: 1261572293, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
+  - {fileID: -939105449, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
+  - {fileID: 1531186191, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
+  - {fileID: -1927035945, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
 --- !u!114 &6685211939137438802
 MonoBehaviour:
   m_ObjectHideFlags: 0

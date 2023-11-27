@@ -4,29 +4,25 @@ using UnityEngine;
 
 public enum AnimType
 {
-    None,
-    Explode,
+    None = 0,
     Respawn
 }
 
 public interface IAnim
 {
     public static bool isStopped { get; set; }
-    public void Play();
 
     public void Pause();
-    public void SwitchAnimState(AnimType type);
 
 }
 
 public abstract class CharacterAnim : MonoBehaviour, IAnim
 {
     protected AnimType mType = AnimType.None;
-    public bool isStopped { get; set; } = true;
-    public abstract void Play();
+    public static bool isStopped { get; set; } = true;
     public abstract void Pause();
 
-    public void SwitchAnimState(AnimType type)
+    protected void SwitchAnimState(AnimType type)
     {
         if(isStopped)
         {

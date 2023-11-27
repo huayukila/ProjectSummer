@@ -10,17 +10,11 @@ public static class UISystem
 {
     public static void DisplayOn(GameObject ui)  //UIを表示
     {
-        if (ui.active == false)
-        {
-            ui.active = true;
-        }
+        ui.SetActive(true);
     }
     public static void DisplayOff(GameObject ui)//UIを非表示・隠す
     {
-        if (ui.active == true)
-        {
-            ui.active = false;
-        }
+        ui.SetActive(false);
     }
     public static void MoveToRight(GameObject ui, float x, float speed)//UIを右に移動(GameObject,移動の終点ｘ,移動のスピード)
     {

@@ -47,17 +47,19 @@ public class PlayerAnim : CharacterAnim
     // Update is called once per frame
     void Update()
     {
-        // 復活アニメーションタイマーがnullじゃなかったら
-        if (mRespawnAnimationTimer != null)
+        switch(mType)
         {
-            // 復活アニメーションの処理
-            UpdateRespawnAnimation();
-            if (mRespawnAnimationTimer.IsTimerFinished())
-            {
-                ResetRespawnAnimation();
-                isStopped = true;
-                SwitchAnimState(AnimType.None);
-            }
+            case AnimType.None:
+                break;
+            case AnimType.Respawn:
+                // 復活アニメーションタイマーがnullじゃなかったら
+                if (mRespawnAnimationTimer != null)
+                {
+                    // 復活アニメーションの処理
+                    UpdateRespawnAnimation();
+                    mRespawnAnimationTimer.IsTimerFinished();
+                }
+                break;
         }
 
     }
@@ -68,7 +70,7 @@ public class PlayerAnim : CharacterAnim
     private void ResetRespawnAnimation()
     {
 
-        mBigSpider.transform.position = Global.PLAYER_START_POSITIONS[mPlayer.GetID()-1] + new Vector3(0.0f, 0.0f, 100.0f);
+        mBigSpider.transform.position = Global.GAMEOBJECT_STACK_POS;
         mBigSpiderLineRenderer.positionCount = 0;
         mShadow.transform.localScale = Vector3.zero;
         mShadowSpriteRenderer.color = Color.clear;
@@ -101,49 +103,37 @@ public class PlayerAnim : CharacterAnim
         }
     }
 
-    public void Init()
-    {
-        mBigSpider.transform.position += Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1];
-        mShadow.transform.position = Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1];
-    }
-    public override void Play()
-    {
-        switch(mType)
-        {
-            case AnimType.None:
-                break;
-            // 爆発
-            case AnimType.Explode:
-                // 爆発アニメーション
-                {
-                    GameObject explosion = Instantiate(mExplosionPrefab, transform.position, Quaternion.identity);
-                    explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
-                    // 爆発の効果音を流す
-                    AudioManager.Instance.PlayFX("BoomFX", 0.7f);
-                    SwitchAnimState(AnimType.None);
-                }
-                break;
-            // 復帰
-            case AnimType.Respawn: 
-                {
-                    // 復活アニメーションを初期化する
-                    transform.position = mBigSpider.transform.position;
-                    mBigSpiderLineRenderer.positionCount = 2;
-                    mRespawnAnimationTimer = new Timer();
-                    mRespawnAnimationTimer.SetTimer(Global.RESPAWN_TIME,
-                        () =>
-                        {
-                            mRespawnAnimationTimer = null;
-                        });
-                    isStopped = false;
-                    break;
-                }
-        }
-       
-    }
-
     public override void Pause()
     {
 
+    }
+
+    public void StartRespawnAnim()
+    {
+        mType = AnimType.Respawn;
+        int index = mPlayer.GetID() - 1;
+        mBigSpider.transform.position = Global.PLAYER_START_POSITIONS[index] + new Vector3(0.0f, 0.0f, 100.0f);
+        mShadow.transform.position = Global.PLAYER_START_POSITIONS[index];
+        // 復活アニメーションを初期化する
+        transform.position = mBigSpider.transform.position;
+        mBigSpiderLineRenderer.positionCount = 2;
+        mRespawnAnimationTimer = new Timer();
+        mRespawnAnimationTimer.SetTimer(Global.RESPAWN_TIME,
+            () =>
+            {
+                ResetRespawnAnimation();
+                isStopped = true;
+                SwitchAnimState(AnimType.None);
+                mRespawnAnimationTimer = null;
+            });
+        isStopped = false;
+    }
+
+    public void StartExplosionAnim()
+    {
+        GameObject explosion = Instantiate(mExplosionPrefab, transform.position, Quaternion.identity);
+        explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        // 爆発の効果音を流す
+        AudioManager.Instance.PlayFX("BoomFX", 0.7f);
     }
 }

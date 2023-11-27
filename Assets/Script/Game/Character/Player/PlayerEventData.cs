@@ -25,3 +25,9 @@ public struct PlayerRespawnEvent
     public int ID;
 }
 
+public struct SilkCapturedEvent
+{
+    public int ID;
+    public Vector3[] positions;
+}
+
