@@ -13,20 +13,6 @@ public class ScoreSystem:Singleton<ScoreSystem>
         player2Score = 0;
     }
 
-    [Obsolete]
-    public void AddScore(int playerNumber) //ScoreSystem.AddScore(1or2)でスコアを増加する。
-    {
-        if (playerNumber == 1)
-        {
-            player1Score ++;
-
-        }
-        else if (playerNumber == 2)
-        {
-            player2Score ++;
-        }
-    }
-
     /// <summary>
     /// 指定したプレイヤーにスコアを加点する。
     /// </summary>

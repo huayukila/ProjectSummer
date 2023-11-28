@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using Character;
 
 public interface IPlayerSetStatus
 {
@@ -9,42 +10,21 @@ public interface IPlayerSetStatus
 }
 public struct SpiderPlayer
 {
-    public GameObject gameObject;
-    public GameObject playerImage;
-    public PlayerStatus playerStatus;
+    public GameObject player;
+    public int ID;
     public Timer spawnTimer;
 }
 public class GameManager : Singleton<GameManager>
 {
     private static int maxPlayerCount = 2;
-    private static int count = 0;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
-    private Dictionary<int, GameObject> players;
-    public GameObject playerOne;
-    public GameObject playerTwo;
-    public GameObject bigSpiderPrefab
-    {
-        get
-        {
-            return _bigSpiderPrefab;
-        }
-
-    }
-
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
-
-    private GameObject _bigSpiderPrefab;
-
-    private Timer _player1Timer;        // プレイヤー1の待機タイマー
-    private Timer _player2Timer;        // プレイヤー2の待機タイマー
-    private GameObject _player1Prefab;
-    private GameObject _player2Prefab;
+    private DropPointSystem dropPointSystem;
 
     protected override void Awake()
     {
         base.Awake();
-        count++;
         //各システムの実例化と初期化
         {
             itemSystem = ItemSystem.Instance;
@@ -54,6 +34,11 @@ public class GameManager : Singleton<GameManager>
         {
             gameResourceSystem = GameResourceSystem.Instance;
             gameResourceSystem.Init();
+        }
+
+        {
+            dropPointSystem = DropPointSystem.Instance;
+            dropPointSystem.Init();
         }
         //シーンの移行命令を受け
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
@@ -88,11 +73,9 @@ public class GameManager : Singleton<GameManager>
                             }
                         }
                     }
-                    Debug.Log(device.displayName + " Added");
                     break;
                 case InputDeviceChange.Disconnected:
                     InputSystem.FlushDisconnectedDevices();
-                    Debug.LogWarning(device.displayName + " Disconnected");
                     break;
                 case InputDeviceChange.Removed:
                     if (device is Gamepad)
@@ -109,16 +92,12 @@ public class GameManager : Singleton<GameManager>
                         }
                     }
                     InputSystem.RemoveDevice(device);
-                    Debug.LogWarning(device.displayName + " Removed");
                     break;
             }
         };
 
-        _bigSpiderPrefab = Resources.Load("Prefabs/BigSpider") as GameObject;
-
         Cursor.lockState = CursorLockMode.Locked;
 
-        Debug.Log(count);
         SceneManager.LoadScene("Title");
     }
 
@@ -131,7 +110,7 @@ public class GameManager : Singleton<GameManager>
     {
         //各システムのupdate
         //シーンの移行など
-        RespawnCheck();
+        CheckRespawn();
     }
 
     //シーンの移行
@@ -150,19 +129,16 @@ public class GameManager : Singleton<GameManager>
     }
     void EndSceneSwitch()
     {
+        dropPointSystem.Deinit();
         SceneManager.LoadScene("End");
     }
 
     private void Init()
     {
-        _player1Prefab = (GameObject)Resources.Load("Prefabs/Player1");
-        _player2Prefab = (GameObject)Resources.Load("Prefabs/Player2");
         spiderPlayers = new Dictionary<int, SpiderPlayer>();
-        //TODO test
-        players = new Dictionary<int, GameObject>();
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
-            RespawnPlayer(e.player);
+            RespawnPlayer(e.ID);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
@@ -170,97 +146,40 @@ public class GameManager : Singleton<GameManager>
     /// <summary>
     /// プレイヤーの復活タイミングをチェックする
     /// </summary>
-    private void RespawnCheck()
+    private void CheckRespawn()
     {
-        // player1のタイマーの待機時間が終わったら
-        if (_player1Timer != null)
+        foreach (var player in spiderPlayers.Values) 
         {
-            if(_player1Timer.IsTimerFinished())
+            if(player.spawnTimer != null)
             {
-                _player1Timer = null;
-            }
-
-        }
-        // player2のタイマーの待機時間が終わったら
-        if (_player2Timer != null)
-        {
-            if (_player2Timer.IsTimerFinished())
-            {
-                _player2Timer = null;
+                player.spawnTimer.IsTimerFinished();
             }
         }
     }
 
-    private void RespawnPlayer(GameObject player)
+    private void RespawnPlayer(int ID)
     {
-        if (player == playerOne)
+
+        if(spiderPlayers.ContainsKey(ID))
         {
-            // 新しいタイマーを生成する
-            if (_player1Timer == null)
-            {
-                _player1Timer = new Timer();
-                _player1Timer.SetTimer(Global.RESPAWN_TIME,
-                    () =>
-                    {
-                        RespawnPlayer1();
-                    }
-                    );
-            }
-
+            Timer spawnTimer = new Timer();
+            spawnTimer.SetTimer(Global.RESPAWN_TIME,
+                 () =>
+                 {
+                     spiderPlayers[ID].player.GetComponent<Player>()?.StartRespawn();
+                     spawnTimer = null;
+                 }
+                 );
+            SpiderPlayer spiderPlayer = spiderPlayers[ID];
+            spiderPlayer.spawnTimer = spawnTimer;
+            spiderPlayers[ID] = spiderPlayer;
         }
-        else if (player == playerTwo)
-        {
-            // 新しいタイマーを生成する
-            if (_player2Timer == null)
-            {
-                _player2Timer = new Timer();
-                _player2Timer.SetTimer(Global.RESPAWN_TIME,
-                    () =>
-                    {
-                        RespawnPlayer2();
-                    }
-                    );
-            }
-
-        }
-    }
-    /// <summary>
-    /// プレイヤー1を復活させる
-    /// </summary>
-    private void RespawnPlayer1()
-    {
-        playerOne.transform.position = Global.PLAYER1_START_POSITION;
-        playerOne.transform.forward = Vector3.right;
-        playerOne.GetComponent<Player1Control>().SetStatus(PlayerStatus.Fine);
-        playerOne.GetComponentInChildren<TrailRenderer>().enabled = true;
-        playerOne.GetComponent<DropPointControl>().enabled = true;
-        playerOne.GetComponent<Collider>().enabled = true;
-        GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, playerOne.transform.position, Quaternion.identity);
-        smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
-        smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
-    }
-
-    /// <summary>
-    /// プレイヤー2を復活させる
-    /// </summary>
-    private void RespawnPlayer2()
-    {
-        playerTwo.transform.position = Global.PLAYER2_START_POSITION;
-        playerTwo.transform.forward = Vector3.left;
-        playerTwo.GetComponent<Player2Control>().SetStatus(PlayerStatus.Fine);
-        playerTwo.GetComponentInChildren<TrailRenderer>().enabled = true;
-        playerTwo.GetComponent<DropPointControl>().enabled = true;
-        playerTwo.GetComponent<Collider>().enabled = true;
-        GameObject smoke = Instantiate(Resources.Load("Prefabs/Smoke") as GameObject, playerTwo.transform.position, Quaternion.identity);
-        smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
-        smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
     }
 
     private void OnDestroy()
     {
-        Resources.UnloadUnusedAssets();
         SceneManager.sceneLoaded -= SceneLoaded;
-        gameResourceSystem.onDeleteResource();
+        gameResourceSystem.Deinit();
     }
 
     private void SceneLoaded(Scene nextScene, LoadSceneMode mode)
@@ -270,30 +189,40 @@ public class GameManager : Singleton<GameManager>
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreSystem.Instance.ResetScore();
-            //TODO test code
             for (int i = 0; i < maxPlayerCount; ++i)
             {
-                GameObject gameObject = Instantiate(GameResourceSystem.Instance.playerPrefabs[i], Global.PLAYER_START_POSITIONS[i],Quaternion.identity);
-                gameObject.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i], "Player" + (i + 1).ToString());
-                gameObject.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
-                if (players.TryGetValue(i + 1, out GameObject value) == false)
+                GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player" + (i + 1).ToString());
+                if(playerPrefab != null)
                 {
-                    players.Add(i + 1, gameObject);
+                    GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
+                    player.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
+                    player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
+                    player.GetComponent<DropPointControl>().Init();
+                    if (!spiderPlayers.ContainsKey(i + 1))
+                    {
+                        SpiderPlayer spiderPlayer = new SpiderPlayer
+                        {
+                            ID = i + 1,
+                            player = player,
+                            spawnTimer = null
+                        };
+                        spiderPlayers.Add(i + 1, spiderPlayer);
+                        dropPointSystem.InitPlayerDropPointGroup(i + 1);
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Can't find Resource of Player" + (i + 1).ToString());
                 }
             }
 
-            ScoreItemManager.Instance.Init();
-            DropPointManager.Instance.Init();
-            InputManager.Instance.Init();
+            Gaming.PowerUp.GoldenSilkSystem.Instance.Init();
+            GoldenSilkManager goldenSilkManager = GoldenSilkManager.Instance;
+            DeviceSetting.Init();
         }
         else
         {
-            playerOne = null;
-            playerTwo = null;
-            _player1Timer = null;
-            _player2Timer = null;
-            players.Clear();
-            //GameObject switchSceneInputManager = Instantiate(Resources.Load("Prefabs/SwitchSceneManager") as GameObject);
+            spiderPlayers.Clear();
         }
     }
 

@@ -29,16 +29,17 @@ public static class Global
     public static readonly Color PLAYER_TWO_TRACE_COLOR = new Color(0.267f, 0.541f, 0.792f, 1.0f);          // プレイヤー２の痕跡の色
 
 
-    public static readonly float PLAYER_MAX_MOVE_SPEED = 1800.0f;                                // プレイヤーの最大速度
-    public static readonly float PLAYER_ACCELERATION = 700.0f;                                   // プレイヤーの加速度
+    public static readonly float PLAYER_MAX_MOVE_SPEED = 36.0f;                                // プレイヤーの最大速度
+    public static readonly float PLAYER_ACCELERATION = 0.3f;                                   // プレイヤーの加速度
     public static readonly float PLAYER_ROTATION_SPEED = 3.0f;                                   // プレイヤーの回転速度
 
     public static readonly float STAGE_LENGTH = 174.0f;
     public static readonly float STAGE_WIDTH = 72.0f;
 
     public static readonly int SILK_SCORE = 100;
+    public static readonly int MAX_SILK_COUNT = 3;
 
-    public static readonly float SET_GAME_TIME = 3.0f;　　　　　　　　　　　　　　　　　　　　　//ゲーム時間
+    public static readonly float SET_GAME_TIME = 180.0f;　　　　　　　　　　　　　　　　　　　　　//ゲーム時間
 
     public static readonly float INTSTRUCTON_SCENE_TIME = 5f;                                    //ゲーム操作方法紹介画面 PRESS無効の時間
     public static readonly float CREDITS_SCENE_TIME = 3f;                                        //ゲーム終了後の感謝画面 PRESS無効の時間
@@ -47,5 +48,8 @@ public static class Global
 
     public static readonly float BOOST_DURATION_TIME = 1.0f;
     public static readonly float BOOST_COOLDOWN_TIME = 5.0f;
+
+    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(0, 1000.0f, 0);           //生成されたオブジェクトの保存座標
+
 
 }

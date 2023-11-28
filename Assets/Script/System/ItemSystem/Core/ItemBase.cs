@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Character;
 
 public interface IItem
 {
