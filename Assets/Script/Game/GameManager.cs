@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Character;
+using Gaming;
 
 public interface IPlayerSetStatus
 {
@@ -13,6 +14,7 @@ public struct SpiderPlayer
     public GameObject player;
     public int ID;
     public Timer spawnTimer;
+    public GameObject camera;
 }
 public class GameManager : Singleton<GameManager>
 {
@@ -162,6 +164,7 @@ public class GameManager : Singleton<GameManager>
 
         if(spiderPlayers.ContainsKey(ID))
         {
+            
             Timer spawnTimer = new Timer();
             spawnTimer.SetTimer(Global.RESPAWN_TIME,
                  () =>
@@ -172,6 +175,8 @@ public class GameManager : Singleton<GameManager>
                  );
             SpiderPlayer spiderPlayer = spiderPlayers[ID];
             spiderPlayer.spawnTimer = spawnTimer;
+            ICameraCtrl cameraCtrl = spiderPlayer.camera.GetComponent<ICameraCtrl>();
+            cameraCtrl.StopLockOn();
             spiderPlayers[ID] = spiderPlayer;
         }
     }
@@ -194,17 +199,27 @@ public class GameManager : Singleton<GameManager>
                 GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player" + (i + 1).ToString());
                 if(playerPrefab != null)
                 {
-                    GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
-                    player.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
-                    player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
-                    player.GetComponent<DropPointControl>().Init();
                     if (!spiderPlayers.ContainsKey(i + 1))
                     {
+                        GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
+                        player.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
+                        player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
+                        player.GetComponent<DropPointControl>().Init();
+                        GameObject camera = new GameObject("Player" + (i + 1).ToString() + "Camera");
+                        camera.transform.rotation = Quaternion.LookRotation(Vector3.down,Vector3.forward);
+                        Camera cam = camera.AddComponent<Camera>();
+                        cam.rect = new Rect((float)i / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
+                        cam.orthographic = true;
+                        cam.orthographicSize = 36.0f;
+                        cam.depth = 1.0f;
+                        CameraControl camCtrl = camera.AddComponent<CameraControl>();
+                        camCtrl.LockOnTarget(player);
                         SpiderPlayer spiderPlayer = new SpiderPlayer
                         {
                             ID = i + 1,
                             player = player,
-                            spawnTimer = null
+                            spawnTimer = null,
+                            camera = camera
                         };
                         spiderPlayers.Add(i + 1, spiderPlayer);
                         dropPointSystem.InitPlayerDropPointGroup(i + 1);

@@ -41,7 +41,7 @@ public static class Global
 
     public static readonly float SET_GAME_TIME = 180.0f;　　　　　　　　　　　　　　　　　　　　　//ゲーム時間
 
-    public static readonly float INTSTRUCTON_SCENE_TIME = 5f;                                    //ゲーム操作方法紹介画面 PRESS無効の時間
+    public static readonly float INTSTRUCTON_SCENE_TIME = 1f;                                    //ゲーム操作方法紹介画面 PRESS無効の時間
     public static readonly float CREDITS_SCENE_TIME = 3f;                                        //ゲーム終了後の感謝画面 PRESS無効の時間
 
     public static readonly float SILK_SPAWN_TIME = 6.0f;
