@@ -176,6 +176,7 @@ public class GameManager : Singleton<GameManager>
             ICameraCtrl cameraCtrl = spiderPlayer.camera.GetComponent<ICameraCtrl>();
             cameraCtrl.StopLockOn();
             spiderPlayers[ID] = spiderPlayer;
+
         }
     }
 

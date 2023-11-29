@@ -39,13 +39,27 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                         }
                         mCapturedSilk[e.ID].Push(silk);
                         mOnFieldSilk.Remove(silk);
-                        silk.GetComponent<GoldenSilkControl>()?.StartInactive();
+                        silk.GetComponent<IGoldenSilk>()?.SetInactive();
                         break;
                     }
                     ++index;
                 }
             }
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
 
+        TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
+        {
+            if(mCapturedSilk.ContainsKey(e.ID))
+            {
+                GoldenSilkSystem.Instance.RecycleSilk(mCapturedSilk[e.ID].Pop());
+                while (mCapturedSilk[e.ID].Count > 0)
+                {
+                    GameObject dropSilk = mCapturedSilk[(e.ID)].Pop();
+                    dropSilk.GetComponent<IGoldenSilk>()?.StartDrop(e.pos,new Vector3(0,0.64f,0));
+                    mOnFieldSilk.Add(dropSilk);
+                }
+                mCapturedSilk.Remove(e.ID);
+            }
         }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
 

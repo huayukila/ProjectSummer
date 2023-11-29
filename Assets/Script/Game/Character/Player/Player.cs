@@ -261,7 +261,14 @@ namespace Character
             {
                 ID = mID
             };
-            TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
+            TypeEventSystem.Instance.Send(playerRespawnEvent);
+
+            DropSilkEvent dropSilkEvent = new DropSilkEvent()
+            { 
+                ID = mID,
+                pos = transform.position
+            }; 
+            TypeEventSystem.Instance.Send(dropSilkEvent);
             mAnim.StartRespawnAnim();
             mParticleSystemControl.Stop();
         }

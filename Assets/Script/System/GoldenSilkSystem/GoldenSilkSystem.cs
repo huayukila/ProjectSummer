@@ -78,7 +78,7 @@ namespace Gaming.PowerUp
 
             //生成したGoldenSilkのセットアップ
             GoldenSilkControl ctrl = newSilk.GetComponent<GoldenSilkControl>();
-            ctrl.StartDrop(GetInSpaceRandomPosition());
+            ctrl.StartSpawn(GetInSpaceRandomPosition());
 
             return newSilk;
         }
