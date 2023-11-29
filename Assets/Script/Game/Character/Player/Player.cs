@@ -99,7 +99,7 @@ namespace Character
                 };
                 // ‹à‚Ì…‚ÌƒhƒƒbƒvêŠ‚ğİ’è‚·‚é
 
-                // •Ç‚É‚Ô‚Â‚©‚Á‚½‚ç
+                //TODO •Ç‚É‚Ô‚Â‚©‚Á‚½‚ç
                 if (collision.gameObject.CompareTag("Wall"))
                 {
 

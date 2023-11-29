@@ -21,7 +21,7 @@ public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceMan
         CharacterImageDataBase characterImageDataBase = Resources.Load("CharacterImageDataBase") as CharacterImageDataBase;
         mCharacterImages = characterImageDataBase.GetCharacterImageList();
     }
-
+    
     public void Deinit()
     {
         mPrefabs.Clear();

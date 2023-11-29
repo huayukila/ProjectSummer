@@ -6,10 +6,7 @@ using Character;
 using Gaming;
 using UnityEngine.U2D;
 
-public interface IPlayerSetStatus
-{
-    
-}
+
 public struct SpiderPlayer
 {
     public GameObject player;
@@ -19,7 +16,7 @@ public struct SpiderPlayer
 }
 public class GameManager : Singleton<GameManager>
 {
-    private static int maxPlayerCount = 2;
+    private static readonly int maxPlayerCount = 2;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
