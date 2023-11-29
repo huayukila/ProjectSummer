@@ -248,6 +248,18 @@ namespace Character
         private void SetDeadStatus()
         {
             mAnim.StartExplosionAnim();
+            DropSilkEvent dropSilkEvent = new DropSilkEvent()
+            {
+                dropCount = mSilkCount,
+                pos = transform.position
+            };
+            TypeEventSystem.Instance.Send(dropSilkEvent);
+            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
+            {
+                ID = mID
+            };
+            TypeEventSystem.Instance.Send(playerRespawnEvent);
+
             // プレイヤーの状態をリセットする
             ResetStatus();
             // プレイヤーの向きをリセットする
@@ -257,18 +269,6 @@ namespace Character
             GetComponentInChildren<TrailRenderer>().enabled = false;
             GetComponent<Collider>().enabled = false;
             // プレイヤー復活イベントを喚起する
-            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
-            {
-                ID = mID
-            };
-            TypeEventSystem.Instance.Send(playerRespawnEvent);
-
-            DropSilkEvent dropSilkEvent = new DropSilkEvent()
-            { 
-                ID = mID,
-                pos = transform.position
-            }; 
-            TypeEventSystem.Instance.Send(dropSilkEvent);
             mAnim.StartRespawnAnim();
             mParticleSystemControl.Stop();
         }

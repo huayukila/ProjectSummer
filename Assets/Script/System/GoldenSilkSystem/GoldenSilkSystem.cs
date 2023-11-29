@@ -36,7 +36,6 @@ namespace Gaming.PowerUp
                 mGoldenSilkPool.Push(mFactory.CreateObject());
             }
             Random.InitState((int)System.DateTime.Now.Ticks);
-            EventRegister();
         }
 
         /// <summary>
@@ -47,24 +46,16 @@ namespace Gaming.PowerUp
         private Vector3 GetInSpaceRandomPosition()
         {
             // ステージの一定範囲内にインスタンス化する
-            float spawnAreaLength = Global.STAGE_LENGTH / 2.5f;
             float spawnAreaWidth = Global.STAGE_WIDTH / 2.5f;
+            float spawnAreaHeight = Global.STAGE_HEIGHT / 2.5f;
             float posX = 0.0f;
             float posZ = 0.0f;
             while (posX == 0.0f || posZ == 0.0f)
             {
-                posX = Random.Range(-spawnAreaLength, spawnAreaLength);
-                posZ = Random.Range(-spawnAreaWidth, spawnAreaWidth);
+                posX = Random.Range(-spawnAreaWidth, spawnAreaWidth);
+                posZ = Random.Range(-spawnAreaHeight, spawnAreaHeight);
             }
             return new Vector3(posX, 0.54f, posZ);
-        }
-
-        /// <summary>
-        /// イベントを登録する関数
-        /// </summary>
-        private void EventRegister()
-        {
-
         }
 
         /// <summary>
@@ -112,6 +103,7 @@ namespace Gaming.PowerUp
                 mGoldenSilkPool.Push(obj);
             }
         }
+
     }
 
 }

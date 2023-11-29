@@ -107,7 +107,7 @@ namespace Gaming.PowerUp
 
         private void UpdateDropAnimation()
         {
-            transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime);
+            transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime * 2);
             mDropStartPos = transform.position;
             if((mDropStartPos - mDropEndPos).magnitude < 0.1f)
             {

@@ -33,8 +33,8 @@ public static class Global
     public static readonly float PLAYER_ACCELERATION = 0.3f;                                   // プレイヤーの加速度
     public static readonly float PLAYER_ROTATION_SPEED = 3.0f;                                   // プレイヤーの回転速度
 
-    public static readonly float STAGE_LENGTH = 174.0f;
-    public static readonly float STAGE_WIDTH = 72.0f;
+    public static readonly float STAGE_WIDTH = 174.0f;
+    public static readonly float STAGE_HEIGHT = 72.0f;
 
     public static readonly int SILK_SCORE = 100;
     public static readonly int MAX_SILK_COUNT = 3;
