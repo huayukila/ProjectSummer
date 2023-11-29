@@ -7,19 +7,25 @@ public interface IResourceManagement
     void Init();
     void Deinit();
     GameObject GetPrefabResource(string name);
+    Sprite GetCharacterImage(string name);
 }
 public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceManagement
 {
-    private Dictionary<string, GameObject> prefabs;
+    private Dictionary<string, GameObject> mPrefabs;
+    private Dictionary<string, Sprite> mCharacterImages; 
 
     public void Init()
     {
-        prefabs = new Dictionary<string, GameObject>();
+        mPrefabs = new Dictionary<string, GameObject>();
+        mCharacterImages = new Dictionary<string, Sprite>();
+        CharacterImageDataBase characterImageDataBase = Resources.Load("CharacterImageDataBase") as CharacterImageDataBase;
+        mCharacterImages = characterImageDataBase.GetCharacterImageList();
     }
 
     public void Deinit()
     {
-        prefabs.Clear();
+        mPrefabs.Clear();
+        mCharacterImages.Clear();
         Resources.UnloadUnusedAssets();
     }
 
@@ -31,7 +37,7 @@ public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceMan
     public GameObject GetPrefabResource(string name)
     {
         GameObject gameObject = null;
-        if(prefabs.TryGetValue(name,out GameObject value) == true)
+        if(mPrefabs.TryGetValue(name,out GameObject value) == true)
         {
             gameObject = value;
         }
@@ -40,9 +46,23 @@ public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceMan
             gameObject = Resources.Load("Prefabs/" + name) as GameObject;
             if(gameObject != null)
             {
-                prefabs.Add(name, gameObject);
+                mPrefabs.Add(name, gameObject);
             }
         }
         return gameObject;
+    }
+
+    public Sprite GetCharacterImage(string name) 
+    {
+        Sprite sprite = null;
+        if(mCharacterImages.ContainsKey(name))
+        {
+            sprite = mCharacterImages[name];
+        }
+        else
+        {
+            Debug.LogError("Can't find Image of " + name);
+        }
+        return sprite;
     }
 }

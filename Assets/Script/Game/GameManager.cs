@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Character;
 using Gaming;
+using UnityEngine.U2D;
 
 public interface IPlayerSetStatus
 {
@@ -181,6 +182,46 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    private void SpawnPlayer(int ID)
+    {
+        GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player");
+        if (playerPrefab != null)
+        {
+            if (!spiderPlayers.ContainsKey(ID))
+            {
+                GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[ID - 1], Quaternion.identity);
+                player.GetComponent<Player>()?.SetProperties(ID, Global.PLAYER_TRACE_COLORS[ID - 1]);
+                player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[ID - 1];
+                player.GetComponent<DropPointControl>().Init();
+                SpriteRenderer playerImage = player.GetComponentInChildren<SpriteRenderer>();
+                playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + ID.ToString());
+                GameObject camera = new GameObject("Player" + (ID).ToString() + "Camera");
+                camera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+                Camera cam = camera.AddComponent<Camera>();
+                cam.rect = new Rect((float)(ID -1) / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
+                cam.orthographic = true;
+                cam.orthographicSize = 36.0f;
+                cam.depth = 1.0f;
+                CameraControl camCtrl = camera.AddComponent<CameraControl>();
+                camCtrl.LockOnTarget(player);
+                SpiderPlayer spiderPlayer = new SpiderPlayer
+                {
+                    ID = ID,
+                    player = player,
+                    spawnTimer = null,
+                    camera = camera
+                };
+                spiderPlayers.Add(ID, spiderPlayer);
+                dropPointSystem.InitPlayerDropPointGroup(ID);
+            }
+        }
+        else
+        {
+            Debug.LogError("Can't find Resource of Player" + ID.ToString());
+        }
+
+    }
+
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= SceneLoaded;
@@ -196,39 +237,7 @@ public class GameManager : Singleton<GameManager>
             ScoreSystem.Instance.ResetScore();
             for (int i = 0; i < maxPlayerCount; ++i)
             {
-                GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player" + (i + 1).ToString());
-                if(playerPrefab != null)
-                {
-                    if (!spiderPlayers.ContainsKey(i + 1))
-                    {
-                        GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[i], Quaternion.identity);
-                        player.GetComponent<Player>()?.SetProperties(i + 1, Global.PLAYER_TRACE_COLORS[i]);
-                        player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[i];
-                        player.GetComponent<DropPointControl>().Init();
-                        GameObject camera = new GameObject("Player" + (i + 1).ToString() + "Camera");
-                        camera.transform.rotation = Quaternion.LookRotation(Vector3.down,Vector3.forward);
-                        Camera cam = camera.AddComponent<Camera>();
-                        cam.rect = new Rect((float)i / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
-                        cam.orthographic = true;
-                        cam.orthographicSize = 36.0f;
-                        cam.depth = 1.0f;
-                        CameraControl camCtrl = camera.AddComponent<CameraControl>();
-                        camCtrl.LockOnTarget(player);
-                        SpiderPlayer spiderPlayer = new SpiderPlayer
-                        {
-                            ID = i + 1,
-                            player = player,
-                            spawnTimer = null,
-                            camera = camera
-                        };
-                        spiderPlayers.Add(i + 1, spiderPlayer);
-                        dropPointSystem.InitPlayerDropPointGroup(i + 1);
-                    }
-                }
-                else
-                {
-                    Debug.LogError("Can't find Resource of Player" + (i + 1).ToString());
-                }
+                SpawnPlayer(i + 1);
             }
 
             Gaming.PowerUp.GoldenSilkSystem.Instance.Init();
