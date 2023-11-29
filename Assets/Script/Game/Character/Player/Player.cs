@@ -10,7 +10,7 @@ namespace Character
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
     public class Player : Character
     {
-        public enum Status
+        private enum Status
         {
             None = 0,
             Fine,
