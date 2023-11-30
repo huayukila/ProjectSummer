@@ -17,6 +17,7 @@ public struct SpawnSilkEvent
 }
 public struct DropSilkEvent
 {
+    public int dropCount;
     public Vector3 pos;
 }
 

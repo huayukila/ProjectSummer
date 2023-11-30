@@ -10,7 +10,7 @@ namespace Character
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
     public class Player : Character
     {
-        public enum Status
+        private enum Status
         {
             None = 0,
             Fine,
@@ -99,7 +99,7 @@ namespace Character
                 };
                 // 金の糸のドロップ場所を設定する
 
-                // 壁にぶつかったら
+                //TODO 壁にぶつかったら
                 if (collision.gameObject.CompareTag("Wall"))
                 {
 
@@ -180,9 +180,6 @@ namespace Character
             mAcceleration = Global.PLAYER_ACCELERATION;
             mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             mPlayerInput = GetComponent<PlayerInput>();
-            mRotateAction = mPlayerInput.actions["Rotate"];
-            mBoostAction = mPlayerInput.actions["Boost"];
-            mBoostAction.performed += OnBoost;
             mStatus = Status.Fine;
             mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             mBoostDurationTime = Global.BOOST_DURATION_TIME;
@@ -251,6 +248,18 @@ namespace Character
         private void SetDeadStatus()
         {
             mAnim.StartExplosionAnim();
+            DropSilkEvent dropSilkEvent = new DropSilkEvent()
+            {
+                dropCount = mSilkCount,
+                pos = transform.position
+            };
+            TypeEventSystem.Instance.Send(dropSilkEvent);
+            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
+            {
+                ID = mID
+            };
+            TypeEventSystem.Instance.Send(playerRespawnEvent);
+
             // プレイヤーの状態をリセットする
             ResetStatus();
             // プレイヤーの向きをリセットする
@@ -260,11 +269,6 @@ namespace Character
             GetComponentInChildren<TrailRenderer>().enabled = false;
             GetComponent<Collider>().enabled = false;
             // プレイヤー復活イベントを喚起する
-            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
-            {
-                ID = mID
-            };
-            TypeEventSystem.Instance.Send<PlayerRespawnEvent>(playerRespawnEvent);
             mAnim.StartRespawnAnim();
             mParticleSystemControl.Stop();
         }
@@ -399,15 +403,23 @@ namespace Character
                 Debug.Log(name + " has " + mSilkCount + " Silks");
             }
         }
+
+        private void SetPlayerInputProperties()
+        {
+            mPlayerInput.defaultActionMap = name;
+            mPlayerInput.neverAutoSwitchControlSchemes = true;
+            mPlayerInput.SwitchCurrentActionMap(name);
+            mRotateAction = mPlayerInput.actions["Rotate"];
+            mBoostAction = mPlayerInput.actions["Boost"];
+            mBoostAction.performed += OnBoost;
+        }
         private void OnEnable()
         {
-            mRotateAction.Enable();
-            mBoostAction.Enable();
+            mPlayerInput?.ActivateInput();
         }
         private void OnDisable()
-        {
-            mRotateAction.Disable();
-            mBoostAction.Disable();
+        {  
+            mPlayerInput?.DeactivateInput();
         }
         private void OnDestroy()
         {
@@ -445,6 +457,7 @@ namespace Character
                 mID = ID;
                 mColor = color;
                 name = "Player" + mID.ToString();
+                SetPlayerInputProperties();
             }
         }
 

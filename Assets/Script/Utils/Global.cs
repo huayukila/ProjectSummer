@@ -33,15 +33,15 @@ public static class Global
     public static readonly float PLAYER_ACCELERATION = 0.3f;                                   // プレイヤーの加速度
     public static readonly float PLAYER_ROTATION_SPEED = 3.0f;                                   // プレイヤーの回転速度
 
-    public static readonly float STAGE_LENGTH = 174.0f;
-    public static readonly float STAGE_WIDTH = 72.0f;
+    public static readonly float STAGE_WIDTH = 174.0f;
+    public static readonly float STAGE_HEIGHT = 72.0f;
 
     public static readonly int SILK_SCORE = 100;
     public static readonly int MAX_SILK_COUNT = 3;
 
     public static readonly float SET_GAME_TIME = 180.0f;　　　　　　　　　　　　　　　　　　　　　//ゲーム時間
 
-    public static readonly float INTSTRUCTON_SCENE_TIME = 5f;                                    //ゲーム操作方法紹介画面 PRESS無効の時間
+    public static readonly float INTSTRUCTON_SCENE_TIME = 1f;                                    //ゲーム操作方法紹介画面 PRESS無効の時間
     public static readonly float CREDITS_SCENE_TIME = 3f;                                        //ゲーム終了後の感謝画面 PRESS無効の時間
 
     public static readonly float SILK_SPAWN_TIME = 6.0f;
