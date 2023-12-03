@@ -25,12 +25,11 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
     int playerAreaTextureID = Shader.PropertyToID("_PlayerAreaText");
 
-    bool isShowPercent = false;
+    bool isShowPercent = true;
     float redScore = 0.0f;
     float greenScore = 0.0f;
     protected override void Awake()
     {
-        base.Awake();
         paintMaterial = new Material(texturePaint);
         areaMaterial = new Material(areaPaint);
 
@@ -170,8 +169,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     /// <param name="color"></param>
     void CountPixelByColor()
     {
-        computeShader.Dispatch(kernelHandle, mapPaintable.GetCopy().width / 8,
-           mapPaintable.GetCopy().height / 8, 1);
+        computeShader.Dispatch(kernelHandle, mapPaintable.GetCopy().width / 10,
+           mapPaintable.GetCopy().height / 10, 1);
         int[] CountResultArray = new int[2];
         mCountBuffer.GetData(CountResultArray);
 
