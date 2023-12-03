@@ -13,7 +13,7 @@ bool CompareColor(float4 CurrentColor,float4 TargetColor){
     abs(CurrentColor.z-TargetColor.z)<0.1f);
 }
 
-[numthreads(8, 8, 1)]
+[numthreads(10, 10, 1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     if (CompareColor(Result[id.xy],TargetColorA))

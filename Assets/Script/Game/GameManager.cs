@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Character;
 using Gaming;
-using UnityEngine.U2D;
 
 
 public struct SpiderPlayer

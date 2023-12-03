@@ -3,14 +3,14 @@ using UnityEngine;
 public class Paintable : MonoBehaviour
 {
     public bool debugUV = true;
-    public int textureSize_x = 1024;
-    public int textureSize_y= 1024;
     public Renderer GetRenderer() => rend;
     public RenderTexture GetMask() => maskTexture;
     public RenderTexture GetCopy() => copyTexture;
     public RenderTexture GetAreaMask() => areaMaskTexture;
     public RenderTexture GetAreaCopy() => areaCopyTexture;
 
+    private int textureSize_x = Global.Map_Size_X * 1000;
+    private int textureSize_y = Global.Map_Size_Y * 1000;
     private Renderer rend;
     private RenderTexture maskTexture;
     private RenderTexture copyTexture;
@@ -19,8 +19,11 @@ public class Paintable : MonoBehaviour
 
     private int maskTextureID = Shader.PropertyToID("_MaskTex");
     private int areaMaskTextureID = Shader.PropertyToID("_AreaMaskTex");
+
     private void Awake()
     {
+        transform.localScale = new Vector3(Global.Map_Size_X*10, 1, Global.Map_Size_Y*10);
+
         maskTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         maskTexture.filterMode = FilterMode.Bilinear;
         maskTexture.Create();
@@ -34,7 +37,7 @@ public class Paintable : MonoBehaviour
         copyTexture.enableRandomWrite = true;
         copyTexture.Create();
 
-        areaCopyTexture = new RenderTexture(textureSize_x, textureSize_y, 0,RenderTextureFormat.ARGBFloat);
+        areaCopyTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         areaCopyTexture.filterMode = FilterMode.Bilinear;
         areaCopyTexture.Create();
 
@@ -42,6 +45,7 @@ public class Paintable : MonoBehaviour
         rend.material.SetTexture(maskTextureID, copyTexture);
         rend.material.SetTexture(areaMaskTextureID, areaCopyTexture);
     }
+
     void Start()
     {
         PolygonPaintManager.Instance.SetPaintable(this);
@@ -49,6 +53,7 @@ public class Paintable : MonoBehaviour
         PolygonPaintManager.Instance.ClearRT(areaCopyTexture);
         PolygonPaintManager.Instance.SetCopyTexture(copyTexture);
     }
+
     void OnDisable()
     {
         maskTexture.Release();
