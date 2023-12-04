@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface ICameraCtrl
+public interface ICameraController
 {
     void LockOnTarget(GameObject target);
     void StopLockOn();
 }
 namespace Gaming
 {
-    public class CameraControl : MonoBehaviour,ICameraCtrl
+    public class CameraControl : MonoBehaviour, ICameraController
     {
         private enum CamState
         {
@@ -28,28 +28,6 @@ namespace Gaming
         }
 
         // Update is called once per frame
-
-        public void LockOnTarget(GameObject target)
-        {
-            if (target != null)
-            {
-                mTarget = target;
-                mState = CamState.OnTarget;
-                transform.position = mTarget.transform.position + Vector3.up * 36;
-            }
-        }
-        public void StopLockOn()
-        {
-            mState = CamState.None;
-            mRespawnLockOnTimer = new Timer();
-            mRespawnLockOnTimer.SetTimer(Global.RESPAWN_TIME / 2.0f,
-                () =>
-                {
-                    mState = CamState.OnTarget;
-                    mRespawnLockOnTimer = null;
-                }
-                );
-        }
 
         private void Update()
         {
@@ -74,6 +52,29 @@ namespace Gaming
 
             }
         }
+
+        public void LockOnTarget(GameObject target)
+        {
+            if (target != null)
+            {
+                mTarget = target;
+                mState = CamState.OnTarget;
+                transform.position = mTarget.transform.position + Vector3.up * 36;
+            }
+        }
+        public void StopLockOn()
+        {
+            mState = CamState.None;
+            mRespawnLockOnTimer = new Timer();
+            mRespawnLockOnTimer.SetTimer(Global.RESPAWN_TIME / 2.0f,
+                () =>
+                {
+                    mState = CamState.OnTarget;
+                    mRespawnLockOnTimer = null;
+                }
+                );
+        }
+
 
     }
 }

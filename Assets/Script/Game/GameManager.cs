@@ -173,7 +173,7 @@ public class GameManager : Singleton<GameManager>
                  );
             SpiderPlayer spiderPlayer = spiderPlayers[ID];
             spiderPlayer.spawnTimer = spawnTimer;
-            ICameraCtrl cameraCtrl = spiderPlayer.camera.GetComponent<ICameraCtrl>();
+            ICameraController cameraCtrl = spiderPlayer.camera.GetComponent<ICameraController>();
             cameraCtrl.StopLockOn();
             spiderPlayers[ID] = spiderPlayer;
 
@@ -190,15 +190,16 @@ public class GameManager : Singleton<GameManager>
                 GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[ID - 1], Quaternion.identity);
                 player.GetComponent<Player>()?.SetProperties(ID, Global.PLAYER_TRACE_COLORS[ID - 1]);
                 player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[ID - 1];
-                player.GetComponent<DropPointControl>().Init();
+                player.GetComponent<DropPointControl>()?.Init();
                 SpriteRenderer playerImage = player.GetComponentInChildren<SpriteRenderer>();
                 playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + ID.ToString());
+
                 GameObject camera = new GameObject("Player" + (ID).ToString() + "Camera");
                 camera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
                 Camera cam = camera.AddComponent<Camera>();
                 cam.rect = new Rect((float)(ID -1) / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
                 cam.orthographic = true;
-                cam.orthographicSize = 36.0f;
+                cam.orthographicSize = 54.0f;
                 cam.depth = 1.0f;
                 CameraControl camCtrl = camera.AddComponent<CameraControl>();
                 camCtrl.LockOnTarget(player);

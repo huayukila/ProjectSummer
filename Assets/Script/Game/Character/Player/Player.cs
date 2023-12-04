@@ -17,6 +17,11 @@ namespace Character
             Dead,
             Invincible
         }
+        private struct PlayerSilkData
+        {
+            public int SilkCount;                   // プレイヤーが持っている金の糸の数
+            public GameObject SilkRenderer;         // プレイヤーが持っている金の糸を画面に表示するGameObject
+        }
         private ColorCheck mColorCheck;                     // カラーチェックコンポネント
         //TODO 二つを一つにする
         private InputAction mBoostAction;                   // プレイヤーのブースト入力
@@ -38,11 +43,8 @@ namespace Character
 
         //TODO refactorying
         private int mID;                                    // プレイヤーID
-        private Color mColor;                               // プレイヤーの領域の色
-        private bool mHasSilk;                              // プレイヤーが金の糸を持っているかのフラグ
-        private int mSilkCount;                             // プレイヤーが持っている金の糸の数
-        private GameObject mHasSilkImage;                   // 金の糸を持っていることを示す画像
-        private GameObject silkCountImage;
+        private Color mColor;                               // プレイヤーの領域の色                          
+        private PlayerSilkData mSilkData;
         //TODO テスト用
         public Sprite[] silkCountSprites;
 
@@ -91,7 +93,7 @@ namespace Character
         private void OnCollisionEnter(Collision collision)
         {
             // 死亡したプレイヤーは金の網を持っていたら
-            if (mHasSilk == true)
+            if (mSilkData.SilkCount > 0)
             {
                 DropSilkEvent dropSilkEvent = new DropSilkEvent()
                 {
@@ -117,7 +119,7 @@ namespace Character
                 // 自分のDropPoint以外のDropPointに当たったら
                 if(other.gameObject.tag.Contains(mID.ToString()) == false)
                 {
-                    if (mHasSilk == true)
+                    if (mSilkData.SilkCount > 0)
                     {
                         DropSilkEvent dropSilkEvent = new DropSilkEvent()
                         {
@@ -137,11 +139,8 @@ namespace Character
             // プレイヤー画像の向きを変える
             FlipCharacterImage();
             // 金の網のを持っていれば、プレイヤー画像の上に表示する
-            if (mHasSilk == true)
+            if (mSilkData.SilkCount > 0)
             {
-                // キャラクター画像の縦の大きさを取得して画像の上で表示する
-                mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
-                silkCountImage.transform.position = mHasSilkImage.transform.position + new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
             }
             // プレイヤーインプットを取得する
             Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
@@ -183,22 +182,20 @@ namespace Character
             mStatus = Status.Fine;
             mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             mBoostDurationTime = Global.BOOST_DURATION_TIME;
-            mHasSilkImage = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
-            mHasSilkImage.SetActive(false);
-            silkCountImage = Instantiate(GameResourceSystem.Instance.GetPrefabResource("SilkCount"));
-            silkCountImage.SetActive(false);
             // プレイヤー自分の画像のレンダラーを取得する
             mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
             // 表示順位を変換する
             mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
-            mSilkCount = 0;
             mID = -1;
             // DropPointControlコンポネントを追加する
             mDropPointControl = gameObject.AddComponent<DropPointControl>();
             // PlayerAnimコンポネントを追加する
             mAnim = gameObject.AddComponent<PlayerAnim>();
             mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
-
+            mSilkData.SilkCount = 0;
+            mSilkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
+            mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
+            mSilkData.SilkRenderer.SetActive(false);
         }
 
         /// <summary>
@@ -250,7 +247,7 @@ namespace Character
             mAnim.StartExplosionAnim();
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
             {
-                dropCount = mSilkCount,
+                dropCount = mSilkData.SilkCount,
                 pos = transform.position
             };
             TypeEventSystem.Instance.Send(dropSilkEvent);
@@ -283,18 +280,15 @@ namespace Character
             mStatus = Status.Dead;
             transform.localScale = Vector3.one;
             mCurrentMoveSpeed = 0.0f;
-            mHasSilk = false;
             mIsBoosting = false;
             mBoostDurationTime = Global.BOOST_DURATION_TIME;
             mBoostCoolDownTimer = null;
-            mSilkCount = 0;
+            mSilkData.SilkCount = 0;
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
             DropPointSystem.Instance.ClearDropPoints(mID);
             mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             mDropPointControl.ResetTrail();
-            mHasSilkImage.SetActive(false);
-            silkCountImage.SetActive(false);
-            silkCountImage.GetComponent<SpriteRenderer>().sprite = silkCountSprites[0];
+            mSilkData.SilkRenderer.SetActive(false);
         }
         /// <summary>
         /// 地面の色をチェックする
@@ -378,7 +372,7 @@ namespace Character
             {
                 if(VectorMath.InPolygon(pos,verts))
                 {
-                    mSilkCount++;
+                    mSilkData.SilkCount++;
                     caputuredSilk.Add(pos);
                     IsPickedNew = true;
 
@@ -394,13 +388,15 @@ namespace Character
             if(IsPickedNew)
             {
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
-                mHasSilk = true;
-                mHasSilkImage.SetActive(true);
-                mHasSilkImage.transform.position = transform.position + new Vector3(0, 0, mImageSpriteRenderer.bounds.size.z);
-                silkCountImage.SetActive(true);
-                silkCountImage.transform.position = mHasSilkImage.transform.position + new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
-                silkCountImage.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkCount];
-                Debug.Log(name + " has " + mSilkCount + " Silks");
+                // キャラクター画像の縦の大きさを取得して画像の上で表示する
+                mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
+                mSilkData.SilkRenderer.SetActive(true);
+                Transform silkCount = mSilkData.SilkRenderer.transform.GetChild(0);
+                if(silkCount != null )
+                {
+                    silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkData.SilkCount];
+                    silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
+                }                
             }
         }
 
