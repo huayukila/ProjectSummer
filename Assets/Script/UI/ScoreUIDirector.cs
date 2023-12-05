@@ -10,7 +10,7 @@ public class ScoreUIDirector : MonoBehaviour
 
     //public GameObject p1RespawnUI;
     //public GameObject p2RespawnUI;
- 
+
     float player1Timer;
     float player2Timer;
 

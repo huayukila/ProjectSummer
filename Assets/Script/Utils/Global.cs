@@ -48,7 +48,7 @@ public static class Global
     public static readonly int SILK_SCORE = 100;
     public static readonly int MAX_SILK_COUNT = 3;
 
-    public static readonly float SET_GAME_TIME = 10f; //ゲーム時間
+    public static readonly float SET_GAME_TIME = 60f; //ゲーム時間
 
     public static readonly float INTSTRUCTON_SCENE_TIME = 1f; //ゲーム操作方法紹介画面 PRESS無効の時間
     public static readonly float CREDITS_SCENE_TIME = 3f; //ゲーム終了後の感謝画面 PRESS無効の時間
