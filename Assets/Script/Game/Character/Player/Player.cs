@@ -10,7 +10,7 @@ namespace Character
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
     public class Player : Character
     {
-        private enum Status
+        private enum State
         {
             None = 0,
             Fine,
@@ -27,7 +27,7 @@ namespace Character
         private InputAction mBoostAction;                   // プレイヤーのブースト入力
         private InputAction mRotateAction;                  // プレイヤーの回転入力
         private PlayerInput mPlayerInput;                   // playerInputAsset
-        private Status mStatus;                             // プレイヤーのステータス
+        private State mState;                               // プレイヤーのステータス
         private float mColliderOffset;                      // プレイヤーコライダーの長さ（正方形）
         private float mCurrentMoveSpeed;                    // プレイヤーの現在速度
         private float mMoveSpeedCoefficient;                // プレイヤーの移動速度の係数
@@ -64,7 +64,7 @@ namespace Character
             mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
             // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
-            if (mStatus != Status.Fine)
+            if (mState != State.Fine)
             {
                 return;
             }
@@ -75,7 +75,7 @@ namespace Character
         private void FixedUpdate()
         {
             // プレイヤーが「通常」状態じゃないと動きに関する処理を実行しない
-            if (mStatus != Status.Fine)
+            if (mState != State.Fine)
             {
                 return;
             }
@@ -156,7 +156,7 @@ namespace Character
                 mBoostDurationTime -= Time.deltaTime;
                 if(mBoostDurationTime <= 0.0f)
                 {
-                    mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+                    mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
                 }
                 if(mBoostCoolDownTimer.IsTimerFinished())
                 {
@@ -175,11 +175,11 @@ namespace Character
             mColorCheck = GetComponent<ColorCheck>();
             mColorCheck.layerMask = LayerMask.GetMask("Ground");
             mMoveSpeedCoefficient = 1.0f;
-            mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             mAcceleration = Global.PLAYER_ACCELERATION;
-            mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
+            mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             mPlayerInput = GetComponent<PlayerInput>();
-            mStatus = Status.Fine;
+            mState = State.Fine;
             mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             mBoostDurationTime = Global.BOOST_DURATION_TIME;
             // プレイヤー自分の画像のレンダラーを取得する
@@ -204,7 +204,7 @@ namespace Character
         private void PlayerMovement()
         {
             // 加速運動をして、最大速度まで加速する
-            mCurrentMoveSpeed = mCurrentMoveSpeed >= mMaxMoveSpeed ? mMaxMoveSpeed : mCurrentMoveSpeed + mAcceleration;
+            mCurrentMoveSpeed = mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed ? mStatus.mMaxMoveSpeed : mCurrentMoveSpeed + mAcceleration;
             // 前向きの移動をする
             Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient;
             mRigidbody.velocity = moveDirection;
@@ -220,7 +220,7 @@ namespace Character
             {
                 // 入力された方向へ回転する
                 Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
-                mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mRotationSpeed * Time.fixedDeltaTime);
+                mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mStatus.mRotationSpeed * Time.fixedDeltaTime);
             }
         }
 
@@ -277,7 +277,7 @@ namespace Character
         {
             mRigidbody.velocity = Vector3.zero;
             mRigidbody.angularVelocity = Vector3.zero;
-            mStatus = Status.Dead;
+            mState = State.Dead;
             transform.localScale = Vector3.one;
             mCurrentMoveSpeed = 0.0f;
             mIsBoosting = false;
@@ -286,7 +286,7 @@ namespace Character
             mSilkData.SilkCount = 0;
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
             DropPointSystem.Instance.ClearDropPoints(mID);
-            mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             mDropPointControl.ResetTrail();
             mSilkData.SilkRenderer.SetActive(false);
         }
@@ -426,10 +426,10 @@ namespace Character
         {
             if (context.performed)
             {
-                if (mStatus == Status.Fine && mIsBoosting == false)
+                if (mState == State.Fine && mIsBoosting == false)
                 {
-                    mMaxMoveSpeed *= 1.5f;
-                    mCurrentMoveSpeed = mMaxMoveSpeed;
+                    mStatus.mMaxMoveSpeed *= 1.5f;
+                    mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
                     mIsBoosting = true;
                     mBoostCoolDownTimer = new Timer();
                     mBoostCoolDownTimer.SetTimer(Global.BOOST_COOLDOWN_TIME,
@@ -459,11 +459,11 @@ namespace Character
 
         public void StartRespawn()
         {
-            if(mStatus == Status.Dead)
+            if(mState == State.Dead)
             {
                 transform.position = Global.PLAYER_START_POSITIONS[mID - 1];
                 transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
-                mStatus = Status.Fine;
+                mState = State.Fine;
                 GetComponentInChildren<TrailRenderer>().enabled = true;
                 GetComponent<DropPointControl>().enabled = true;
                 GetComponent<Collider>().enabled = true;

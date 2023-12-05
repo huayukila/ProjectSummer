@@ -2,20 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.Windows.Speech;
 
 namespace Character
 {
     public abstract class Character : MonoBehaviour
     {
-        [SerializeField]
-        protected float mMaxMoveSpeed;                        // 最大速度
+        protected struct CharaStatus
+        {
+            [SerializeField]
+            public float mMaxMoveSpeed;                        // 最大速度
+            [Min(0.0f)]
+            [SerializeField]
+            public float mRotationSpeed;                       // 回転速度
+
+        }
         [Min(0.0f)]
         [SerializeField]
         protected float mAcceleration;                        // 加速度
-        [Min(0.0f)]
-        [SerializeField]
-        protected float mRotationSpeed;                       // 回転速度
-
+        protected CharaStatus mStatus;
+        
         protected abstract void Init();
     }
 

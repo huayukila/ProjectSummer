@@ -9,7 +9,6 @@ using Gaming;
 public struct SpiderPlayer
 {
     public GameObject player;
-    public int ID;
     public Timer spawnTimer;
     public GameObject camera;
 }
@@ -19,7 +18,7 @@ public class GameManager : Singleton<GameManager>
     private Dictionary<int, SpiderPlayer> spiderPlayers;
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
-    private DropPointSystem dropPointSystem;
+    private IDropPointSystem dropPointSystem;
 
     protected override void Awake()
     {
@@ -200,11 +199,11 @@ public class GameManager : Singleton<GameManager>
                 cam.orthographic = true;
                 cam.orthographicSize = 54.0f;
                 cam.depth = 1.0f;
+                cam.backgroundColor = Color.black;
                 CameraControl camCtrl = camera.AddComponent<CameraControl>();
                 camCtrl.LockOnTarget(player);
                 SpiderPlayer spiderPlayer = new SpiderPlayer
                 {
-                    ID = ID,
                     player = player,
                     spawnTimer = null,
                     camera = camera
@@ -248,4 +247,13 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    public Vector3 GetPlayerPos(int ID)
+    {
+        Vector3 ret = Vector3.zero;
+        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
+        {
+            ret = value.player.transform.position;
+        }
+        return ret;
+    }
 }
