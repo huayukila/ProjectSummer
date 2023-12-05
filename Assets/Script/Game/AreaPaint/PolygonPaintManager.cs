@@ -42,8 +42,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     private void Start()
     {
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
-        computeShader.SetVector("TargetColorA", Global.PLAYER_ONE_TRACE_COLOR);
-        computeShader.SetVector("TargetColorB", Global.PLAYER_TWO_TRACE_COLOR);
+        computeShader.SetVector("TargetColorA", Global.PLAYER_TRACE_COLORS[0]);
+        computeShader.SetVector("TargetColorB", Global.PLAYER_TRACE_COLORS[1]);
     }
 
     private void OnGUI()
