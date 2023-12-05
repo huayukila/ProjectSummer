@@ -125,9 +125,6 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                     nearVert = vert;
                 }
             }
-            Debug.Log("start: " + startPos);
-            Debug.Log("far: " + farVert);
-            Debug.Log("near: " + nearVert);
             ret = new Vector3( Random.Range(nearVert.x - startPos.x,farVert.x - startPos.x),
                                                                                         0 , 
                                Random.Range(nearVert.z - startPos.z,farVert.z - startPos.z)
