@@ -28,6 +28,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     bool isShowPercent = true;
     float redScore = 0.0f;
     float greenScore = 0.0f;
+
     protected override void Awake()
     {
         paintMaterial = new Material(texturePaint);
@@ -38,12 +39,14 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
 
         command = new CommandBuffer();
         command.name = "CommmandBuffer - " + gameObject.name;
-    }
-    private void Start()
-    {
+
+
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
         computeShader.SetVector("TargetColorA", Global.PLAYER_ONE_TRACE_COLOR);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TWO_TRACE_COLOR);
+
+        redScore = 0.0f;
+        greenScore = 0.0f;
     }
 
     private void OnGUI()
@@ -59,17 +62,27 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         }
     }
 
-    public void SetCopyTexture(RenderTexture rt)
+    /// <summary>
+    /// É~ÉjÉ}ÉbÉvÇälìæ
+    /// </summary>
+    /// <returns></returns>
+    public RenderTexture GetMiniMapRT()
     {
-        CopyRT = rt;
-        computeShader.SetTexture(kernelHandle, "Result", CopyRT);
-        redScore = 0.0f;
-        greenScore = 0.0f;
+        if (CopyRT == null)
+        {
+            Debug.LogError("render texture is not already");
+            return null;
+        }
+        return CopyRT;
     }
+
     public void SetPaintable(Paintable paintable)
     {
         mapPaintable = paintable;
+        CopyRT = mapPaintable.GetCopy();
+        computeShader.SetTexture(kernelHandle, "Result", CopyRT);
     }
+
     /// <summary>
     /// âòÇ≥ÇÍÇΩRTÇ„YóÌÇ…Ç∑ÇÈ
     /// </summary>
@@ -82,6 +95,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         Graphics.ExecuteCommandBuffer(command);
         command.Clear();
     }
+
     /// <summary>
     /// É|ÉäÉSÉìï`âÊä÷êî
     /// </summary>
@@ -102,6 +116,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         {
             posList[i] = worldPosList[i];
         }
+
         //shaderïœêîê›íu
         paintMaterial.SetInt(maxVertNum, worldPosList.Length);
         paintMaterial.SetVectorArray("_worldPosList", posList);
@@ -170,7 +185,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     void CountPixelByColor()
     {
         computeShader.Dispatch(kernelHandle, mapPaintable.GetCopy().width / 10,
-           mapPaintable.GetCopy().height / 10, 1);
+            mapPaintable.GetCopy().height / 10, 1);
         int[] CountResultArray = new int[2];
         mCountBuffer.GetData(CountResultArray);
 
@@ -179,14 +194,17 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         greenScore = CountScore(CountResultArray[1], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
         mCountBuffer.SetData(new int[2] { 0, 0 });
     }
+
     private float CountScore(int Nums, float width, float heigt)
     {
         return MathF.Floor((Nums / (width * heigt * 0.5f)) * 10000f) / 100f;
     }
+
     private void OnDestroy()
     {
         mCountBuffer.Release();
         mCountBuffer = null;
     }
+
     #endregion
 }

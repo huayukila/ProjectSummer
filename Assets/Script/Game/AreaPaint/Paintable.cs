@@ -44,16 +44,12 @@ public class Paintable : MonoBehaviour
         rend = GetComponent<Renderer>();
         rend.material.SetTexture(maskTextureID, copyTexture);
         rend.material.SetTexture(areaMaskTextureID, areaCopyTexture);
-    }
-
-    void Start()
-    {
-        PolygonPaintManager.Instance.SetPaintable(this);
+        
+        
         PolygonPaintManager.Instance.ClearRT(copyTexture);
         PolygonPaintManager.Instance.ClearRT(areaCopyTexture);
-        PolygonPaintManager.Instance.SetCopyTexture(copyTexture);
+        PolygonPaintManager.Instance.SetPaintable(this);
     }
-
     void OnDisable()
     {
         maskTexture.Release();
