@@ -17,7 +17,7 @@ public class PlayerAnim : CharacterAnim
         mExplosionPrefab = GameResourceSystem.Instance.GetPrefabResource("Explosion");
 
         mBigSpider = Instantiate(GameResourceSystem.Instance.GetPrefabResource("BigSpider"), Vector3.zero, Quaternion.identity);
-        mBigSpider.transform.position = new Vector3(0.0f, 0.0f, 100.0f);
+        mBigSpider.transform.position = Global.GAMEOBJECT_STACK_POS;
         mBigSpider.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         mBigSpiderLineRenderer = mBigSpider.GetComponentInChildren<LineRenderer>();
         mBigSpiderLineRenderer.positionCount = 2;

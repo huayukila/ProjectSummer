@@ -12,18 +12,18 @@ public struct PlayerDropPoints
 }
 
 // システムインターフェース
-public interface ISystem
+public interface IDropPointSystem
 {
     // 初期化
     void Init();
     // デイニシャライゼーション
     void Deinit();
+    void InitPlayerDropPointGroup(int ID);
 }
-public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
+public class DropPointSystem : SingletonBase<DropPointSystem>, IDropPointSystem
 {
     // 各プレイヤーのPlayerDropPointsを管理する変数
     private Dictionary<int, PlayerDropPoints> _playerDropPoints;
-    private bool deinited = false;
 
     /// <summary>
     /// Listにある全てのDropPoint(GameObject)のワールド座標を返す
@@ -105,11 +105,11 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     /// プレイヤーの全てのDropPointのワールド座標を戻す関数
     /// </summary>
     /// <param name="ID">プレイヤーのID</param>
-    /// <returns>全てのDropPoint(GameObject)のワールド座標（Vector3型）、プレイヤーが存在しない場合はnullを返す</returns>
+    /// <returns>全てのDropPoint(GameObject)のワールド座標（Vector3型）、プレイヤーが存在しない場合は空の配列を返す</returns>
     public Vector3[] GetPlayerDropPoints(int ID)
     {
         // 戻り値用配列
-        Vector3[] ret = null;
+        Vector3[] ret = new Vector3[]{ };
         // プレイヤーのIDがDictionaryに存在したら
         if (_playerDropPoints.ContainsKey(ID))
         {
@@ -136,7 +136,7 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     public void InitPlayerDropPointGroup(int ID)
     {
         // IDのプレイヤーが存在しない場合だったら
-        if(_playerDropPoints.TryGetValue(ID, out PlayerDropPoints value) == false)
+        if(!_playerDropPoints.ContainsKey(ID))
         {
             // 新しいプレイヤーのPlayerDropPointsを作る
             PlayerDropPoints player = CreatePlayerDropPoint(ID);
@@ -150,10 +150,9 @@ public class DropPointSystem : SingletonBase<DropPointSystem>,ISystem
     public void Deinit()
     {
         // Dictionaryを消す
-        if(deinited == false)
+        if(_playerDropPoints != null)
         {
             _playerDropPoints.Clear();
-            deinited = true;
         }
     }
 
