@@ -42,27 +42,35 @@ namespace Character
         private PlayerParticleSystemControl mParticleSystemControl;
 
         //TODO refactorying
-        private int mID;                                    // プレイヤーID
+        private int mID = -1;                               // プレイヤーID
         private Color mColor;                               // プレイヤーの領域の色                          
         private PlayerSilkData mSilkData;
+        private float mBoostCoefficient;
         //TODO テスト用
         public Sprite[] silkCountSprites;
 
         private void Awake()
         {
-            // 初期化処理
-            Init();
+            mRigidbody = GetComponent<Rigidbody>();
+            mColorCheck = GetComponent<ColorCheck>();
+            mPlayerInput = GetComponent<PlayerInput>();
+            // プレイヤー自分の画像のレンダラーを取得する
+            mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
+            // DropPointControlコンポネントを追加する
+            mDropPointControl = gameObject.AddComponent<DropPointControl>();
+            // PlayerAnimコンポネントを追加する
+            mAnim = gameObject.AddComponent<PlayerAnim>();
         }
-
         private void Start()
         {
-            mParticleSystemControl.Play();
+            // 初期化処理
+            Init();
         }
         private void Update()
         {
             // プレイヤー画像をずっと同じ方向に向くことにする
             mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
-
             // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
             if (mState != State.Fine)
             {
@@ -131,17 +139,13 @@ namespace Character
                 }
             }
         }
-        #region
+        #region InternalLogic
 
         private void UpdateFine()
         {
 
             // プレイヤー画像の向きを変える
             FlipCharacterImage();
-            // 金の網のを持っていれば、プレイヤー画像の上に表示する
-            if (mSilkData.SilkCount > 0)
-            {
-            }
             // プレイヤーインプットを取得する
             Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
             // 回転方向を決める
@@ -156,7 +160,7 @@ namespace Character
                 mBoostDurationTime -= Time.deltaTime;
                 if(mBoostDurationTime <= 0.0f)
                 {
-                    mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+                    mBoostCoefficient = 1f;
                 }
                 if(mBoostCoolDownTimer.IsTimerFinished())
                 {
@@ -170,32 +174,27 @@ namespace Character
         /// </summary>
         protected override void Init()
         {
+
             mCurrentMoveSpeed = 0.0f;
-            mRigidbody = GetComponent<Rigidbody>();
-            mColorCheck = GetComponent<ColorCheck>();
             mColorCheck.layerMask = LayerMask.GetMask("Ground");
             mMoveSpeedCoefficient = 1.0f;
             mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             mAcceleration = Global.PLAYER_ACCELERATION;
             mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
-            mPlayerInput = GetComponent<PlayerInput>();
             mState = State.Fine;
             mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             mBoostDurationTime = Global.BOOST_DURATION_TIME;
-            // プレイヤー自分の画像のレンダラーを取得する
-            mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
             // 表示順位を変換する
             mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
-            mID = -1;
-            // DropPointControlコンポネントを追加する
-            mDropPointControl = gameObject.AddComponent<DropPointControl>();
-            // PlayerAnimコンポネントを追加する
-            mAnim = gameObject.AddComponent<PlayerAnim>();
-            mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
             mSilkData.SilkCount = 0;
             mSilkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
             mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
             mSilkData.SilkRenderer.SetActive(false);
+            mParticleSystemControl.Play();
+            mBoostCoefficient = 1f;
+            GetComponent<DropPointControl>()?.Init();
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
+
         }
 
         /// <summary>
@@ -206,7 +205,7 @@ namespace Character
             // 加速運動をして、最大速度まで加速する
             mCurrentMoveSpeed = mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed ? mStatus.mMaxMoveSpeed : mCurrentMoveSpeed + mAcceleration;
             // 前向きの移動をする
-            Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient;
+            Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient * mBoostCoefficient;
             mRigidbody.velocity = moveDirection;
         }
 
@@ -268,6 +267,7 @@ namespace Character
             // プレイヤー復活イベントを喚起する
             mAnim.StartRespawnAnim();
             mParticleSystemControl.Stop();
+            SetPowerUpLevel();
         }
 
         /// <summary>
@@ -396,7 +396,8 @@ namespace Character
                 {
                     silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkData.SilkCount];
                     silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
-                }                
+                }
+                SetPowerUpLevel();
             }
         }
 
@@ -408,6 +409,20 @@ namespace Character
             mRotateAction = mPlayerInput.actions["Rotate"];
             mBoostAction = mPlayerInput.actions["Boost"];
             mBoostAction.performed += OnBoost;
+        }
+
+        private void SetPowerUpLevel()
+        {
+            if(mSilkData.SilkCount > 0)
+            {
+                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].SpeedUp;
+                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].RotateUp;
+            }
+            else
+            {
+                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
+            }
         }
         private void OnEnable()
         {
@@ -428,7 +443,7 @@ namespace Character
             {
                 if (mState == State.Fine && mIsBoosting == false)
                 {
-                    mStatus.mMaxMoveSpeed *= 1.5f;
+                    mBoostCoefficient = 1.5f;
                     mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
                     mIsBoosting = true;
                     mBoostCoolDownTimer = new Timer();
@@ -443,9 +458,9 @@ namespace Character
         }
 
         #endregion
+        #region interface
         public int GetID() => mID;
         public Color GetColor() => mColor;
-        public float GetCurrentMoveSpeed() => mCurrentMoveSpeed;
         public void SetProperties(int ID, Color color)
         {
             if (mID == -1)
@@ -453,6 +468,9 @@ namespace Character
                 mID = ID;
                 mColor = color;
                 name = "Player" + mID.ToString();
+            }
+            if(mID != -1)
+            {
                 SetPlayerInputProperties();
             }
         }
@@ -473,6 +491,7 @@ namespace Character
                 mParticleSystemControl.Play();
             }
         }
+        #endregion
     }
 
 }

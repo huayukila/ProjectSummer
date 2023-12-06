@@ -102,6 +102,10 @@ namespace Gaming.PowerUp
             {
                 mGoldenSilkPool.Push(obj);
             }
+            else
+            {
+                Object.Destroy(obj);
+            }
         }
 
     }
