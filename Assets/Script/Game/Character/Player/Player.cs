@@ -51,21 +51,14 @@ namespace Character
 
         private void Awake()
         {
-            mRigidbody = GetComponent<Rigidbody>();
-            mColorCheck = GetComponent<ColorCheck>();
-            mPlayerInput = GetComponent<PlayerInput>();
-            // プレイヤー自分の画像のレンダラーを取得する
-            mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
-            // DropPointControlコンポネントを追加する
-            mDropPointControl = gameObject.AddComponent<DropPointControl>();
-            // PlayerAnimコンポネントを追加する
-            mAnim = gameObject.AddComponent<PlayerAnim>();
+            // 初期化処理
+            Init();
         }
         private void Start()
         {
-            // 初期化処理
-            Init();
+            GetComponent<DropPointControl>()?.Init();
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
+            mParticleSystemControl.Play();
         }
         private void Update()
         {
@@ -108,12 +101,6 @@ namespace Character
                     pos = transform.position,
                 };
                 // 金の糸のドロップ場所を設定する
-
-                //TODO 壁にぶつかったら
-                if (collision.gameObject.CompareTag("Wall"))
-                {
-
-                }
                 TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
             }
             // 衝突したら死亡状態に設定する
@@ -174,6 +161,16 @@ namespace Character
         /// </summary>
         protected override void Init()
         {
+            mRigidbody = GetComponent<Rigidbody>();
+            mColorCheck = GetComponent<ColorCheck>();
+            mPlayerInput = GetComponent<PlayerInput>();
+            // プレイヤー自分の画像のレンダラーを取得する
+            mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
+            // DropPointControlコンポネントを追加する
+            mDropPointControl = gameObject.AddComponent<DropPointControl>();
+            // PlayerAnimコンポネントを追加する
+            mAnim = gameObject.AddComponent<PlayerAnim>();
 
             mCurrentMoveSpeed = 0.0f;
             mColorCheck.layerMask = LayerMask.GetMask("Ground");
@@ -190,10 +187,7 @@ namespace Character
             mSilkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
             mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
             mSilkData.SilkRenderer.SetActive(false);
-            mParticleSystemControl.Play();
             mBoostCoefficient = 1f;
-            GetComponent<DropPointControl>()?.Init();
-            transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
 
         }
 
