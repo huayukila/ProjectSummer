@@ -6,14 +6,15 @@ using Character;
 using Gaming;
 
 
-public struct SpiderPlayer
-{
-    public GameObject player;
-    public Timer spawnTimer;
-    public GameObject camera;
-}
+
 public class GameManager : Singleton<GameManager>
 {
+    private struct SpiderPlayer
+    {
+        public GameObject player;
+        public Timer spawnTimer;
+        public GameObject camera;
+    }
     private static readonly int maxPlayerCount = 2;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
     private ItemSystem itemSystem;
@@ -187,8 +188,6 @@ public class GameManager : Singleton<GameManager>
             {
                 GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[ID - 1], Quaternion.identity);
                 player.GetComponent<Player>()?.SetProperties(ID, Global.PLAYER_TRACE_COLORS[ID - 1]);
-                player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[ID - 1];
-                player.GetComponent<DropPointControl>()?.Init();
                 SpriteRenderer playerImage = player.GetComponentInChildren<SpriteRenderer>();
                 playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + ID.ToString());
 
@@ -199,7 +198,7 @@ public class GameManager : Singleton<GameManager>
                 cam.orthographic = true;
                 cam.orthographicSize = 54.0f;
                 cam.depth = 1.0f;
-                cam.backgroundColor = Color.black;
+                cam.backgroundColor = Color.red;
                 CameraControl camCtrl = camera.AddComponent<CameraControl>();
                 camCtrl.LockOnTarget(player);
                 SpiderPlayer spiderPlayer = new SpiderPlayer
@@ -247,6 +246,12 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    #region interface
+    /// <summary>
+    /// プレイヤーの座標を取得する関数
+    /// </summary>
+    /// <param name="ID">プレイヤーのID</param>
+    /// <returns>プレイヤーが存在したらワールド座標を返し、存在しない場合は常にVector3.zeroを返す</returns>
     public Vector3 GetPlayerPos(int ID)
     {
         Vector3 ret = Vector3.zero;
@@ -256,4 +261,5 @@ public class GameManager : Singleton<GameManager>
         }
         return ret;
     }
+    #endregion
 }
