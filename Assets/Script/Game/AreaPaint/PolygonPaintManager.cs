@@ -42,9 +42,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
 
 
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
-        computeShader.SetVector("TargetColorA", Global.PLAYER_ONE_TRACE_COLOR);
-        computeShader.SetVector("TargetColorB", Global.PLAYER_TWO_TRACE_COLOR);
-
+        computeShader.SetVector("TargetColorA", Global.PLAYER_TRACE_COLORS[0]);
+        computeShader.SetVector("TargetColorB", Global.PLAYER_TRACE_COLORS[1]);
         redScore = 0.0f;
         greenScore = 0.0f;
     }
@@ -63,7 +62,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     }
 
     /// <summary>
-    /// ƒ~ƒjƒ}ƒbƒv‚ğŠl“¾
+    /// ãƒŸãƒ‹ãƒãƒƒãƒ—ã‚’ç²å¾—
     /// </summary>
     /// <returns></returns>
     public RenderTexture GetMiniMapRT()
@@ -84,7 +83,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     }
 
     /// <summary>
-    /// ‰˜‚³‚ê‚½RT‚ğãY—í‚É‚·‚é
+    /// æ±šã•ã‚ŒãŸRTã‚’ç¶ºéº—ã«ã™ã‚‹
     /// </summary>
     /// <param name="rt"></param>
     public void ClearRT(RenderTexture rt)
@@ -97,11 +96,11 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     }
 
     /// <summary>
-    /// ƒ|ƒŠƒSƒ“•`‰æŠÖ”
+    /// ãƒãƒªã‚´ãƒ³æç”»é–¢æ•°
     /// </summary>
-    /// <param name="worldPosList">—A“ü‚Ì¢ŠEÀ•W‚Ì“_</param>
-    /// <param name="color">•`‚«‚½‚¢‚ÌF</param>
-    /// <param name="index">ƒvƒŒƒCƒ„[‚Ì”Ô†(1-2)</param>
+    /// <param name="worldPosList">è¼¸å…¥ã®ä¸–ç•Œåº§æ¨™ã®ç‚¹</param>
+    /// <param name="color">æããŸã„ã®è‰²</param>
+    /// <param name="index">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç•ªå·(1-2)</param>
     public void Paint(Vector3[] worldPosList, int index, Color32? color = null)
     {
         RenderTexture mask = mapPaintable.GetMask();
@@ -110,25 +109,25 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         RenderTexture areaCopy = mapPaintable.GetAreaCopy();
         Renderer rend = mapPaintable.GetRenderer();
 
-        //shader‚Í4ŸŒ³‚Ì”z—ñ‚µ‚©ó‚¯‚ç‚ê‚È‚¢‚Ì‚ÅAˆê‰“]Š·
+        //shaderã¯4æ¬¡å…ƒã®é…åˆ—ã—ã‹å—ã‘ã‚‰ã‚Œãªã„ã®ã§ã€ä¸€å¿œè»¢æ›
         Vector4[] posList = new Vector4[100];
         for (int i = 0; i < worldPosList.Length; i++)
         {
             posList[i] = worldPosList[i];
         }
 
-        //shader•Ï”İ’u
+        //shaderå¤‰æ•°è¨­ç½®
         paintMaterial.SetInt(maxVertNum, worldPosList.Length);
         paintMaterial.SetVectorArray("_worldPosList", posList);
         paintMaterial.SetColor(colorID, color ?? new Color32(255, 0, 0, 255));
         paintMaterial.SetTexture(textureID, copy);
 
-        //shader•Ï”İ’u
+        //shaderå¤‰æ•°è¨­ç½®
         areaMaterial.SetInt(maxVertNum, worldPosList.Length);
         areaMaterial.SetVectorArray("_worldPosList", posList);
         areaMaterial.SetTexture(textureID, areaCopy);
 
-        //ƒvƒŒƒCƒ„[‚P‚È‚ç
+        //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ï¼‘ãªã‚‰
         switch (index)
         {
             case 1:
@@ -139,38 +138,38 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
                 break;
         }
 
-        //F
+        //è‰²
         {
-            //render‚Ì–Ú•W‚ğmask‚Éİ’è‚·‚é
+            //renderã®ç›®æ¨™ã‚’maskã«è¨­å®šã™ã‚‹
             command.SetRenderTarget(mask);
-            //renderŠJn
+            //renderé–‹å§‹
             command.DrawRenderer(rend, paintMaterial, 0);
-            //–Ú•W‚ğcopy‚Éİ’è
+            //ç›®æ¨™ã‚’copyã«è¨­å®š
             command.SetRenderTarget(copy);
-            //mask‚Ì•`‰æ‚ğcopy‚É‰Á‚¦‚é
+            //maskã®æç”»ã‚’copyã«åŠ ãˆã‚‹
             command.Blit(mask, copy);
         }
 
-        //‰Æ–ä
+        //å®¶ç´‹
         {
-            //render‚Ì–Ú•W‚ğmask‚Éİ’è‚·‚é
+            //renderã®ç›®æ¨™ã‚’maskã«è¨­å®šã™ã‚‹
             command.SetRenderTarget(areaMask);
-            //renderŠJn
+            //renderé–‹å§‹
             command.DrawRenderer(rend, areaMaterial, 0);
-            //–Ú•W‚ğcopy‚Éİ’è
+            //ç›®æ¨™ã‚’copyã«è¨­å®š
             command.SetRenderTarget(areaCopy);
-            //mask‚Ì•`‰æ‚ğcopy‚É‰Á‚¦‚é
+            //maskã®æç”»ã‚’copyã«åŠ ãˆã‚‹
             command.Blit(areaMask, areaCopy);
         }
 
-        //render‚Ì–½—ß‚ğ—¬‚ê‚³‚¹‚é
+        //renderã®å‘½ä»¤ã‚’æµã‚Œã•ã›ã‚‹
         Graphics.ExecuteCommandBuffer(command);
-        //–½—ß‘à—ñƒNƒŠƒA
+        //å‘½ä»¤éšŠåˆ—ã‚¯ãƒªã‚¢
         command.Clear();
         CountPixelByColor();
     }
 
-    #region “à•”—p
+    #region å†…éƒ¨ç”¨
 
     [Button]
     void ShowPaintAreaScore()
@@ -179,7 +178,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     }
 
     /// <summary>
-    /// •ª”ŒvZ
+    /// åˆ†æ•°è¨ˆç®—
     /// </summary>
     /// <param name="color"></param>
     void CountPixelByColor()
