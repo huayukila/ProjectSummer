@@ -73,9 +73,10 @@ public class DropPointSystem : SingletonBase<DropPointSystem>, IDropPointSystem
             dropPoint.transform.parent = _playerDropPoints[ID].pointGroup.transform;
             _playerDropPoints[ID].playerPoints.Add(dropPoint);
         }
-        // 存在しない場合は新しいPlayerDropPointsを作る
+        // 存在しない場合はエラーメッセージを出力
         else
         {
+            //TODO バグがあるらしいが、要検討
             PlayerDropPoints player = CreatePlayerDropPoint(ID);
             dropPoint.transform.parent = player.pointGroup.transform;
             player.playerPoints.Add(dropPoint);
@@ -171,6 +172,20 @@ public class DropPointSystem : SingletonBase<DropPointSystem>, IDropPointSystem
             PlayerDropPoints player = CreatePlayerDropPoint(ID);
             _playerDropPoints.Add(ID, player);
         }
+    }
+    #endregion
+
+    #region test code
+    public void DebugFunc()
+    {
+        Debug.Log(_playerDropPoints.Count);
+        foreach(var k in _playerDropPoints)
+        {
+            Debug.Log("Key:");
+            Debug.Log(k.Key);
+            Debug.Log(k.Value.playerPoints.Count);
+        }
+
     }
     #endregion
 }
