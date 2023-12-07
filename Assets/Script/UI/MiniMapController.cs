@@ -45,12 +45,12 @@ public class MiniMapController : MonoBehaviour
         if (MiniMapSpider_Left != null)
         {
             Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
-            MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x + transform.position.x, Spider_Left.z + transform.position.y, 0);
+            MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x + transform.position.x, Spider_Left.z + transform.position.y, 0)*0.78f;
         }
         if (MiniMapSpider_Right != null)
         {
             Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
-            MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x + transform.position.x, Spider_Right.z + transform.position.y, 0);
+            MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x + transform.position.x, Spider_Right.z + transform.position.y, 0)*0.78f;
         }
         if(onFieldSilks.Length != 0)
         {
