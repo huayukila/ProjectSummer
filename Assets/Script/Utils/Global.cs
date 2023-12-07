@@ -10,9 +10,9 @@ public static class Global
     }
     public static readonly Vector3[] PLAYER_START_POSITIONS =
     {
-        new(-80.0f, 0.64f, 0.0f),
+        new(-135.0f, 0.64f, 0.0f),
 
-        new(80.0f, 0.64f, 0.0f)
+        new(135.0f, 0.64f, 0.0f)
     };
 
     public static readonly Vector3[] PLAYER_DEFAULT_FORWARD =
@@ -42,9 +42,9 @@ public static class Global
 
     public static readonly PowerUp[] POWER_UP_PARAMETER =
     {
-        new PowerUp() { SpeedUp=6f,RotateUp=0.25f },
-        new PowerUp() { SpeedUp=12f,RotateUp=0.5f },
-        new PowerUp() { SpeedUp=18f,RotateUp=1f }
+        new PowerUp() { SpeedUp=6f,RotateUp=-0.5f },
+        new PowerUp() { SpeedUp=12f,RotateUp=-0.8f },
+        new PowerUp() { SpeedUp=18f,RotateUp=-1.2f }
     };
 
     #endregion
@@ -52,7 +52,7 @@ public static class Global
 
     #region DropPoint
     public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPointをインスタンス化する時間間隔
-    public static readonly float DROP_POINT_ALIVE_TIME = 1.5f; // DropPointの存在している時間
+    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPointの存在している時間
     #endregion
 
     #region Silk
@@ -71,9 +71,9 @@ public static class Global
 
     #region Map
 
-    public static readonly int Map_Size_X = 2;
-    public static readonly int Map_Size_Y = 2;
-    public static readonly float STAGE_WIDTH = 100f;
-    public static readonly float STAGE_HEIGHT = 100f;
+    public static readonly int Map_Size_X = 3;
+    public static readonly int Map_Size_Y = 3;
+    public static readonly float STAGE_WIDTH = 300f;
+    public static readonly float STAGE_HEIGHT = 300f;
     #endregion
 }
