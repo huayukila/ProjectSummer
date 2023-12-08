@@ -61,6 +61,10 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                 }
             }
         }).UnregisterWhenGameObjectDestroyed(gameObject);
+        TypeEventSystem.Instance.Register<GameOver>(e => 
+        {
+            ResetGoldenSilkManager();
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
 
     // Update is called once per frame
@@ -129,18 +133,23 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                                                                                         0 , 
                                Random.Range(nearVert.z - startPos.z,farVert.z - startPos.z)
                              ).normalized;
-            ret *= Random.Range(15,25);
+            ret *= Random.Range(30,50);
         }
         else
         {
             ret.x = Random.Range(-1f, 1f);
             ret.y = 0;
             ret.z = Random.Range(-1f, 1f);
-            ret *= Random.Range(8,10);
+            ret *= Random.Range(10,15);
         }
         return ret;
     }
 
+    private void ResetGoldenSilkManager()
+    {
+        mOnFieldSilk.Clear();
+        mCapturedSilk.Clear();
+    }
     public Vector3[] GetOnFieldSilkPos()
     {
         List<Vector3> silkPos = new List<Vector3>();

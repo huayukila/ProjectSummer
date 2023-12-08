@@ -109,7 +109,12 @@ public class GameManager : Singleton<GameManager>
     {
         //各システムのupdate
         //シーンの移行など
-        CheckRespawn();
+        // gaming scene process
+        if (SceneManager.GetActiveScene().name == "Gaming")
+        {
+            CheckRespawn();
+        }
+
     }
 
     //シーンの移行

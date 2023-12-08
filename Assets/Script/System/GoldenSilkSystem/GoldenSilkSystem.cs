@@ -29,6 +29,7 @@ namespace Gaming.PowerUp
 
         public void Init()
         {
+            mGoldenSilkPool.Clear();
             mGoldenSilkPrefab = GameResourceSystem.Instance.GetPrefabResource("GoldenSilk");
             mFactory = new GameObjectFactory(() => Object.Instantiate(mGoldenSilkPrefab, Global.GAMEOBJECT_STACK_POS,Quaternion.identity));
             while(mGoldenSilkPool.Count < Global.MAX_SILK_COUNT)
@@ -38,6 +39,7 @@ namespace Gaming.PowerUp
             Random.InitState((int)System.DateTime.Now.Ticks);
         }
 
+        
         /// <summary>
         /// ‹à‚Ì–Ô‚Ì¶¬ˆÊ’u‚ğŒˆ‚ß‚éŠÖ”
         /// –¢Š®¬‚Ì‚½‚ßAŒÅ’èˆÊ’u‚É¶¬‚µ‚Ä‚¢‚é
