@@ -4,7 +4,10 @@ using System.Collections.Generic;
 public static class ListPool<T>
 {
     static Stack<List<T>> mListStack = new Stack<List<T>>(8);
-
+    
+    /// <summary>
+    /// リストpool獲得
+    /// </summary>
     /// <returns></returns>
     public static List<T> Get()
     {
@@ -16,6 +19,11 @@ public static class ListPool<T>
         return mListStack.Pop();
     }
 
+    /// <summary>
+    /// 分配されたリストpoolを元に戻して、stackへ帰還
+    /// </summary>
+    /// <param name="toRelease"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public static void Release(List<T> toRelease)
     {
         if (mListStack.Contains(toRelease))

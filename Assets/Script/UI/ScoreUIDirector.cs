@@ -65,8 +65,8 @@ public class ScoreUIDirector : MonoBehaviour
         TypeEventSystem.Instance.Register<Player2RespawnCntBegin>(e => { Player2RespawnCntBegin(); });　//プレイヤー２が死んだ時、カウントダウンを開始。
         //TypeEventSystem.Instance.Register<Player1RespawnCntEnd>(e =>   { Player1RespawnCntEnd(); });　　//プレイヤー１が復活する時、カウントダウンをリセット。
         //TypeEventSystem.Instance.Register<Player2RespawnCntEnd>(e =>   { Player2RespawnCntEnd(); });　　//プレイヤー２が復活する時、カウントダウンをリセット。
-    }
 
+    }
     // Update is called once per frame
     void Update()
     {
