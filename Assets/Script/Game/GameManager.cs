@@ -128,7 +128,6 @@ public class GameManager : Singleton<GameManager>
     }
     void EndSceneSwitch()
     {
-        dropPointSystem.Deinit();
         SceneManager.LoadScene("End");
     }
 
@@ -228,6 +227,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (nextScene.name == "Gaming")
         {
+            dropPointSystem.Deinit();
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreSystem.Instance.ResetScore();
