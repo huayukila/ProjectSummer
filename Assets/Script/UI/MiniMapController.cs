@@ -12,38 +12,34 @@ public class MiniMapController : MonoBehaviour
     public GameObject MiniMapSpider_Right;
 
     public GameObject MiniMapSilkPrefab;
-    private GameObject[] MiniMapSilkPrefabSave = new GameObject[3];
+    private GameObject[] MiniMapSilkPrefabSave;// = new GameObject[3];
 
-    Vector3 silkPosInit = new Vector3(2500, 2500, 0);
+    private float miniMapSize;
 
-    private bool[] isSilkFellOnTheFloor = new bool[3];//黄金の糸のスイッチ3つ用意
+    Vector3 silkPosInit;
+
+    Vector3[] onFieldSilks;
 
     // Start is called before the first frame update
     void Start()
     {
+        miniMapSize = 1.8f;
         if (MiniMapSilkPrefab != null)//GameProjectが入れているかどうか（以下同様）
         {
-            for (int i = 0; i < 3; i++)//黄金の糸のスイッチを初期化
-            {
-                isSilkFellOnTheFloor[i] = false;
-            }
+            silkPosInit = new Vector3(0, 1500, 0);
+            MiniMapSilkPrefabSave = new GameObject[3];
 
-            TypeEventSystem.Instance.Register<SilkFellOnTheFloor>(e =>
+            TypeEventSystem.Instance.Register<UpdataMiniMapSilkPos>(e =>
             {
-                SetSilkAndActive(e.SilkNomber);
-            }).UnregisterWhenGameObjectDestroyed(gameObject);
-
-            TypeEventSystem.Instance.Register<ResetSilk>(e =>
-            {
-                ResetSilk(e.SilkNomber);
-            }).UnregisterWhenGameObjectDestroyed(gameObject);
-
-            for (int i = 0; i < 3; i++)//黄金の糸を初期化
-            {
-                MiniMapSilkPrefabSave[i] = Instantiate(MiniMapSilkPrefab, silkPosInit, Quaternion.identity);//黄金の糸3つ生成
-                MiniMapSilkPrefabSave[i].transform.SetParent(transform.parent);//Canvasの中に生成
-                MiniMapSilkPrefabSave[i].SetActive(false);
-            }
+                SetSilk();
+            });
+            //for (int i = 0; i < 3; i++)//黄金の糸を初期化
+            //{
+            //    MiniMapSilkPrefabSave[i] = Instantiate(MiniMapSilkPrefab, silkPosInit, Quaternion.identity);//黄金の糸3つ生成
+            //    MiniMapSilkPrefabSave[i].transform.SetParent(transform.parent);//Canvasの中に生成
+            //    //MiniMapSilkPrefabSave[i].SetActive(false);
+            //    //testvector3s[i] = new Vector3(200.0f * i, 0, 200.0f * i);
+            //}
         }
         RawImage miniMapImage = GetComponent<RawImage>();
         miniMapImage.texture = PolygonPaintManager.Instance.GetMiniMapRT();
@@ -63,34 +59,41 @@ public class MiniMapController : MonoBehaviour
         if (MiniMapSilkPrefab != null)
         {
             IOnFieldSilk iOnFieldSilk = GoldenSilkManager.Instance;
-            Vector3[] onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
-            for (int i = 0; i < 3; i++)
-            {
-                if (isSilkFellOnTheFloor[i])
-                {
-                    Vector3 tmp = onFieldSilks[i];
-                    MiniMapSilkPrefabSave[i].transform.position = new Vector3(tmp.x + transform.position.x, tmp.z + transform.position.y, 0);
-                    MiniMapSilkPrefabSave[i].SetActive(true);
-                }
-            }
+            onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
+            //for (int i = 0; i < 3; i++)
+            //{
+            //    if (isSilkFellOnTheFloor[i])
+            //    {
+            //        Vector3 tmp = onFieldSilks[i];
+            //        MiniMapSilkPrefabSave[i].transform.position = new Vector3(tmp.x + transform.position.x, tmp.z + transform.position.y, 0);
+            //        MiniMapSilkPrefabSave[i].SetActive(true);
+            //    }
+            //}
             //if (onFieldSilks.Length != 0)
             //{
             //    for (int i = 0; i < onFieldSilks.Length; i++)
             //    {
-
+            //        Vector3 tmp = onFieldSilks[i];
+            //        MiniMapSilkPrefabSave[i].transform.position = new Vector3(tmp.x + transform.position.x, tmp.z + transform.position.y, 0);
+            //        MiniMapSilkPrefabSave[i].SetActive(true);
             //    }
             //}
         }
 
         if (MiniMapSpider_Left != null)
         {
-            Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
+            Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1) / Global.Map_Size_X * miniMapSize;
             MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x + transform.position.x, Spider_Left.z + transform.position.y, 0);
         }
         if (MiniMapSpider_Right != null)
         {
-            Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
+            Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2) / Global.Map_Size_X * miniMapSize;
             MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x + transform.position.x, Spider_Right.z + transform.position.y, 0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         }
 
         //foreach (Vector3 Pos in onFieldSilks)
@@ -102,16 +105,30 @@ public class MiniMapController : MonoBehaviour
     }
 
     //黄金の糸をスイッチon！
-    private void SetSilkAndActive(int silkNomber)
+    private void SetSilk()
     {
-        isSilkFellOnTheFloor[silkNomber] = true;
-    }
+        DestroySilk();
+        Vector3 silkPos = new Vector3(0f, 0f, 0f);
 
-    //黄金の糸をリセット
-    private void ResetSilk(int silkNomber)
+        for (int i = 0; i < onFieldSilks.Length; i++) 
+        {
+            Vector3 tmp = onFieldSilks[i];
+            tmp.y = onFieldSilks[i].z;
+            tmp.z = 0.0f;
+            tmp = tmp / Global.Map_Size_X * miniMapSize + transform.position;
+            GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
+            MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
+            MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
+        }
+    }
+    private void DestroySilk()
     {
-        isSilkFellOnTheFloor[silkNomber] = false;
-        MiniMapSilkPrefabSave[silkNomber].SetActive(false);
-        MiniMapSilkPrefabSave[silkNomber].transform.position = silkPosInit;
+        for (int i = 0; i < MiniMapSilkPrefabSave.Length; i++)
+        {
+            if (MiniMapSilkPrefabSave[i] != null)
+            {
+                Destroy(MiniMapSilkPrefabSave[i]);
+            }
+        }
     }
 }
