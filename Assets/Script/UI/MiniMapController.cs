@@ -8,25 +8,35 @@ using UnityEngine.UI;
 public class MiniMapController : MonoBehaviour
 {
     //---------ミニマップ関連のコードです-----------
+
+    //ミニマップのスパイダー
     public GameObject MiniMapSpider_Left;
     public GameObject MiniMapSpider_Right;
 
+    //ミニマップの黄金の糸
     public GameObject MiniMapSilkPrefab;
     private GameObject[] MiniMapSilkPrefabSave;// = new GameObject[3];
+    private Vector3[] onFieldSilks;
 
+    //設定値
     private float miniMapSize;
+    private Vector3 PosInit;
 
-    Vector3 silkPosInit;
+    IOnFieldSilk iOnFieldSilk;
 
-    Vector3[] onFieldSilks;
+    //テスト用
+    //float testTimer = Global.SET_GAME_TIME;
 
     // Start is called before the first frame update
     void Start()
     {
         miniMapSize = 1.8f;
+        PosInit = new Vector3(0, 1500, 0);
+        iOnFieldSilk = GoldenSilkManager.Instance;
+        //IOnFieldSilk iOnFieldSilk = GoldenSilkManager.Instance;
+        //onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
         if (MiniMapSilkPrefab != null)//GameProjectが入れているかどうか（以下同様）
         {
-            silkPosInit = new Vector3(0, 1500, 0);
             MiniMapSilkPrefabSave = new GameObject[3];
 
             TypeEventSystem.Instance.Register<UpdataMiniMapSilkPos>(e =>
@@ -35,7 +45,7 @@ public class MiniMapController : MonoBehaviour
             });
             //for (int i = 0; i < 3; i++)//黄金の糸を初期化
             //{
-            //    MiniMapSilkPrefabSave[i] = Instantiate(MiniMapSilkPrefab, silkPosInit, Quaternion.identity);//黄金の糸3つ生成
+            //    MiniMapSilkPrefabSave[i] = Instantiate(MiniMapSilkPrefab, PosInit, Quaternion.identity);//黄金の糸3つ生成
             //    MiniMapSilkPrefabSave[i].transform.SetParent(transform.parent);//Canvasの中に生成
             //    //MiniMapSilkPrefabSave[i].SetActive(false);
             //    //testvector3s[i] = new Vector3(200.0f * i, 0, 200.0f * i);
@@ -45,40 +55,43 @@ public class MiniMapController : MonoBehaviour
         miniMapImage.texture = PolygonPaintManager.Instance.GetMiniMapRT();
         if (MiniMapSpider_Left != null)
         {
-            MiniMapSpider_Left.transform.position = silkPosInit;// GameManager.Instance.GetPlayerPos(1) + 
+            MiniMapSpider_Left.transform.position = PosInit;// GameManager.Instance.GetPlayerPos(1) + 
         }
         if (MiniMapSpider_Right != null)
         {
-            MiniMapSpider_Right.transform.position = silkPosInit;// GameManager.Instance.GetPlayerPos(2) 
+            MiniMapSpider_Right.transform.position = PosInit;// GameManager.Instance.GetPlayerPos(2) 
         }
     }
 
     // Update is called once per frame
     private void FixedUpdate()
     {
-        if (MiniMapSilkPrefab != null)
-        {
-            IOnFieldSilk iOnFieldSilk = GoldenSilkManager.Instance;
-            onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
-            //for (int i = 0; i < 3; i++)
-            //{
-            //    if (isSilkFellOnTheFloor[i])
-            //    {
-            //        Vector3 tmp = onFieldSilks[i];
-            //        MiniMapSilkPrefabSave[i].transform.position = new Vector3(tmp.x + transform.position.x, tmp.z + transform.position.y, 0);
-            //        MiniMapSilkPrefabSave[i].SetActive(true);
-            //    }
-            //}
-            //if (onFieldSilks.Length != 0)
-            //{
-            //    for (int i = 0; i < onFieldSilks.Length; i++)
-            //    {
-            //        Vector3 tmp = onFieldSilks[i];
-            //        MiniMapSilkPrefabSave[i].transform.position = new Vector3(tmp.x + transform.position.x, tmp.z + transform.position.y, 0);
-            //        MiniMapSilkPrefabSave[i].SetActive(true);
-            //    }
-            //}
-        }
+        #region 一時的不要なコード
+        //if (MiniMapSilkPrefab != null)
+        //{
+
+        //    //for (int i = 0; i < 3; i++)
+        //    //{
+        //    //    if (isSilkFellOnTheFloor[i])
+        //    //    {
+        //    //        Vector3 tmp = onFieldSilks[i];
+        //    //        MiniMapSilkPrefabSave[i].transform.position = new Vector3(tmp.x + transform.position.x, tmp.z + transform.position.y, 0);
+        //    //        MiniMapSilkPrefabSave[i].SetActive(true);
+        //    //    }
+        //    //}
+        //    //if (onFieldSilks.Length != 0)
+        //    //{
+        //    //    for (int i = 0; i < onFieldSilks.Length; i++)
+        //    //    {
+        //    //        Vector3 tmp = onFieldSilks[i];
+        //    //        MiniMapSilkPrefabSave[i].transform.position = new Vector3(tmp.x + transform.position.x, tmp.z + transform.position.y, 0);
+        //    //        MiniMapSilkPrefabSave[i].SetActive(true);
+        //    //    }
+        //    //}
+        //}
+        #endregion
+
+        onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
 
         if (MiniMapSpider_Left != null)
         {
@@ -91,26 +104,23 @@ public class MiniMapController : MonoBehaviour
             MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x + transform.position.x, Spider_Right.z + transform.position.y, 0);
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
-        }
-
-        //foreach (Vector3 Pos in onFieldSilks)
+        #region　黄金の糸テスト用
+        //ypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
+        //testTimer -= Time.deltaTime;
+        //if (50.0f < testTimer / Global.SET_GAME_TIME)
         //{
-        //    silkPos.x = Pos.x;
-        //    silkPos.y = Pos.z;
-        //    Instantiate(MiniMapSilk, silkPos, Quaternion.identity);
+        //    TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
+
         //}
+        #endregion
     }
 
     //黄金の糸をスイッチon！
-    private void SetSilk()
+    public void SetSilk()
     {
         DestroySilk();
-        Vector3 silkPos = new Vector3(0f, 0f, 0f);
 
-        for (int i = 0; i < onFieldSilks.Length; i++) 
+        for (int i = 0; i < onFieldSilks.Length; i++)
         {
             Vector3 tmp = onFieldSilks[i];
             tmp.y = onFieldSilks[i].z;

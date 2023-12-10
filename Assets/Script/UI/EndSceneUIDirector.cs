@@ -49,6 +49,8 @@ public class EndSceneUIDirector : MonoBehaviour
     private int clickTimes;
     private bool isClicked;
 
+    PolygonPaintManager _polygonPaintManager;
+
     private void Awake()
     {
         _anyKeyAction = _anyValueAction.FindActionMap("AnyKey").FindAction("AnyKey");
@@ -58,6 +60,7 @@ public class EndSceneUIDirector : MonoBehaviour
     }
     private void Start()
     {
+        _polygonPaintManager = new PolygonPaintManager();
         timer = 3f;
         timerCon = 0.6f;
         isTimerOn = true;
@@ -143,7 +146,7 @@ public class EndSceneUIDirector : MonoBehaviour
                 {
                     TurnSmallAndAppear(winRed);
                 }
-                if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())
+                if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())//ScoreSystem.Instance.GetPlayer2Score()
                 {
                     TurnSmallAndAppear(winYellow);
                 }

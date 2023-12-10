@@ -120,34 +120,26 @@ public class ScoreUIDirector : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-
-            BoostStart boostStart1 = new BoostStart();
-            boostStart1.Nomber = 0;
-
-            TypeEventSystem.Instance.Send<BoostStart>(boostStart1);
-
-        }
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-
-            BoostStart boostStart2 = new BoostStart();
-            boostStart2.Nomber = 1;
-
-            TypeEventSystem.Instance.Send<BoostStart>(boostStart2);
-
-        }
-
-        //ÉeÉXÉgópÅ]Å]Å]Å]Å]Å]Å]Å]
-        //if (Input.GetKeyDown(KeyCode.Space))
+        #region BoostÉeÉXÉgóp
+        //if (Input.GetKeyDown(KeyCode.V))
         //{
-        //    TypeEventSystem.Instance.Send<Player2RespawnCntBegin>();
+
+        //    BoostStart boostStart1 = new BoostStart();
+        //    boostStart1.Nomber = 0;
+
+        //    TypeEventSystem.Instance.Send<BoostStart>(boostStart1);
+
         //}
-        //if (Input.GetKeyDown(KeyCode.X))
+        //if (Input.GetKeyDown(KeyCode.B))
         //{
-        //    TypeEventSystem.Instance.Send<Player1RespawnCntBegin>();
+
+        //    BoostStart boostStart2 = new BoostStart();
+        //    boostStart2.Nomber = 1;
+
+        //    TypeEventSystem.Instance.Send<BoostStart>(boostStart2);
+
         //}
+        #endregion
     }
 
     void BoostStart(int nomber)
