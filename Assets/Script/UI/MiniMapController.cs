@@ -19,12 +19,10 @@ public class MiniMapController : MonoBehaviour
     private Vector3[] onFieldSilks;
 
     //設定値
-    private float miniMapSize;
+    private Vector3 miniMapSize;
     private Vector3 PosInit;
 
     IOnFieldSilk iOnFieldSilk;
-
-    
 
     //テスト用
     //float testTimer = Global.SET_GAME_TIME;
@@ -33,7 +31,8 @@ public class MiniMapController : MonoBehaviour
     void Start()
     {
         RectTransform rectTransform = GetComponent<RectTransform>();
-        miniMapSize = rectTransform.sizeDelta.x / 100.0f;
+        miniMapSize.x = rectTransform.sizeDelta.x / 100.0f;
+        miniMapSize.y = rectTransform.sizeDelta.y / 100.0f;
 
         PosInit = new Vector3(0, 1500, 0);
         iOnFieldSilk = GoldenSilkManager.Instance;
@@ -99,17 +98,21 @@ public class MiniMapController : MonoBehaviour
 
         if (MiniMapSpider_Left != null)
         {
-            Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1) / Global.Map_Size_X * miniMapSize;
-            MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x + transform.position.x, Spider_Left.z + transform.position.y, 0);
+            Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
+            MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x / Global.Map_Size_X * miniMapSize.x + transform.position.x,
+                                                                Spider_Left.z / Global.Map_Size_Y * miniMapSize.y + transform.position.y,
+                                                                0.0f) ;
         }
         if (MiniMapSpider_Right != null)
         {
-            Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2) / Global.Map_Size_X * miniMapSize;
-            MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x + transform.position.x, Spider_Right.z + transform.position.y, 0);
+            Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
+            MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x / Global.Map_Size_X * miniMapSize.x + transform.position.x,
+                                                                 Spider_Right.z / Global.Map_Size_Y * miniMapSize.y + transform.position.y,
+                                                                 0.0f);
         }
 
         #region　黄金の糸テスト用
-        //TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
+        TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         
         #endregion
     }
@@ -122,9 +125,10 @@ public class MiniMapController : MonoBehaviour
         for (int i = 0; i < onFieldSilks.Length; i++)
         {
             Vector3 tmp = onFieldSilks[i];
-            tmp.y = onFieldSilks[i].z;
+            tmp.x = tmp.x / Global.Map_Size_X * miniMapSize.x;
+            tmp.y = onFieldSilks[i].z / Global.Map_Size_Y * miniMapSize.y;
             tmp.z = 0.0f;
-            tmp = tmp / Global.Map_Size_X * miniMapSize + transform.position;
+            tmp += transform.position;
             GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
             MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
             MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
