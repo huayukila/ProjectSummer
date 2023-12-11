@@ -76,4 +76,8 @@ public static class Global
     public static readonly float STAGE_WIDTH = 300f;
     public static readonly float STAGE_HEIGHT = 300f;
     #endregion
+
+    #region SkillUI
+    public static readonly float BOOST_BAR_CHARGING_SPEED = 0.05f;
+    #endregion
 }

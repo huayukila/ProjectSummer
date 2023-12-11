@@ -24,13 +24,17 @@ public class MiniMapController : MonoBehaviour
 
     IOnFieldSilk iOnFieldSilk;
 
+    
+
     //テスト用
     //float testTimer = Global.SET_GAME_TIME;
 
     // Start is called before the first frame update
     void Start()
     {
-        miniMapSize = 1.8f;
+        RectTransform rectTransform = GetComponent<RectTransform>();
+        miniMapSize = rectTransform.sizeDelta.x / 100.0f;
+
         PosInit = new Vector3(0, 1500, 0);
         iOnFieldSilk = GoldenSilkManager.Instance;
         //IOnFieldSilk iOnFieldSilk = GoldenSilkManager.Instance;
@@ -105,13 +109,8 @@ public class MiniMapController : MonoBehaviour
         }
 
         #region　黄金の糸テスト用
-        //ypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
-        //testTimer -= Time.deltaTime;
-        //if (50.0f < testTimer / Global.SET_GAME_TIME)
-        //{
-        //    TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
-
-        //}
+        //TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
+        
         #endregion
     }
 
