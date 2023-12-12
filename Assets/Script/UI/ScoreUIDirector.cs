@@ -40,6 +40,7 @@ public class ScoreUIDirector : MonoBehaviour
             finishCountDownCtrler.StartCountDown(() =>
             {
                 AudioManager.Instance.StopBGM();
+                ScoreModel.Instance.SetScore();
                 TypeEventSystem.Instance.Send<GameOver>();
             });
         }).Start(this);
