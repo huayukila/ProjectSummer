@@ -1,4 +1,4 @@
-public struct RefrashVSBarEvent
+public struct RefreshVSBarEvent
 {
     public int[] PlayerPixelNums;
 }
