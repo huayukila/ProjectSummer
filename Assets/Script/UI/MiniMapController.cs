@@ -121,18 +121,20 @@ public class MiniMapController : MonoBehaviour
     public void SetSilk()
     {
         DestroySilk();
-
-        for (int i = 0; i < onFieldSilks.Length; i++)
+        if(onFieldSilks != null)
         {
-            Vector3 tmp = onFieldSilks[i];
-            tmp.x = tmp.x / Global.Map_Size_X * miniMapSize.x;
-            tmp.y = onFieldSilks[i].z / Global.Map_Size_Y * miniMapSize.y;
-            tmp.z = 0.0f;
-            tmp += transform.position;
-            GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
-            MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
-            MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
-        }
+            for (int i = 0; i < onFieldSilks.Length; i++)
+            {
+                Vector3 tmp = onFieldSilks[i];
+                tmp.x = tmp.x / Global.Map_Size_X * miniMapSize.x;
+                tmp.y = onFieldSilks[i].z / Global.Map_Size_Y * miniMapSize.y;
+                tmp.z = 0.0f;
+                tmp += transform.position;
+                GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
+                MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
+                MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
+            }
+        }  
     }
     private void DestroySilk()
     {
