@@ -2,31 +2,21 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using Kit;
+using System.Collections;
 
 public class ScoreUIDirector : MonoBehaviour
 {
-    //public GameObject p1ScoreUI;
-    //public GameObject p2ScoreUI;
-
-    //public GameObject p1RespawnUI;
-    //public GameObject p2RespawnUI;
-
-    float player1Timer;
-    float player2Timer;
-
-    //public GameObject redSpiderImageGray;
-    //public GameObject yellowSpiderImageGray;
-
-    public GameObject timeUI;
-
-    bool isPlayer1Respawn;
-    bool isPlayer2Respawn;
+    //public GameObject timeUI;
 
     float timerSetting = Global.SET_GAME_TIME;
 
     public Image TimeBarFront;
+    public Image DushBar_Yellow_Left;
+    public Image DushBar_Yellow_Right;
 
-    bool aaa;
+    private Image[] boostBar = new Image[2];
+    private bool[] isBoostStart = new bool[2];
+    private float[] boostCooldownTimer = new float[2];
 
     [Header("Prefab")]
     public CountDownCtrler startCountDownCtrler;
@@ -37,8 +27,12 @@ public class ScoreUIDirector : MonoBehaviour
         Time.timeScale = 0.0f;
         startCountDownCtrler.StartCountDown(() => Time.timeScale = 1.0f);
 
-        player1Timer = Global.RESPAWN_TIME;//復活の時間を設定
-        player2Timer = Global.RESPAWN_TIME;
+        for (int i = 0; i < 2; i++)
+        {
+            boostCooldownTimer[i]= Global.BOOST_COOLDOWN_TIME;//ブーストバーのクールダウンを初期化
+        }
+        boostBar[0] = DushBar_Yellow_Left;
+        boostBar[1] = DushBar_Yellow_Right;
 
         //タイマーをセット（Global.SET_GAME_TIME - 9f）、タイマーを終わると、カウントダウンを始める。
         ActionKit.Delay(Global.SET_GAME_TIME - 9f, () =>
@@ -50,53 +44,22 @@ public class ScoreUIDirector : MonoBehaviour
             });
         }).Start(this);
 
-        //timer.SetTimer(Global.SET_GAME_TIME - 9f, () =>
-        //{
-            
-        //});
-
-        //UISystem.DisplayOff(p1RespawnUI);//復活のカウントダウンUIを隠す
-        //UISystem.DisplayOff(p2RespawnUI);
-
-        //UISystem.DisplayOff(redSpiderImageGray);//灰色のスパイダーアイコンを隠す
-        //UISystem.DisplayOff(yellowSpiderImageGray) ;
-        
-        TypeEventSystem.Instance.Register<Player1RespawnCntBegin>(e => { Player1RespawnCntBegin(); });  //プレイヤー１が死んだ時、カウントダウンを開始。
-        TypeEventSystem.Instance.Register<Player2RespawnCntBegin>(e => { Player2RespawnCntBegin(); });　//プレイヤー２が死んだ時、カウントダウンを開始。
-        //TypeEventSystem.Instance.Register<Player1RespawnCntEnd>(e =>   { Player1RespawnCntEnd(); });　　//プレイヤー１が復活する時、カウントダウンをリセット。
-        //TypeEventSystem.Instance.Register<Player2RespawnCntEnd>(e =>   { Player2RespawnCntEnd(); });　　//プレイヤー２が復活する時、カウントダウンをリセット。
-
+        TypeEventSystem.Instance.Register<BoostStart>(e =>
+        {
+            BoostStart(e.Nomber);
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
-    // Update is called once per frame
+
+    private void FixedUpdate()
+    {
+        BoostBarUpdate();
+    }
     void Update()
     {
-        //p1ScoreUI.GetComponent<TextMeshProUGUI>().text =
-        //    ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
-        //p2ScoreUI.GetComponent<TextMeshProUGUI>().text =
-        //    ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容
-
-        if (isPlayer1Respawn)
-        {
-            player1Timer -= Time.deltaTime;                                                    //カウントダウンを開始
-            //p1RespawnUI.GetComponent<TextMeshProUGUI>().text = player1Timer.ToString("F1");  //カウントダウンのテキスト
-            if (player1Timer <= 0)//カウントダウンを終わると
-            {
-                Player1RespawnCntEnd();//カウントダウンをリセットなど
-            }
-        }
-        if (isPlayer2Respawn)
-        {
-            player2Timer -= Time.deltaTime;                                                    //カウントダウンを開始
-            //p2RespawnUI.GetComponent<TextMeshProUGUI>().text = player2Timer.ToString("F1");    //カウントダウンのテキスト
-            if(player2Timer <= 0)//カウントダウンを終わると
-            {
-                Player2RespawnCntEnd();//カウントダウンをリセットなど
-            }
-        }
-
+        #region 臨時コード
         //if (timer.GetTime() <= 9.0f)
         //{
-            
+
         //    startCountDownCtrler.StartCountDown(() => 
         //    { 
         //        AudioManager.Instance.StopBGM(); 
@@ -108,46 +71,70 @@ public class ScoreUIDirector : MonoBehaviour
         //    AudioManager.Instance.StopBGM();
         //    TypeEventSystem.Instance.Send<GameOver>();                 //GameOver命令を発送、EndSceneへ切り替え
         //}
+        #endregion
 
-        timerSetting-= Time.deltaTime;
+        timerSetting -= Time.deltaTime;
 
+        TimeBarFront.fillAmount = timerSetting / Global.SET_GAME_TIME;
 
-        TimeBarFront.fillAmount = timerSetting/ Global.SET_GAME_TIME;
-
-        //テスト用‐‐‐‐‐‐‐‐
-        //if (Input.GetKeyDown(KeyCode.Space))
+        #region Boostテスト用
+        //if (Input.GetKeyDown(KeyCode.V))
         //{
-        //    TypeEventSystem.Instance.Send<Player2RespawnCntBegin>();
+
+        //    BoostStart boostStart1 = new BoostStart();
+        //    boostStart1.Nomber = 0;
+
+        //    TypeEventSystem.Instance.Send<BoostStart>(boostStart1);
+
         //}
-        //if (Input.GetKeyDown(KeyCode.X))
+        //if (Input.GetKeyDown(KeyCode.B))
         //{
-        //    TypeEventSystem.Instance.Send<Player1RespawnCntBegin>();
+
+        //    BoostStart boostStart2 = new BoostStart();
+        //    boostStart2.Nomber = 1;
+
+        //    TypeEventSystem.Instance.Send<BoostStart>(boostStart2);
+
         //}
+        #endregion
     }
-    void Player1RespawnCntBegin()
+
+    void BoostStart(int nomber)
     {
-        isPlayer1Respawn = true;　　　　　　　　　　　 //復活の処理をon!
-        //UISystem.DisplayOn(p1RespawnUI);         　　　//復活のカウントダウンUIを現す
-        //UISystem.DisplayOn(redSpiderImageGray);        //スパイダーアイコンを灰色に置き換え
+        switch (nomber)
+        {
+            case 0:
+                if (isBoostStart[0] != true)
+                {
+                    isBoostStart[0] = true;
+                }
+                break;
+            case 1:
+                if (isBoostStart[1] != true)
+                {
+                    isBoostStart[1] = true;
+                }
+                break;
+        }
     }
-    void Player1RespawnCntEnd()
+    private void BoostBarUpdate()
     {
-        //UISystem.DisplayOff(p1RespawnUI);　　　　　　  //復活のカウントダウンUIを隠す
-        //UISystem.DisplayOff(redSpiderImageGray);　　　 //灰色のスパイダーアイコンを隠す
-        player1Timer = Global.RESPAWN_TIME;　　　　　  //カウントダウンをリセット
-        isPlayer1Respawn = false;                      //復活の処理をoff!
-    }
-    void Player2RespawnCntBegin()
-    {
-        isPlayer2Respawn = true;                        //復活の処理をon!
-        //UISystem.DisplayOn(p2RespawnUI);  　　　　　　　//復活のカウントダウンUIを現す
-        //UISystem.DisplayOn(yellowSpiderImageGray);      //スパイダーアイコンを灰色に置き換え                                                        
-    }
-    void Player2RespawnCntEnd()
-    {
-        //UISystem.DisplayOff(p2RespawnUI);               //復活のカウントダウンUIを隠す
-        //UISystem.DisplayOff(yellowSpiderImageGray);     //灰色のスパイダーアイコンを隠す
-        player2Timer = Global.RESPAWN_TIME;             //カウントダウンをリセット
-        isPlayer2Respawn = false;                       //復活の処理をoff!
+        for (int i = 0; i < 2; ++i) 
+        {
+            if (isBoostStart[i])
+            {
+                boostBar[i].fillAmount -= Time.fixedDeltaTime / Global.BOOST_DURATION_TIME;//ブーストのチャージバーを減少
+                boostCooldownTimer[i] -= Time.fixedDeltaTime;//クールダウンタイマー減少
+                if (boostCooldownTimer[i] <= (1.0f / Global.BOOST_BAR_CHARGING_SPEED) * Time.fixedDeltaTime) //リチャージ時間の直前に
+                {
+                    isBoostStart[i] = false;
+                }
+            }
+            else
+            {
+                boostCooldownTimer[i] = Global.BOOST_COOLDOWN_TIME;//クールダウンタイマーリセット
+                boostBar[i].fillAmount += Global.BOOST_BAR_CHARGING_SPEED;//ブーストのチャージバーをリチャージ
+            }
+        }
     }
 }
