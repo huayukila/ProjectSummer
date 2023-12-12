@@ -90,6 +90,7 @@ namespace Gaming.PowerUp
                     smoke.transform.position -= new Vector3(0.0f, 0.2f, 0.0f);
                     mCurrentState = State.Active;
                     mSpawnTimer = null;
+                    TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
                 }
                 );
 
@@ -109,12 +110,13 @@ namespace Gaming.PowerUp
         {
             transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime * 2);
             mDropStartPos = transform.position;
-            if((mDropStartPos - mDropEndPos).magnitude < 0.1f)
+            if((mDropStartPos - mDropEndPos).magnitude < 1f)
             {
                 transform.position = mDropEndPos;
                 mDropStartPos = Vector3.zero;
                 mDropEndPos = Vector3.zero;
                 OnSetState(State.Active);
+                TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
             }
         }
 
