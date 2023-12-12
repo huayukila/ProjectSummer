@@ -11,8 +11,10 @@ public class ScoreUIDirector : MonoBehaviour
     float timerSetting = Global.SET_GAME_TIME;
 
     public Image TimeBarFront;
-    public Image DushBar_Yellow_Left;
-    public Image DushBar_Yellow_Right;
+    //TODO changed by Mai
+    //スペルミス Dush => Dash
+    public Image DashBar_Yellow_Left;
+    public Image DashBar_Yellow_Right;
 
     private Image[] boostBar = new Image[2];
     private bool[] isBoostStart = new bool[2];
@@ -29,10 +31,15 @@ public class ScoreUIDirector : MonoBehaviour
 
         for (int i = 0; i < 2; i++)
         {
+            //TODO changed by Mai
+            //isBoostStartは初期化していない 
+            isBoostStart[i] = false;
             boostCooldownTimer[i]= Global.BOOST_COOLDOWN_TIME;//ブーストバーのクールダウンを初期化
         }
-        boostBar[0] = DushBar_Yellow_Left;
-        boostBar[1] = DushBar_Yellow_Right;
+        //TODO changed by Mai
+        //スペルミス Dush => Dash
+        boostBar[0] = DashBar_Yellow_Left;
+        boostBar[1] = DashBar_Yellow_Right;
 
         //タイマーをセット（Global.SET_GAME_TIME - 9f）、タイマーを終わると、カウントダウンを始める。
         ActionKit.Delay(Global.SET_GAME_TIME - 9f, () =>
@@ -46,7 +53,9 @@ public class ScoreUIDirector : MonoBehaviour
 
         TypeEventSystem.Instance.Register<BoostStart>(e =>
         {
-            BoostStart(e.Nomber);
+            //TODO changed by Mai
+            //スペルミス nomber => number
+            BoostStart(e.Number);
         }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
 
@@ -99,17 +108,21 @@ public class ScoreUIDirector : MonoBehaviour
         #endregion
     }
 
-    void BoostStart(int nomber)
+    //TODO changed by Mai
+    //スペルミス nomber => number
+    void BoostStart(int number)
     {
-        switch (nomber)
+        //TODO 疑問点
+        //switchを使う意味は？
+        switch (number)
         {
-            case 0:
+            case 1:
                 if (isBoostStart[0] != true)
                 {
                     isBoostStart[0] = true;
                 }
                 break;
-            case 1:
+            case 2:
                 if (isBoostStart[1] != true)
                 {
                     isBoostStart[1] = true;
@@ -117,6 +130,9 @@ public class ScoreUIDirector : MonoBehaviour
                 break;
         }
     }
+
+    //TODO 意味不明な処理
+    //バーのチャージ表現が意味不明
     private void BoostBarUpdate()
     {
         for (int i = 0; i < 2; ++i) 

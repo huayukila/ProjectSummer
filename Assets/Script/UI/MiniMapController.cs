@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -19,6 +20,8 @@ public class MiniMapController : MonoBehaviour
     private Vector3[] onFieldSilks;
 
     //設定値
+    //TODO 疑問点
+    //miniMapSizeはVector2を使えば十分ですが、Vector3を使う理由は？
     private Vector3 miniMapSize;
     private Vector3 PosInit;
 
@@ -64,8 +67,8 @@ public class MiniMapController : MonoBehaviour
             MiniMapSpider_Right.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(2) 
         }
     }
-
-    // Update is called once per frame
+    
+    //TODO changed by Mai
     private void FixedUpdate()
     {
         #region 一時的不要なコード
@@ -95,24 +98,31 @@ public class MiniMapController : MonoBehaviour
 
         #endregion
 
-        onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
+        //TODO changed by Mai毎回取得する必要がない
+        //onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
 
         if (MiniMapSpider_Left != null)
         {
-            Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
-            MiniMapSpider_Left.transform.position = new Vector3(
-                Spider_Left.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
-                Spider_Left.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
-                0.0f);
+            //TODO changed by Mai プレイヤーが死亡した場合更新しません。
+            if (!GameManager.Instance.IsPlayerDead(1))
+            {
+                Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
+                MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
+                                                    Spider_Left.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
+                                                    0.0f);
+            }
         }
 
         if (MiniMapSpider_Right != null)
         {
-            Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
-            MiniMapSpider_Right.transform.position = new Vector3(
-                Spider_Right.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
-                Spider_Right.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
-                0.0f);
+            //TODO changed by Mai プレイヤーが死亡した場合更新しません。
+            if (!GameManager.Instance.IsPlayerDead(2))
+            {
+                Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
+                MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
+                                                                     Spider_Right.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
+                                                                     0.0f);
+            }
         }
 
         #region　黄金の糸テスト用
@@ -123,8 +133,11 @@ public class MiniMapController : MonoBehaviour
     }
 
     //黄金の糸をスイッチon！
-    public void SetSilk()
+    //TODO　changed by Mai publicする必要がない、privateにした
+    private void SetSilk()
     {
+        //TODO changed by Mai拾った時に更新する
+        onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
         DestroySilk();
         if (onFieldSilks != null)
         {

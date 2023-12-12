@@ -109,7 +109,12 @@ public class GameManager : Singleton<GameManager>
     {
         //各システムのupdate
         //シーンの移行など
-        CheckRespawn();
+        // gaming scene process
+        if (SceneManager.GetActiveScene().name == "Gaming")
+        {
+            CheckRespawn();
+        }
+
     }
 
     //シーンの移行
@@ -258,6 +263,17 @@ public class GameManager : Singleton<GameManager>
         if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
         {
             ret = value.player.transform.position;
+        }
+        return ret;
+    }
+
+    public bool IsPlayerDead(int ID)
+    {
+        bool ret = true;
+        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
+        {
+            //TODO インターフェースでやる
+            ret = value.player.GetComponent<Player>().IsDead();
         }
         return ret;
     }
