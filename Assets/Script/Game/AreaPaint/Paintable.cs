@@ -9,8 +9,8 @@ public class Paintable : MonoBehaviour
     public RenderTexture GetAreaMask() => areaMaskTexture;
     public RenderTexture GetAreaCopy() => areaCopyTexture;
 
-    private int textureSize_x = Global.Map_Size_X * 1000;
-    private int textureSize_y = Global.Map_Size_Y * 1000;
+    private int textureSize_x = Global.MAP_SIZE_WIDTH * 1000;
+    private int textureSize_y = Global.MAP_SIZE_HEIGHT * 1000;
     private Renderer rend;
     private RenderTexture maskTexture;
     private RenderTexture copyTexture;
@@ -22,7 +22,7 @@ public class Paintable : MonoBehaviour
 
     private void Awake()
     {
-        transform.localScale = new Vector3(Global.Map_Size_X*10, 1, Global.Map_Size_Y*10);
+        transform.localScale = new Vector3(Global.MAP_SIZE_WIDTH*10, 1, Global.MAP_SIZE_HEIGHT*10);
 
         maskTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         maskTexture.filterMode = FilterMode.Bilinear;

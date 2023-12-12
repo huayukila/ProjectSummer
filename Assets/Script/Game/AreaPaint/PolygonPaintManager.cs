@@ -1,5 +1,3 @@
-using NaughtyAttributes;
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -25,9 +23,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
     int playerAreaTextureID = Shader.PropertyToID("_PlayerAreaText");
 
-    bool isShowPercent = true;
-    float redScore = 0.0f;
-    float greenScore = 0.0f;
+    int[] CountResultArray = new int[2];
+
 
     protected override void Awake()
     {
@@ -44,23 +41,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
         computeShader.SetVector("TargetColorA", Global.PLAYER_TRACE_COLORS[0]);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TRACE_COLORS[1]);
-        redScore = 0.0f;
-        greenScore = 0.0f;
     }
-
-    private void OnGUI()
-    {
-        if (isShowPercent)
-        {
-            GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(3.0f, 3.0f, 1));
-            GUILayout.BeginArea(new Rect(10, 100, 1000, 200));
-            GUILayout.Label("Game Data Test", GUILayout.Width(1000));
-            GUILayout.Label("Blue:" + redScore + "%", GUILayout.Width(1000));
-            GUILayout.Label("Green:" + greenScore + "%", GUILayout.Width(1000));
-            GUILayout.EndArea();
-        }
-    }
-
+    
     /// <summary>
     /// ミニマップを獲得
     /// </summary>
@@ -72,6 +54,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
             Debug.LogError("render texture is not already");
             return null;
         }
+
         return CopyRT;
     }
 
@@ -167,15 +150,11 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         //命令隊列クリア
         command.Clear();
         CountPixelByColor();
+        TypeEventSystem.Instance.Send(new RefreshVSBarEvent
+            { PlayerPixelNums = CountResultArray });
     }
 
     #region 内部用
-
-    [Button]
-    void ShowPaintAreaScore()
-    {
-        isShowPercent = !isShowPercent;
-    }
 
     /// <summary>
     /// 分数計算
@@ -185,18 +164,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     {
         computeShader.Dispatch(kernelHandle, mapPaintable.GetCopy().width / 10,
             mapPaintable.GetCopy().height / 10, 1);
-        int[] CountResultArray = new int[2];
         mCountBuffer.GetData(CountResultArray);
-
-        redScore = CountScore(CountResultArray[0], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
-
-        greenScore = CountScore(CountResultArray[1], mapPaintable.GetMask().width, mapPaintable.GetMask().height);
         mCountBuffer.SetData(new int[2] { 0, 0 });
-    }
-
-    private float CountScore(int Nums, float width, float heigt)
-    {
-        return MathF.Floor((Nums / (width * heigt * 0.5f)) * 10000f) / 100f;
     }
 
     private void OnDestroy()

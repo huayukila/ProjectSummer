@@ -71,9 +71,13 @@ public static class Global
 
     #region Map
 
-    public static readonly int Map_Size_X = 3;
-    public static readonly int Map_Size_Y = 3;
+    public static readonly int MAP_SIZE_WIDTH = 3;//マップの長さ
+    public static readonly int MAP_SIZE_HEIGHT = 3;//マップの高さ
     public static readonly float STAGE_WIDTH = 300f;
     public static readonly float STAGE_HEIGHT = 300f;
+    #endregion
+
+    #region SkillUI
+    public static readonly float BOOST_BAR_CHARGING_SPEED = 0.05f;
     #endregion
 }

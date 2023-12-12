@@ -143,7 +143,7 @@ public class EndSceneUIDirector : MonoBehaviour
                 {
                     TurnSmallAndAppear(winRed);
                 }
-                if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())
+                if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())//ScoreSystem.Instance.GetPlayer2Score()
                 {
                     TurnSmallAndAppear(winYellow);
                 }
