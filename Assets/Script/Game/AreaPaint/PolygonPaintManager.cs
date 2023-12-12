@@ -42,8 +42,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         computeShader.SetVector("TargetColorA", Global.PLAYER_TRACE_COLORS[0]);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TRACE_COLORS[1]);
     }
-
-
+    
     /// <summary>
     /// ミニマップを獲得
     /// </summary>
@@ -151,7 +150,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         //命令隊列クリア
         command.Clear();
         CountPixelByColor();
-        TypeEventSystem.Instance.Send(new RefrashVSBarEvent
+        TypeEventSystem.Instance.Send(new RefreshVSBarEvent
             { PlayerPixelNums = CountResultArray });
     }
 

@@ -99,15 +99,15 @@ public class MiniMapController : MonoBehaviour
         if (MiniMapSpider_Left != null)
         {
             Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
-            MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x / Global.Map_Size_X * miniMapSize.x + transform.position.x,
-                                                                Spider_Left.z / Global.Map_Size_Y * miniMapSize.y + transform.position.y,
+            MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
+                                                                Spider_Left.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
                                                                 0.0f) ;
         }
         if (MiniMapSpider_Right != null)
         {
             Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
-            MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x / Global.Map_Size_X * miniMapSize.x + transform.position.x,
-                                                                 Spider_Right.z / Global.Map_Size_Y * miniMapSize.y + transform.position.y,
+            MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
+                                                                 Spider_Right.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
                                                                  0.0f);
         }
 
@@ -125,8 +125,8 @@ public class MiniMapController : MonoBehaviour
         for (int i = 0; i < onFieldSilks.Length; i++)
         {
             Vector3 tmp = onFieldSilks[i];
-            tmp.x = tmp.x / Global.Map_Size_X * miniMapSize.x;
-            tmp.y = onFieldSilks[i].z / Global.Map_Size_Y * miniMapSize.y;
+            tmp.x = tmp.x / Global.MAP_SIZE_WIDTH * miniMapSize.x;
+            tmp.y = onFieldSilks[i].z / Global.MAP_SIZE_HEIGHT * miniMapSize.y;
             tmp.z = 0.0f;
             tmp += transform.position;
             GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
