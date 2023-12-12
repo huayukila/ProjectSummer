@@ -7,24 +7,24 @@ using UnityEngine.UI;
 
 public class MiniMapController : MonoBehaviour
 {
-    //---------ƒ~ƒjƒ}ƒbƒvŠÖ˜A‚ÌƒR[ƒh‚Å‚·-----------
+    //---------ãƒŸãƒ‹ãƒãƒƒãƒ—é–¢é€£ã®ã‚³ãƒ¼ãƒ‰ã§ã™-----------
 
-    //ƒ~ƒjƒ}ƒbƒv‚ÌƒXƒpƒCƒ_[
+    //ãƒŸãƒ‹ãƒãƒƒãƒ—ã®ã‚¹ãƒ‘ã‚¤ãƒ€ãƒ¼
     public GameObject MiniMapSpider_Left;
     public GameObject MiniMapSpider_Right;
 
-    //ƒ~ƒjƒ}ƒbƒv‚Ì‰©‹à‚Ì…
+    //ãƒŸãƒ‹ãƒãƒƒãƒ—ã®é»„é‡‘ã®ç³¸
     public GameObject MiniMapSilkPrefab;
     private GameObject[] MiniMapSilkPrefabSave;// = new GameObject[3];
     private Vector3[] onFieldSilks;
 
-    //İ’è’l
+    //è¨­å®šå€¤
     private Vector3 miniMapSize;
     private Vector3 PosInit;
 
     IOnFieldSilk iOnFieldSilk;
 
-    //ƒeƒXƒg—p
+    //ãƒ†ã‚¹ãƒˆç”¨
     //float testTimer = Global.SET_GAME_TIME;
 
     // Start is called before the first frame update
@@ -38,7 +38,7 @@ public class MiniMapController : MonoBehaviour
         iOnFieldSilk = GoldenSilkManager.Instance;
         //IOnFieldSilk iOnFieldSilk = GoldenSilkManager.Instance;
         //onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
-        if (MiniMapSilkPrefab != null)//GameProject‚ª“ü‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©iˆÈ‰º“¯—lj
+        if (MiniMapSilkPrefab != null)//GameProjectãŒå…¥ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ï¼ˆä»¥ä¸‹åŒæ§˜ï¼‰
         {
             MiniMapSilkPrefabSave = new GameObject[3];
 
@@ -46,10 +46,10 @@ public class MiniMapController : MonoBehaviour
             {
                 SetSilk();
             });
-            //for (int i = 0; i < 3; i++)//‰©‹à‚Ì…‚ğ‰Šú‰»
+            //for (int i = 0; i < 3; i++)//é»„é‡‘ã®ç³¸ã‚’åˆæœŸåŒ–
             //{
-            //    MiniMapSilkPrefabSave[i] = Instantiate(MiniMapSilkPrefab, PosInit, Quaternion.identity);//‰©‹à‚Ì…3‚Â¶¬
-            //    MiniMapSilkPrefabSave[i].transform.SetParent(transform.parent);//Canvas‚Ì’†‚É¶¬
+            //    MiniMapSilkPrefabSave[i] = Instantiate(MiniMapSilkPrefab, PosInit, Quaternion.identity);//é»„é‡‘ã®ç³¸3ã¤ç”Ÿæˆ
+            //    MiniMapSilkPrefabSave[i].transform.SetParent(transform.parent);//Canvasã®ä¸­ã«ç”Ÿæˆ
             //    //MiniMapSilkPrefabSave[i].SetActive(false);
             //    //testvector3s[i] = new Vector3(200.0f * i, 0, 200.0f * i);
             //}
@@ -69,7 +69,7 @@ public class MiniMapController : MonoBehaviour
     // Update is called once per frame
     private void FixedUpdate()
     {
-        #region ˆê“I•s—v‚ÈƒR[ƒh
+        #region ä¸€æ™‚çš„ä¸è¦ãªã‚³ãƒ¼ãƒ‰
         //if (MiniMapSilkPrefab != null)
         //{
 
@@ -111,28 +111,31 @@ public class MiniMapController : MonoBehaviour
                                                                  0.0f);
         }
 
-        #region@‰©‹à‚Ì…ƒeƒXƒg—p
+        #regionã€€é»„é‡‘ã®ç³¸ãƒ†ã‚¹ãƒˆç”¨
         //TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         
         #endregion
     }
 
-    //‰©‹à‚Ì…‚ğƒXƒCƒbƒ`onI
+    //é»„é‡‘ã®ç³¸ã‚’ã‚¹ã‚¤ãƒƒãƒonï¼
     public void SetSilk()
     {
         DestroySilk();
-
-        for (int i = 0; i < onFieldSilks.Length; i++)
+        if(onFieldSilks != null)
         {
-            Vector3 tmp = onFieldSilks[i];
-            tmp.x = tmp.x / Global.MAP_SIZE_WIDTH * miniMapSize.x;
-            tmp.y = onFieldSilks[i].z / Global.MAP_SIZE_HEIGHT * miniMapSize.y;
-            tmp.z = 0.0f;
-            tmp += transform.position;
-            GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
-            MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
-            MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
-        }
+            for (int i = 0; i < onFieldSilks.Length; i++)
+            {
+                Vector3 tmp = onFieldSilks[i];
+                tmp.x = tmp.x / Global.Map_Size_X * miniMapSize.x;
+                tmp.y = onFieldSilks[i].z / Global.Map_Size_Y * miniMapSize.y;
+                tmp.z = 0.0f;
+                tmp += transform.position;
+                GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
+                MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
+                MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
+            }
+        }  
+
     }
     private void DestroySilk()
     {
