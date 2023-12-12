@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
+using Unity.VisualScripting.Antlr3.Runtime;
 
 namespace Character
 {
@@ -109,10 +110,10 @@ namespace Character
 
         private void OnTriggerEnter(Collider other)
         {
-            if(other.gameObject.tag.Contains("DropPoint"))
+            if (other.gameObject.tag.Contains("DropPoint"))
             {
                 // 自分のDropPoint以外のDropPointに当たったら
-                if(other.gameObject.tag.Contains(mID.ToString()) == false)
+                if (other.gameObject.tag.Contains(mID.ToString()) == false)
                 {
                     if (mSilkData.SilkCount > 0)
                     {
@@ -142,14 +143,14 @@ namespace Character
             // 領域を描画してみる
             TryPaintArea();
             //TODO ブースト（隠れ仕様）
-            if(mBoostCoolDownTimer != null)
+            if (mBoostCoolDownTimer != null)
             {
                 mBoostDurationTime -= Time.deltaTime;
-                if(mBoostDurationTime <= 0.0f)
+                if (mBoostDurationTime <= 0.0f)
                 {
                     mBoostCoefficient = 1f;
                 }
-                if(mBoostCoolDownTimer.IsTimerFinished())
+                if (mBoostCoolDownTimer.IsTimerFinished())
                 {
                     mBoostCoolDownTimer = null;
                 }
@@ -362,9 +363,9 @@ namespace Character
             Vector3[] silkPos = GoldenSilkManager.Instance.GetOnFieldSilkPos();
             List<Vector3> caputuredSilk = new List<Vector3>();
             bool IsPickedNew = false;
-            foreach(Vector3 pos in silkPos)
+            foreach (Vector3 pos in silkPos)
             {
-                if(VectorMath.InPolygon(pos,verts))
+                if (VectorMath.InPolygon(pos, verts))
                 {
                     mSilkData.SilkCount++;
                     caputuredSilk.Add(pos);
@@ -379,14 +380,14 @@ namespace Character
             };
             TypeEventSystem.Instance.Send<SilkCapturedEvent>(silkCapturedEvent);
             // 金の糸の画像を表示
-            if(IsPickedNew)
+            if (IsPickedNew)
             {
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
                 mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
                 mSilkData.SilkRenderer.SetActive(true);
                 Transform silkCount = mSilkData.SilkRenderer.transform.GetChild(0);
-                if(silkCount != null )
+                if (silkCount != null)
                 {
                     silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkData.SilkCount];
                     silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
@@ -407,7 +408,7 @@ namespace Character
 
         private void SetPowerUpLevel()
         {
-            if(mSilkData.SilkCount > 0)
+            if (mSilkData.SilkCount > 0)
             {
                 mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].SpeedUp;
                 mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].RotateUp;
@@ -423,7 +424,7 @@ namespace Character
             mPlayerInput?.ActivateInput();
         }
         private void OnDisable()
-        {  
+        {
             mPlayerInput?.DeactivateInput();
         }
         private void OnDestroy()
@@ -453,6 +454,7 @@ namespace Character
 
         #endregion
         #region interface
+        public bool IsDead() => mState == State.Dead;
         public int GetID() => mID;
         public Color GetColor() => mColor;
         public void SetProperties(int ID, Color color)

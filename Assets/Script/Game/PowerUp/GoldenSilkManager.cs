@@ -41,6 +41,7 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                     ++index;
                 }
             }
+            TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
         TypeEventSystem.Instance.Register<DropSilkEvent>(e =>
@@ -90,6 +91,7 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
             () =>
             {
                 GameObject obj = GoldenSilkSystem.Instance.DropNewSilk();
+                //TODO リストに入れるタイミングを修正する
                 if (obj != null)
                 {
                     mOnFieldSilk.Add(obj);
@@ -129,10 +131,21 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                     nearVert = vert;
                 }
             }
-            ret = new Vector3( Random.Range(nearVert.x - startPos.x,farVert.x - startPos.x),
-                                                                                        0 , 
-                               Random.Range(nearVert.z - startPos.z,farVert.z - startPos.z)
+            Debug.Log(farVert);
+            Debug.Log(nearVert);
+            float nearX = nearVert.x - startPos.x;
+            float farX = farVert.x - startPos.x;
+            float nearZ = nearVert.z - startPos.z;
+            float farZ = farVert.z - startPos.z;
+            float realX = Random.Range(nearX, farX);
+            float realZ = Random.Range(nearZ, farZ);
+            Debug.Log(realX);
+            Debug.Log(realZ);
+            ret = new Vector3(realX,
+                                                                                        0 ,
+                              realZ
                              ).normalized;
+            Debug.Log(ret);
             ret *= Random.Range(30,50);
         }
         else
