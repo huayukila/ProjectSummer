@@ -1,4 +1,6 @@
 public struct BoostStart
 {
-    public int Nomber;
+    //TODO changed by Mai
+    //スペルミス nomber => number
+    public int Number;
 }

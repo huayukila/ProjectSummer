@@ -110,7 +110,7 @@ namespace Gaming.PowerUp
         {
             transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime * 2);
             mDropStartPos = transform.position;
-            if((mDropStartPos - mDropEndPos).magnitude < 0.1f)
+            if((mDropStartPos - mDropEndPos).magnitude < 1f)
             {
                 transform.position = mDropEndPos;
                 mDropStartPos = Vector3.zero;

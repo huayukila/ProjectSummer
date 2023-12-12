@@ -49,7 +49,7 @@ namespace Character
         // Update is called once per frame
         private void Update()
         {
-            TryDropPoint();
+            
             fadeOutTimer += Time.deltaTime;
             // プレイヤーが場に一定時間を移動し続けたら（DropPointの生存時間の半分）
             if (fadeOutTimer >= Global.DROP_POINT_ALIVE_TIME / 2.0f && fadeOutTimer < Global.DROP_POINT_ALIVE_TIME)
@@ -66,6 +66,10 @@ namespace Character
 
         }
 
+        private void FixedUpdate()
+        {
+            TryDropPoint();
+        }
         /// <summary>
         /// DropPointをインスタンス化する
         /// </summary>

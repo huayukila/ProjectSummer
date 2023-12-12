@@ -150,10 +150,7 @@ namespace Character
                 {
                     mBoostCoefficient = 1f;
                 }
-                if (mBoostCoolDownTimer.IsTimerFinished())
-                {
-                    mBoostCoolDownTimer = null;
-                }
+                mBoostCoolDownTimer.IsTimerFinished();
             }
         }
 
@@ -373,15 +370,15 @@ namespace Character
 
                 }
             }
-            SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
-            {
-                ID = mID,
-                positions = caputuredSilk.ToArray()
-            };
-            TypeEventSystem.Instance.Send<SilkCapturedEvent>(silkCapturedEvent);
             // 金の糸の画像を表示
             if (IsPickedNew)
             {
+                SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
+                {
+                    ID = mID,
+                    positions = caputuredSilk.ToArray()
+                };
+                TypeEventSystem.Instance.Send<SilkCapturedEvent>(silkCapturedEvent);
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
                 mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
@@ -441,12 +438,17 @@ namespace Character
                     mBoostCoefficient = 1.5f;
                     mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
                     mIsBoosting = true;
+                    TypeEventSystem.Instance.Send<BoostStart>(new BoostStart 
+                    { 
+                        Number = mID
+                    });
                     mBoostCoolDownTimer = new Timer();
                     mBoostCoolDownTimer.SetTimer(Global.BOOST_COOLDOWN_TIME,
                         () =>
                         {
                             mBoostDurationTime = Global.BOOST_DURATION_TIME;
                             mIsBoosting = false;
+                            mBoostCoolDownTimer = null;
                         });
                 }
             }

@@ -38,7 +38,7 @@ public static class Global
     public static readonly float PLAYER_ROTATION_SPEED = 3.0f; // プレイヤーの回転速度
 
     public static readonly float BOOST_DURATION_TIME = 1.0f;
-    public static readonly float BOOST_COOLDOWN_TIME = 5.0f;
+    public static readonly float BOOST_COOLDOWN_TIME = 6.0f;
 
     public static readonly PowerUp[] POWER_UP_PARAMETER =
     {

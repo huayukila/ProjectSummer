@@ -20,6 +20,8 @@ public class MiniMapController : MonoBehaviour
     private Vector3[] onFieldSilks;
 
     //設定値
+    //TODO 疑問点
+    //miniMapSizeはVector2を使えば十分ですが、Vector3を使う理由は？
     private Vector3 miniMapSize;
     private Vector3 PosInit;
 

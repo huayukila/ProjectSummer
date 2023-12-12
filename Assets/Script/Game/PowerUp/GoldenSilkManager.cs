@@ -111,10 +111,10 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
             startPos.z > availableAreaHeight / 2f ||
             startPos.z < -availableAreaHeight / 2f)
         {
-            Vector3[] availableAreaVertexs = {  new Vector3(availableAreaWidth, 0.64f, availableAreaHeight),
-                                                new Vector3(-availableAreaWidth, 0.64f, availableAreaHeight),
-                                                new Vector3(availableAreaWidth, 0.64f, -availableAreaHeight),
-                                                new Vector3(-availableAreaWidth, 0.64f, -availableAreaHeight)
+            Vector3[] availableAreaVertexs = {  new Vector3(availableAreaWidth / 2f, 0.64f, availableAreaHeight / 2f),
+                                                new Vector3(-availableAreaWidth / 2f, 0.64f, availableAreaHeight / 2f),
+                                                new Vector3(availableAreaWidth / 2f, 0.64f, -availableAreaHeight / 2f),
+                                                new Vector3(-availableAreaWidth / 2f, 0.64f, -availableAreaHeight / 2f)
                                              };
             Vector3 farVert = Vector3.zero;
             Vector3 nearVert = Vector3.positiveInfinity;
@@ -131,16 +131,13 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                     nearVert = vert;
                 }
             }
-            Debug.Log(farVert);
-            Debug.Log(nearVert);
+            //TODO refactorying
             float nearX = nearVert.x - startPos.x;
             float farX = farVert.x - startPos.x;
             float nearZ = nearVert.z - startPos.z;
             float farZ = farVert.z - startPos.z;
             float realX = Random.Range(nearX, farX);
             float realZ = Random.Range(nearZ, farZ);
-            Debug.Log(realX);
-            Debug.Log(realZ);
             ret = new Vector3(realX,
                                                                                         0 ,
                               realZ
