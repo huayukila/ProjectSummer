@@ -16,7 +16,7 @@ public class MiniMapController : MonoBehaviour
 
     //ミニマップの黄金の糸
     public GameObject MiniMapSilkPrefab;
-    private GameObject[] MiniMapSilkPrefabSave;// = new GameObject[3];
+    private GameObject[] MiniMapSilkPrefabSave; // = new GameObject[3];
     private Vector3[] onFieldSilks;
 
     //設定値
@@ -41,14 +41,11 @@ public class MiniMapController : MonoBehaviour
         iOnFieldSilk = GoldenSilkManager.Instance;
         //IOnFieldSilk iOnFieldSilk = GoldenSilkManager.Instance;
         //onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
-        if (MiniMapSilkPrefab != null)//GameProjectが入れているかどうか（以下同様）
+        if (MiniMapSilkPrefab != null) //GameProjectが入れているかどうか（以下同様）
         {
             MiniMapSilkPrefabSave = new GameObject[3];
 
-            TypeEventSystem.Instance.Register<UpdataMiniMapSilkPos>(e =>
-            {
-                SetSilk();
-            });
+            TypeEventSystem.Instance.Register<UpdataMiniMapSilkPos>(e => { SetSilk(); });
             //for (int i = 0; i < 3; i++)//黄金の糸を初期化
             //{
             //    MiniMapSilkPrefabSave[i] = Instantiate(MiniMapSilkPrefab, PosInit, Quaternion.identity);//黄金の糸3つ生成
@@ -57,15 +54,17 @@ public class MiniMapController : MonoBehaviour
             //    //testvector3s[i] = new Vector3(200.0f * i, 0, 200.0f * i);
             //}
         }
+
         RawImage miniMapImage = GetComponent<RawImage>();
         miniMapImage.texture = PolygonPaintManager.Instance.GetMiniMapRT();
         if (MiniMapSpider_Left != null)
         {
-            MiniMapSpider_Left.transform.position = PosInit;// GameManager.Instance.GetPlayerPos(1) + 
+            MiniMapSpider_Left.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(1) + 
         }
+
         if (MiniMapSpider_Right != null)
         {
-            MiniMapSpider_Right.transform.position = PosInit;// GameManager.Instance.GetPlayerPos(2) 
+            MiniMapSpider_Right.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(2) 
         }
     }
     
@@ -73,6 +72,7 @@ public class MiniMapController : MonoBehaviour
     private void FixedUpdate()
     {
         #region 一時的不要なコード
+
         //if (MiniMapSilkPrefab != null)
         //{
 
@@ -95,6 +95,7 @@ public class MiniMapController : MonoBehaviour
         //    //    }
         //    //}
         //}
+
         #endregion
 
         //TODO changed by Mai毎回取得する必要がない
@@ -102,7 +103,6 @@ public class MiniMapController : MonoBehaviour
 
         if (MiniMapSpider_Left != null)
         {
-
             //TODO changed by Mai プレイヤーが死亡した場合更新しません。
             if (!GameManager.Instance.IsPlayerDead(1))
             {
@@ -112,6 +112,7 @@ public class MiniMapController : MonoBehaviour
                                                     0.0f);
             }
         }
+
         if (MiniMapSpider_Right != null)
         {
             //TODO changed by Mai プレイヤーが死亡した場合更新しません。
@@ -125,8 +126,9 @@ public class MiniMapController : MonoBehaviour
         }
 
         #region　黄金の糸テスト用
+
         //TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
-        
+
         #endregion
     }
 
@@ -137,7 +139,7 @@ public class MiniMapController : MonoBehaviour
         //TODO changed by Mai拾った時に更新する
         onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
         DestroySilk();
-        if(onFieldSilks != null)
+        if (onFieldSilks != null)
         {
             for (int i = 0; i < onFieldSilks.Length; i++)
             {
@@ -150,9 +152,9 @@ public class MiniMapController : MonoBehaviour
                 MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
                 MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
             }
-        }  
-
+        }
     }
+
     private void DestroySilk()
     {
         for (int i = 0; i < MiniMapSilkPrefabSave.Length; i++)

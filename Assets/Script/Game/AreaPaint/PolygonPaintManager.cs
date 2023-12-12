@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -25,7 +26,6 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
 
     int[] CountResultArray = new int[2];
 
-
     protected override void Awake()
     {
         paintMaterial = new Material(texturePaint);
@@ -42,7 +42,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         computeShader.SetVector("TargetColorA", Global.PLAYER_TRACE_COLORS[0]);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TRACE_COLORS[1]);
     }
-    
+
     /// <summary>
     /// ミニマップを獲得
     /// </summary>
@@ -56,6 +56,22 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
         }
 
         return CopyRT;
+    }
+
+
+    private int m_MixVariant = Global.MAP_SIZE_WIDTH * Global.MAP_SIZE_HEIGHT * 10000;//計算負担軽減するため、プリ計算
+    /// <summary>
+    /// プレイヤーのマップ占有率
+    /// </summary>
+    /// <returns></returns>
+    public float[] GetPlayersAreaPercent()
+    {
+        float[] temp = new float[CountResultArray.Length];
+        for (int i = 0; i < CountResultArray.Length; i++)
+        {
+            temp[i] = CountResultArray[i] /(float)m_MixVariant;
+        }
+        return temp;
     }
 
     public void SetPaintable(Paintable paintable)
