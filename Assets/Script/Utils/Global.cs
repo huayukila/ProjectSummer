@@ -62,7 +62,7 @@ public static class Global
     #endregion
 
 
-    public static readonly float SET_GAME_TIME = 10f; //ゲーム時間
+    public static readonly float SET_GAME_TIME = 60f; //ゲーム時間
 
     public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //ゲーム操作方法紹介画面 PRESS無効の時間
     public static readonly float CREDITS_SCENE_TIME = 1.5f; //ゲーム終了後の感謝画面 PRESS無効の時間
