@@ -112,7 +112,7 @@ public class MiniMapController : MonoBehaviour
         }
 
         #region　黄金の糸テスト用
-        TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
+        //TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         
         #endregion
     }
