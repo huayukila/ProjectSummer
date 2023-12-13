@@ -10,9 +10,9 @@ public static class Global
     }
     public static readonly Vector3[] PLAYER_START_POSITIONS =
     {
-        new(-135.0f, 0.64f, 0.0f),
+        new(-85.0f, 0.64f, 0.0f),
 
-        new(135.0f, 0.64f, 0.0f)
+        new(85.0f, 0.64f, 0.0f)
     };
 
     public static readonly Vector3[] PLAYER_DEFAULT_FORWARD =
@@ -30,10 +30,10 @@ public static class Global
     };
     public static readonly float RESPAWN_TIME = 5.0f; // プレイヤーが死んでから復活までの時間間隔
     #region PlayerStatus
-    public static readonly float SPEED_DOWN_COEFFICIENT = 0.5f; // 他のプレイヤーの領域上にいる時のスビート係数
+    public static readonly float SPEED_DOWN_COEFFICIENT = 0.8f; // 他のプレイヤーの領域上にいる時のスビート係数
     public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // 自分のプレイヤーの領域上にいる時のスビート係数
 
-    public static readonly float PLAYER_MAX_MOVE_SPEED = 36.0f; // プレイヤーの最大速度
+    public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // プレイヤーの最大速度
     public static readonly float PLAYER_ACCELERATION = 0.3f; // プレイヤーの加速度
     public static readonly float PLAYER_ROTATION_SPEED = 3.0f; // プレイヤーの回転速度
 
@@ -62,7 +62,7 @@ public static class Global
     #endregion
 
 
-    public static readonly float SET_GAME_TIME = 6000f; //ゲーム時間
+    public static readonly float SET_GAME_TIME = 180f; //ゲーム時間
 
     public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //ゲーム操作方法紹介画面 PRESS無効の時間
     public static readonly float CREDITS_SCENE_TIME = 1.5f; //ゲーム終了後の感謝画面 PRESS無効の時間
@@ -71,10 +71,10 @@ public static class Global
 
     #region Map
 
-    public static readonly int MAP_SIZE_WIDTH = 3;//マップの長さ
-    public static readonly int MAP_SIZE_HEIGHT = 3;//マップの高さ
-    public static readonly float STAGE_WIDTH = 300f;
-    public static readonly float STAGE_HEIGHT = 300f;
+    public static readonly int MAP_SIZE_WIDTH = 2;//マップの長さ
+    public static readonly int MAP_SIZE_HEIGHT = 2;//マップの高さ
+    public static readonly float STAGE_WIDTH = MAP_SIZE_WIDTH * 100f;
+    public static readonly float STAGE_HEIGHT = MAP_SIZE_HEIGHT * 100f;
     #endregion
 
     #region SkillUI

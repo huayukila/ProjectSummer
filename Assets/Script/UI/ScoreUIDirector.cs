@@ -141,16 +141,14 @@ public class ScoreUIDirector : MonoBehaviour
             if (isBoostStart[i])
             {
                 boostBar[i].fillAmount -= Time.fixedDeltaTime / Global.BOOST_DURATION_TIME;//ブーストのチャージバーを減少
-                boostCooldownTimer[i] -= Time.fixedDeltaTime;//クールダウンタイマー減少
-                if (boostCooldownTimer[i] <= (1.0f / Global.BOOST_BAR_CHARGING_SPEED) * Time.fixedDeltaTime) //リチャージ時間の直前に
+                if (boostBar[i].fillAmount <= 0.0f) //リチャージ時間の直前に
                 {
                     isBoostStart[i] = false;
                 }
             }
             else
             {
-                boostCooldownTimer[i] = Global.BOOST_COOLDOWN_TIME;//クールダウンタイマーリセット
-                boostBar[i].fillAmount += Global.BOOST_BAR_CHARGING_SPEED;//ブーストのチャージバーをリチャージ
+                boostBar[i].fillAmount += Time.fixedDeltaTime / (Global.BOOST_COOLDOWN_TIME-Global.BOOST_DURATION_TIME);//ブーストのチャージバーをリチャージ
             }
         }
     }
