@@ -59,15 +59,17 @@ public class MiniMapController : MonoBehaviour
         miniMapImage.texture = PolygonPaintManager.Instance.GetMiniMapRT();
         if (MiniMapSpider_Left != null)
         {
-            MiniMapSpider_Left.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(1) + 
+            // MiniMapSpider_Left.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(1) + 
+            MiniMapSpider_Left.transform.localPosition = PosInit; // GameManager.Instance.GetPlayerPos(1) + 
         }
 
         if (MiniMapSpider_Right != null)
         {
-            MiniMapSpider_Right.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(2) 
+            // MiniMapSpider_Right.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(2) 
+            MiniMapSpider_Right.transform.localPosition = PosInit; // GameManager.Instance.GetPlayerPos(2) 
         }
     }
-    
+
     //TODO changed by Mai
     private void FixedUpdate()
     {
@@ -107,9 +109,13 @@ public class MiniMapController : MonoBehaviour
             if (!GameManager.Instance.IsPlayerDead(1))
             {
                 Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
-                MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
-                                                    Spider_Left.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
-                                                    0.0f);
+                // MiniMapSpider_Left.transform.position = new Vector3(Spider_Left.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
+                //                                     Spider_Left.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
+                //                                     0.0f);
+                MiniMapSpider_Left.transform.localPosition = new Vector3(
+                    Spider_Left.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.localPosition.x,
+                    Spider_Left.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.localPosition.y,
+                    0.0f);
             }
         }
 
@@ -119,9 +125,13 @@ public class MiniMapController : MonoBehaviour
             if (!GameManager.Instance.IsPlayerDead(2))
             {
                 Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
-                MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
-                                                                     Spider_Right.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
-                                                                     0.0f);
+                // MiniMapSpider_Right.transform.position = new Vector3(Spider_Right.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.position.x,
+                //                                                      Spider_Right.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.position.y,
+                //                                                      0.0f);
+                MiniMapSpider_Right.transform.localPosition = new Vector3(
+                    Spider_Right.x / Global.MAP_SIZE_WIDTH * miniMapSize.x + transform.localPosition.x,
+                    Spider_Right.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.localPosition.y,
+                    0.0f);
             }
         }
 
@@ -143,13 +153,14 @@ public class MiniMapController : MonoBehaviour
         {
             for (int i = 0; i < onFieldSilks.Length; i++)
             {
+                GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, Vector3.zero, Quaternion.identity);
+                MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
                 Vector3 tmp = onFieldSilks[i];
                 tmp.x = tmp.x / Global.MAP_SIZE_WIDTH * miniMapSize.x;
                 tmp.y = onFieldSilks[i].z / Global.MAP_SIZE_HEIGHT * miniMapSize.y;
                 tmp.z = 0.0f;
-                tmp += transform.position;
-                GameObject MiniMapSilkPrefabPut = Instantiate(MiniMapSilkPrefab, tmp, Quaternion.identity);
-                MiniMapSilkPrefabPut.transform.SetParent(transform.parent);
+                tmp += transform.localPosition;
+                MiniMapSilkPrefabPut.transform.localPosition = tmp;
                 MiniMapSilkPrefabSave[i] = MiniMapSilkPrefabPut;
             }
         }
