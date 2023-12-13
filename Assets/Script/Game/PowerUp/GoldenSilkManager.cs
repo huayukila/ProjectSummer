@@ -111,10 +111,10 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
             startPos.z > availableAreaHeight / 2f ||
             startPos.z < -availableAreaHeight / 2f)
         {
-            Vector3[] availableAreaVertexs = {  new Vector3(availableAreaWidth / 2f, 0.64f, availableAreaHeight / 2f),
-                                                new Vector3(-availableAreaWidth / 2f, 0.64f, availableAreaHeight / 2f),
-                                                new Vector3(availableAreaWidth / 2f, 0.64f, -availableAreaHeight / 2f),
-                                                new Vector3(-availableAreaWidth / 2f, 0.64f, -availableAreaHeight / 2f)
+            Vector3[] availableAreaVertexs = {  new Vector3(availableAreaWidth / 3f, 0.64f, availableAreaHeight / 3f),
+                                                new Vector3(-availableAreaWidth / 3f, 0.64f, availableAreaHeight / 3f),
+                                                new Vector3(availableAreaWidth / 3f, 0.64f, -availableAreaHeight / 3f),
+                                                new Vector3(-availableAreaWidth / 3f, 0.64f, -availableAreaHeight / 3f)
                                              };
             Vector3 farVert = Vector3.zero;
             Vector3 nearVert = Vector3.positiveInfinity;
