@@ -109,9 +109,9 @@ public class EndSceneUIDirector : MonoBehaviour
     private void Update()
     {
         this.redScore.GetComponent<TextMeshProUGUI>().text =
-            "  SCORE: " + ScoreSystem.Instance.GetPlayer1Score().ToString();　  //テキストの内容
+            ScoreModel.Instance.GetPlayer1Score().ToString()+"%";　  //テキストの内容
         this.yellowScore.GetComponent<TextMeshProUGUI>().text = 
-            "  SCORE: " + ScoreSystem.Instance.GetPlayer2Score().ToString();　  //テキストの内容         
+            ScoreModel.Instance.GetPlayer2Score().ToString()+"%";　  //テキストの内容         
     }
     void FixedUpdate()
     {
@@ -120,15 +120,15 @@ public class EndSceneUIDirector : MonoBehaviour
             timer -= Time.deltaTime;//カウントダウン開始
             if (timer <= 3.0f - timerCon)
             {
-                UISystem.MoveToLeft(redScore, 900, 100);
+                UISystem.MoveToLeft(redScore, 1100, 100);
             }
             if (timer <= 2.6f - timerCon)
             {
-                UISystem.MoveToLeft(yellowScore, 900, 100);
+                UISystem.MoveToLeft(yellowScore, 1100, 100);
             }
             if (timer <= 2.0f - timerCon)
             {
-                if (ScoreSystem.Instance.GetPlayer1Score() == ScoreSystem.Instance.GetPlayer2Score())
+                if (ScoreModel.Instance.GetPlayer1Score() == ScoreModel.Instance.GetPlayer2Score())
                 {
                     TurnSmallAndAppearTMP(draw);
                 }
@@ -139,11 +139,11 @@ public class EndSceneUIDirector : MonoBehaviour
             }
             if (timer <= 1.4f - timerCon)
             {
-                if (ScoreSystem.Instance.GetPlayer1Score() > ScoreSystem.Instance.GetPlayer2Score())
+                if (ScoreModel.Instance.GetPlayer1Score() > ScoreModel.Instance.GetPlayer2Score())
                 {
                     TurnSmallAndAppear(winRed);
                 }
-                if (ScoreSystem.Instance.GetPlayer1Score() < ScoreSystem.Instance.GetPlayer2Score())//ScoreSystem.Instance.GetPlayer2Score()
+                if (ScoreModel.Instance.GetPlayer1Score() < ScoreModel.Instance.GetPlayer2Score())//ScoreSystem.Instance.GetPlayer2Score()
                 {
                     TurnSmallAndAppear(winYellow);
                 }

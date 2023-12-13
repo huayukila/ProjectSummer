@@ -235,7 +235,7 @@ public class GameManager : Singleton<GameManager>
             dropPointSystem.Deinit();
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
-            ScoreSystem.Instance.ResetScore();
+            ScoreModel.Instance.ResetScore();
             for (int i = 0; i < maxPlayerCount; ++i)
             {
                 SpawnPlayer(i + 1);
