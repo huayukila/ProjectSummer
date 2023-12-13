@@ -202,7 +202,7 @@ public class GameManager : Singleton<GameManager>
                 cam.orthographic = true;
                 cam.orthographicSize = 54.0f;
                 cam.depth = 1.0f;
-                cam.backgroundColor = Color.red;
+                cam.backgroundColor = Color.gray;
                 CameraControl camCtrl = camera.AddComponent<CameraControl>();
                 camCtrl.LockOnTarget(player);
                 SpiderPlayer spiderPlayer = new SpiderPlayer
