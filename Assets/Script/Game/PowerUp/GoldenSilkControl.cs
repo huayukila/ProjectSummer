@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Gaming.PowerUp
 {
@@ -9,6 +10,8 @@ namespace Gaming.PowerUp
         void StartSpawn(Vector3 position);
         void SetInactive();
         void StartDrop(Vector3 startPos,Vector3 endPos);
+        
+        void SetActiveCallBack(Action<GameObject> callback); 
     }
 
     public class GoldenSilkControl : MonoBehaviour, IGoldenSilk
@@ -21,6 +24,7 @@ namespace Gaming.PowerUp
             Drop,
         }
 
+        private Action<GameObject> mActiveCallBack;
         private Timer mSpawnTimer;          // 金の糸を生成することを管理するタイマー
         private GameObject mSilkShadow;     // 金の糸の影
         //TODO 壁際にあるときに使う変数（未完成）
@@ -90,6 +94,7 @@ namespace Gaming.PowerUp
                     smoke.transform.position -= new Vector3(0.0f, 0.2f, 0.0f);
                     mCurrentState = State.Active;
                     mSpawnTimer = null;
+                    mActiveCallBack(gameObject);
                     TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
                 }
                 );
@@ -110,7 +115,7 @@ namespace Gaming.PowerUp
         {
             transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime * 2);
             mDropStartPos = transform.position;
-            if((mDropStartPos - mDropEndPos).magnitude < 1f)
+            if((mDropStartPos - mDropEndPos).magnitude < 0.1f)
             {
                 transform.position = mDropEndPos;
                 mDropStartPos = Vector3.zero;
@@ -146,6 +151,11 @@ namespace Gaming.PowerUp
             mDropStartPos = startPos;
             mDropEndPos = endPos;
             OnSetState(State.Drop);
+        }
+
+        public void SetActiveCallBack(Action<GameObject> callback)
+        {
+            mActiveCallBack = callback;
         }
     }
 
