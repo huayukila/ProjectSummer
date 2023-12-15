@@ -94,7 +94,10 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                 //TODO リストに入れるタイミングを修正する
                 if (obj != null)
                 {
-                    mOnFieldSilk.Add(obj);
+                    obj.GetComponent<IGoldenSilk>().SetActiveCallBack(obj =>
+                    {
+                        mOnFieldSilk.Add(obj);
+                    });
                 }
                 mDropSilkTimer = null;
             }
