@@ -1,7 +1,5 @@
-using Unity.VisualScripting;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro.EditorUtilities;
 
 namespace Gaming.PowerUp
 {
