@@ -4,7 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName ="ItemTable")]
 public class ItemTable : ScriptableObject
 {
-    public List<ItemBase> powrItemList;
+    public List<ItemBase> powerItemList;
     public List<ItemBase> normalItemList;
-    public List<ItemBase> weakitemList;
+    public List<ItemBase> weakItemList;
 }

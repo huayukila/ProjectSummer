@@ -10,6 +10,7 @@ public interface IItem
 public class ItemBase:ScriptableObject,IItem 
 {
     public string itemName;
+    public int id;
     void IItem.Use(Player player)
     {
         OnUse(player);
