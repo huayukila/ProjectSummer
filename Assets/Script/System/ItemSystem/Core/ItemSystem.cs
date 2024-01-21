@@ -1,14 +1,26 @@
 ﻿using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 
-public class ItemSystem : SingletonBase<ItemSystem>
+interface IItemSystem
 {
-    GameObject itemObj;
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="spawnPos_"></param>
+    void SpawnItem(Vector3 spawnPos_);
+}
+
+public class ItemSystem : SingletonBase<ItemSystem>,IItemSystem
+{
     GameObject itemPrefab;
+
     //通常で獲得できる
     ItemBase[] normalItemArray;
+
     //糸持ってないやつ獲得できる
     ItemBase[] powerItemArray;
+
     //持っているやつ
     ItemBase[] weakItemArray;
 
@@ -18,32 +30,19 @@ public class ItemSystem : SingletonBase<ItemSystem>
     {
         rand = new System.Random((int)Time.time);
         InitItemArray();
-        itemPrefab = (GameObject)Resources.Load("Prefabs/ItemPrefab");
-        itemObj = Object.Instantiate(itemPrefab,
-            new Vector3(100, 100, 100), Quaternion.identity);
-        itemObj.SetActive(false);
-        TypeEventSystem.Instance.Register<PlayerGetItem>(e =>
-        {
-            e.player.GetItem(LotteryItem(e.player));
-        }).UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
+        itemPrefab = Resources.Load("Prefabs/Item/pfRandomItem") as GameObject;
+        TypeEventSystem.Instance.Register<PlayerGetItem>(e => { e.player.GetItem(LotteryItem(e.player)); })
+            .UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
     }
 
     //道具生成
-    public void SpawnItem()
+    public void SpawnItem(Vector3 spawnPos_)
     {
-        if (itemObj != null)
-        {
-            itemObj.SetActive(true);
-        }
-        else
-        {
-            itemObj = Object.Instantiate(itemPrefab,
-            new Vector3(100, 100, 100), Quaternion.identity);
-        }
-        itemObj.transform.position = new Vector3(980, 500, 10);
+        GameObject.Instantiate(itemPrefab, spawnPos_, quaternion.identity);
     }
 
     #region 内部用
+
     /// <summary>
     /// 各ItemPool初期化
     /// </summary>
@@ -51,9 +50,9 @@ public class ItemSystem : SingletonBase<ItemSystem>
     {
         ItemTable itemTable = (ItemTable)Resources.Load("ItemTable");
 
-        powerItemArray = itemTable.powrItemList.ToArray();
+        powerItemArray = itemTable.powerItemList.ToArray();
         normalItemArray = itemTable.normalItemList.ToArray();
-        weakItemArray = itemTable.weakitemList.ToArray();
+        weakItemArray = itemTable.weakItemList.ToArray();
 
         Resources.UnloadAsset(itemTable);
 
@@ -67,13 +66,11 @@ public class ItemSystem : SingletonBase<ItemSystem>
     //道具抽選
     private ItemBase LotteryItem(IPlayer2ItemSystem player)
     {
-
         if (player.HadSilk)
         {
             return weakItemArray[rand.Next(0, weakItemArray.Count())];
         }
 
-        //silkは生成された、かつプレイヤーがsilkを持ってない場合、強力アイテムをあげる
         //if (!player.HadSilk)
         //{
 
@@ -82,5 +79,6 @@ public class ItemSystem : SingletonBase<ItemSystem>
         //普通の場合獲得できるのアイテム
         return normalItemArray[rand.Next(0, normalItemArray.Count())];
     }
+
     #endregion
 }
