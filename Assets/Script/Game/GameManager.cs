@@ -39,6 +39,7 @@ public class GameManager : Singleton<GameManager>
             dropPointSystem = DropPointSystem.Instance;
             dropPointSystem.Init();
         }
+
         //ƒV[ƒ“‚ÌˆÚs–½—ß‚ğó‚¯
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
         TypeEventSystem.Instance.Register<MenuSceneSwitch>(e => { MenuSceneSwitch(); });
