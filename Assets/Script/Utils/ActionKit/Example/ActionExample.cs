@@ -25,5 +25,23 @@ public class ActionExample : MonoBehaviour
             {
                 Debug.Log("SequenceFinishTime:" + Time.time);
             }).Start(this);
+        
+        //甚至可以有想象力一点
+        ISequence sequence = ActionKit.Sequence();
+
+        for (int i = 0; i < 3; i++)
+        {
+            sequence.Delay(1f, () =>
+            {
+                Debug.Log(i);
+            });
+        }
+
+        sequence.Callback(() =>
+        {
+            sequence = null;
+        }).Start(this);
+        
+        //总之用法很多，自己可以慢慢摸索
     }
 }
