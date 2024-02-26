@@ -33,7 +33,8 @@ Shader "Paint/PolygonPainter"
                     float4 vertex2 = worldPosArray[(i + 1) % max];
                     
                         if ((vertex1.z > center.z) != (vertex2.z > center.z) &&
-                        center.x < (vertex2.x - vertex1.x) * (center.z - vertex1.z) /(vertex2.z - vertex1.z) + vertex1.x)
+                        center.x < (vertex2.x - vertex1.x) * (center.z - vertex1.z)
+                        /(vertex2.z - vertex1.z) + vertex1.x)
                         {
                             count++;
                         }

@@ -16,7 +16,7 @@ public class ActionExample : MonoBehaviour
         }).Start(this);
         //一定记得使用.Start()
         //需要传入一个继承自monobehavior，并且是挂载在游戏场景中的脚本
-
+        
         //动作序列,由Sequence开头，其余与延时回调无差
         ActionKit.Sequence().
             Delay(4.0f, () =>{
@@ -31,9 +31,10 @@ public class ActionExample : MonoBehaviour
 
         for (int i = 0; i < 3; i++)
         {
+            var i1 = i;
             sequence.Delay(1f, () =>
             {
-                Debug.Log(i);
+                Debug.Log(i1);
             });
         }
 
@@ -45,3 +46,4 @@ public class ActionExample : MonoBehaviour
         //总之用法很多，自己可以慢慢摸索
     }
 }
+
