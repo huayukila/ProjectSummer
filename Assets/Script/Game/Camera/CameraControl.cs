@@ -18,8 +18,7 @@ namespace Gaming
         }
         private float m_Smoothness;
         private GameObject m_Target;
-        private CamState mState = CamState.None;
-        private Timer mRespawnLockOnTimer;
+        private CamState m_State = CamState.None;
 
         // Start is called before the first frame update
         void Start()
@@ -29,17 +28,9 @@ namespace Gaming
 
         // Update is called once per frame
 
-        private void Update()
-        {
-            if(mRespawnLockOnTimer != null)
-            {
-                mRespawnLockOnTimer.IsTimerFinished();
-            }
-        }
-
         private void FixedUpdate()
         {
-            switch(mState)
+            switch(m_State)
             {
                 case CamState.None:
                     break;
@@ -58,21 +49,21 @@ namespace Gaming
             if (target != null)
             {
                 m_Target = target;
-                mState = CamState.OnTarget;
+                m_State = CamState.OnTarget;
                 transform.position = m_Target.transform.position + Vector3.up * 36;
             }
         }
         public void StopLockOn()
         {
-            mState = CamState.None;
-            mRespawnLockOnTimer = new Timer();
-            mRespawnLockOnTimer.SetTimer(Global.RESPAWN_TIME / 2.0f,
-                () =>
-                {
-                    mState = CamState.OnTarget;
-                    mRespawnLockOnTimer = null;
-                }
-                );
+            m_State = CamState.None;
+            NewTimer lockOnNewTimer = new NewTimer  (                Time.time,
+                                                        Global.RESPAWN_TIME/2f,
+                                                        () =>
+                                                        {
+                                                            m_State = CamState.OnTarget;
+                                                        }                               
+                                                                            );
+            lockOnNewTimer.StartTimer(this);
         }
 
 
