@@ -178,7 +178,8 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     /// <param name="color"></param>
     void CountPixelByColor()
     {
-        computeShader.Dispatch(kernelHandle, mapPaintable.GetCopy().width / 10,
+        computeShader.Dispatch(kernelHandle, 
+            mapPaintable.GetCopy().width / 10,
             mapPaintable.GetCopy().height / 10, 1);
         mCountBuffer.GetData(CountResultArray);
         mCountBuffer.SetData(new int[2] { 0, 0 });
