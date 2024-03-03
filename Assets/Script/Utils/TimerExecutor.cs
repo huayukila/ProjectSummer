@@ -21,7 +21,7 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
     {
         AddPrepareTimerToUpdate();
         UpdateTimers();
-        RemoveFinishedTimers();
+        CheckFinishedTimers();
     }
 
     private void AddPrepareTimerToUpdate()
@@ -42,7 +42,7 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
         }
     }
 
-    private void RemoveFinishedTimers()
+    private void CheckFinishedTimers()
     {
         if (m_UpdatingTimers.Count == 0)
             return;

@@ -3,12 +3,17 @@ namespace Kit
 {
     internal class Callback : IAction
     {
+        //特定アクション探すため
         public ulong ActionID { get; set; }
+        
+        //アクション状態
         public ActionStatus Status { get; set; }
         public bool Deinited { get; set; }
         public bool Paused { get; set; }
 
+        //完了時のコールバック
         private Action mCallback;
+        //唯一ObjectPool
         private static SimpleObjectPool<Callback> mSimpleObjectPool =
             new SimpleObjectPool<Callback>(() => new Callback(), null, 10);
 
