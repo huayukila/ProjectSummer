@@ -46,11 +46,13 @@ public class Timer
 
 public interface ITimer
 {
-    void Start();
-    void Update(float deltaTime);
-    void Pause();
-    void Reset();
+    void onStart();
+    void onUpdate(float deltaTime);
+    void onPause();
+    void onReset();
     bool IsFinished();
+    void SetRepeatable(bool value);
+    bool IsWaitForRepeat();
 
 }
 public class NewTimer:ITimer
@@ -72,6 +74,7 @@ public class NewTimer:ITimer
     }
     private Clock m_Clock;
     private Action m_Callback;
+    private bool IsRepeatable;
     public NewTimer()
     {
         m_Clock = new Clock()
@@ -79,9 +82,10 @@ public class NewTimer:ITimer
             StartTime = 0,
             Duration = 0,
             Interval = 0,
-            State = Clock.ClockState.NotStart
+            State = Clock.ClockState.NotStart,
         };
         m_Callback = null;
+        IsRepeatable = false;
     }
 
     public NewTimer(float startTime,float interval,Action callback = null)
@@ -91,15 +95,17 @@ public class NewTimer:ITimer
             StartTime = startTime,
             Duration = interval,
             Interval = interval,
-            State = Clock.ClockState.NotStart
+            State = Clock.ClockState.NotStart,
         };
         m_Callback = callback;
+        IsRepeatable = false;
     }
-    public void Start() => m_Clock.State = Clock.ClockState.Run;
-    public void Pause() => m_Clock.State = Clock.ClockState.Pause;
-    public void Stop() => m_Clock.State = Clock.ClockState.Finish;
+    public void onStart() => m_Clock.State = Clock.ClockState.Run;
+    public void onPause() => m_Clock.State = Clock.ClockState.Pause;
+    public void onStop() => m_Clock.State = Clock.ClockState.Finish;
+    public void SetRepeatable(bool value) => IsRepeatable = value;
 
-    public void Update(float deltaTime)
+    public void onUpdate(float deltaTime)
     {
         if (!IsRunning())
             return;
@@ -110,7 +116,7 @@ public class NewTimer:ITimer
             m_Callback?.Invoke();
         }
     }
-    public void Reset()
+    public void onReset()
     {
         m_Clock.Duration = m_Clock.Interval;
         m_Clock.StartTime = Time.time;
@@ -118,6 +124,7 @@ public class NewTimer:ITimer
 
     private bool IsRunning() => m_Clock.State == Clock.ClockState.Run;
     public bool IsFinished() => m_Clock.State == Clock.ClockState.Finish;
+    public bool IsWaitForRepeat() => IsRepeatable;
 
 }
 
@@ -140,9 +147,9 @@ public static class MonoBehaviourTimerExtension
     {
         if (timer.IsFinished())
         {
-            timer.Reset();
+            timer.onReset();
         }
-        timer.Start();
+        timer.onStart();
         self.GetOrAddComponent<TimerExecutor>().AddTimer(timer);
     }
 }

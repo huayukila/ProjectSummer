@@ -38,7 +38,7 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
             return;
         foreach (var timer in m_UpdatingTimers)
         {
-            timer.Update(Time.deltaTime);
+            timer.onUpdate(Time.deltaTime);
         }
     }
 
@@ -51,8 +51,16 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
         {
             if (m_UpdatingTimers[cnt].IsFinished())
             {
-                m_UpdatingTimers.RemoveAt(cnt);
-                continue;
+                if (m_UpdatingTimers[cnt].IsWaitForRepeat())
+                {
+                    m_UpdatingTimers[cnt].onReset();
+                    m_UpdatingTimers[cnt].onStart();
+                }
+                else
+                {
+                    m_UpdatingTimers.RemoveAt(cnt);
+                    continue;
+                }
             }
             cnt++;
         }
@@ -61,5 +69,11 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
     public void AddTimer(ITimer timer)
     {
         m_PrepareUpdateTimers.Push(timer);
+    }
+
+    private void OnDestroy()
+    {
+        m_PrepareUpdateTimers.Clear();
+        m_UpdatingTimers.Clear();
     }
 }

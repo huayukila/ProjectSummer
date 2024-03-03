@@ -34,7 +34,7 @@ public class TimerManager : Singleton<TimerManager>
         while (m_ReadyToUpdateTimerStack.Count > 0)
         {
             var timer = m_ReadyToUpdateTimerStack.Pop();
-            timer.Start();
+            timer.onStart();
             m_TimerUpdateList.Add(timer);
         }
     }
@@ -45,7 +45,7 @@ public class TimerManager : Singleton<TimerManager>
             return;
         foreach(var timer in m_TimerUpdateList)
         {
-            timer.Update(Time.deltaTime);
+            timer.onUpdate(Time.deltaTime);
         }
 
     }
