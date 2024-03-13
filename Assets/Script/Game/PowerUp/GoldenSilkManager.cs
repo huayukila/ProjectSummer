@@ -10,9 +10,9 @@ public interface IOnFieldSilk
 public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
 {
 
-    private Timer mDropSilkTimer;               // 金の糸を落下させるタイマー
     private List<GameObject> mOnFieldSilk;
     private Stack<GameObject> mCapturedSilk;
+    private bool mCanSpawnNewSilk = true;
     // Start is called before the first frame update
     protected override void Awake()
     {
@@ -71,25 +71,22 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
     // Update is called once per frame
     void Update()
     {
-        if (mDropSilkTimer != null){
-            mDropSilkTimer.IsTimerFinished();
-        }
         SetSilkSpawnTimer();
     }
 
     private void SetSilkSpawnTimer()
     {
-        if (mDropSilkTimer != null)
-            return;
-        
         if (GoldenSilkSystem.Instance.CurrentSilkCount >= Global.MAX_SILK_COUNT)
             return;
 
-        mDropSilkTimer = new Timer();
-        mDropSilkTimer.SetTimer(
-            Global.SILK_SPAWN_TIME,
+        if (!mCanSpawnNewSilk)
+            return;
+
+        mCanSpawnNewSilk = false;
+        Timer dropSilkTimer = new Timer(Time.time, Global.SILK_SPAWN_TIME,
             () =>
             {
+                mCanSpawnNewSilk = true;
                 GameObject obj = GoldenSilkSystem.Instance.DropNewSilk();
                 //TODO リストに入れるタイミングを修正する
                 if (obj != null)
@@ -99,9 +96,8 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
                         mOnFieldSilk.Add(obj);
                     });
                 }
-                mDropSilkTimer = null;
-            }
-        );
+            });
+        dropSilkTimer.StartTimer(this);
     }
 
     private Vector3 GetDropSilkEndPos(Vector3 startPos)

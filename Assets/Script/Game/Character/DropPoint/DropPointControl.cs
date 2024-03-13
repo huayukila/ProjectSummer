@@ -8,7 +8,7 @@ namespace Character
         private TrailRenderer _mTrailRenderer;      // DropPointが繋がっていることを表すTrailRenderer
         private GameObject pointPrefab;             // DropPointのプレハブ
         private float fadeOutTimer;
-        private NewTimer _dropPointTimer;           // DropPointのインスタンス化することを管理するタイマー
+        private Timer _dropPointTimer;           // DropPointのインスタンス化することを管理するタイマー
 
         private float trailOffset;
 
@@ -44,7 +44,7 @@ namespace Character
             // TrailRendererをアタッチする
             _mTrailRenderer = trail.gameObject.AddComponent<TrailRenderer>();
 
-            _dropPointTimer = new NewTimer(Time.time, Global.DROP_POINT_INTERVAL,
+            _dropPointTimer = new Timer(Time.time, Global.DROP_POINT_INTERVAL,
                 () =>
                 {
                     // タイマーが終わったらDropPointを置く

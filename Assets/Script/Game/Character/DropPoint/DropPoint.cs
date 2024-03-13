@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class DropPoint : MonoBehaviour
 {
-    private NewTimer m_NewTimer;            // DropPointのタイマー
+    private Timer m_NewTimer;            // DropPointのタイマー
 
     void Awake()
     {
-        m_NewTimer = new NewTimer(Time.time,Global.DROP_POINT_ALIVE_TIME,
+        m_NewTimer = new Timer(Time.time,Global.DROP_POINT_ALIVE_TIME,
             () =>
             {
                 Destroy(gameObject);

@@ -3,47 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-
-public class Timer
-{
-    private float duration;
-    private float startTime;
-    private Action callback;
-
-    public Timer()
-    {
-        duration = 0f;
-        startTime = 0f;
-        callback = null;
-    }
-
-    public void SetTimer(float duration, Action callback) //タイマーの時間とコールバックをセットする
-    {
-        this.duration = duration;
-        this.callback = callback;
-        startTime = Time.time;
-    }
-    public bool IsTimerFinished()　　　　　　　　　　　　//タイマーが終わるかどうかの判断
-    {
-        if (callback == null)
-        {
-            return false;
-        }
-        if (Time.time - startTime >= duration)
-        {
-            callback.Invoke();
-            callback = null;
-            return true;
-        }
-        return false;
-    }
-    public float GetTime()　　　　　　　　　　　　　　　//タイマーのリアルタイムのゲット
-    {
-        float remainingTime = duration - (Time.time - startTime);
-        return remainingTime;
-    }
-}
-
 public interface ITimer
 {
     void onStart();
@@ -55,7 +14,7 @@ public interface ITimer
     bool IsWaitForRepeat();
 
 }
-public class NewTimer:ITimer
+public class Timer : ITimer
 {
     private struct Clock
     {
@@ -75,7 +34,7 @@ public class NewTimer:ITimer
     private Clock m_Clock;
     private Action m_Callback;
     private bool IsRepeatable;
-    public NewTimer()
+    public Timer()
     {
         m_Clock = new Clock()
         {
@@ -88,7 +47,7 @@ public class NewTimer:ITimer
         IsRepeatable = false;
     }
 
-    public NewTimer(float startTime,float interval,Action callback = null)
+    public Timer(float startTime,float interval,Action callback = null)
     {
         m_Clock = new Clock()
         {
@@ -130,10 +89,6 @@ public class NewTimer:ITimer
 
 public static class TimerExtension
 {
-    public static void AddTimerToManager(this ITimer self)
-    {
-        TimerManager.Instance.AddTimer(self);
-    }
 
     public static void StartTimer(this ITimer self,MonoBehaviour monoBehaviour)
     {

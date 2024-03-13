@@ -58,6 +58,7 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
                 }
                 else
                 {
+                    m_UpdatingTimers[cnt] = null;
                     m_UpdatingTimers.RemoveAt(cnt);
                     continue;
                 }

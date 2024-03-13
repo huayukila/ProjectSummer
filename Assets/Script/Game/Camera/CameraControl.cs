@@ -20,7 +20,7 @@ namespace Gaming
         private float m_Smoothness;
         private GameObject m_Target;
         private CamState mState = CamState.None;
-        private NewTimer _playerRespawnLockOnTimer;
+        private Timer _playerRespawnLockOnTimer;
 
         // Start is called before the first frame update
         void Start()
@@ -63,7 +63,7 @@ namespace Gaming
         public void StopLockOn()
         {
             mState = CamState.None;
-            _playerRespawnLockOnTimer = new NewTimer(Time.time,Global.RESPAWN_TIME / 2.0f,
+            _playerRespawnLockOnTimer = new Timer(Time.time,Global.RESPAWN_TIME / 2.0f,
                 () =>
                 {
                     mState = CamState.OnTarget;
