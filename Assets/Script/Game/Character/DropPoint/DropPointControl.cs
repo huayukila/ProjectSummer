@@ -8,8 +8,7 @@ namespace Character
         private TrailRenderer _mTrailRenderer;      // DropPointが繋がっていることを表すTrailRenderer
         private GameObject pointPrefab;             // DropPointのプレハブ
         private float fadeOutTimer;
-
-        private Timer _dropTimer;                   // DropPointのインスタンス化することを管理するタイマー
+        private Timer _dropPointTimer;           // DropPointのインスタンス化することを管理するタイマー
 
         private float trailOffset;
 
@@ -45,6 +44,15 @@ namespace Character
             // TrailRendererをアタッチする
             _mTrailRenderer = trail.gameObject.AddComponent<TrailRenderer>();
 
+            _dropPointTimer = new Timer(Time.time, Global.DROP_POINT_INTERVAL,
+                () =>
+                {
+                    // タイマーが終わったらDropPointを置く
+                    InstantiateDropPoint();
+                }
+                );
+            _dropPointTimer.StartTimer(this);
+
         }
         // Update is called once per frame
         private void Update()
@@ -68,7 +76,7 @@ namespace Character
 
         private void FixedUpdate()
         {
-            TryDropPoint();
+            DropNewPoint();
         }
         /// <summary>
         /// DropPointをインスタンス化する
@@ -99,26 +107,12 @@ namespace Character
         /// <summary>
         /// DropPointを置いてみる関数
         /// </summary>    
-        private void TryDropPoint()
+        private void DropNewPoint()
         {
-            // タイマーが null だったら
-            if (_dropTimer == null)
+            if(_dropPointTimer.IsFinished())
             {
-                // 新しいタイマーを作る
-                _dropTimer = new Timer();
-                _dropTimer.SetTimer(Global.DROP_POINT_INTERVAL,
-                    () =>
-                    {
-                        // タイマーが終わったらDropPointを置く
-                        InstantiateDropPoint();
-                    }
-                    );
-            }
-            // タイマーが終わったら
-            else if (_dropTimer.IsTimerFinished())
-            {
-                // タイマーを消す
-                _dropTimer = null;
+                _dropPointTimer.onReset();
+                _dropPointTimer.StartTimer(this);
             }
         }
 

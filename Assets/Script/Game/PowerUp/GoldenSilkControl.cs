@@ -24,8 +24,7 @@ namespace Gaming.PowerUp
             Drop,
         }
 
-        private Action<GameObject> mActiveCallBack;
-        private Timer mSpawnTimer;          // 金の糸を生成することを管理するタイマー
+        private Action<GameObject> mActiveCallBack = null;
         private GameObject mSilkShadow;     // 金の糸の影
         //TODO 壁際にあるときに使う変数（未完成）
         private Vector3 mDropStartPos = Vector3.zero;
@@ -34,7 +33,7 @@ namespace Gaming.PowerUp
         private State mCurrentState = State.Inactive;
 
         // Start is called before the first frame update
-        void Start()
+        void Awake()
         {
             mSilkShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("SilkShadow"), transform.position, Quaternion.identity);
             ResetAnimationStatus();
@@ -50,15 +49,8 @@ namespace Gaming.PowerUp
                     break;
                 // 落下状態ときの処理
                 case State.Spawning:
-                    // 落下アニメーションを初期化する
-                    if (mSpawnTimer == null)
-                    {
-                        InitSpawnAnimation();
-                    }
                     // 落下アニメーションを更新する
                     UpdateSpawnAnimation();
-                    // 落下アニメーションが終わったら解放する
-                    mSpawnTimer.IsTimerFinished();
                     break;
                 case State.Drop:
                     UpdateDropAnimation();
@@ -84,8 +76,7 @@ namespace Gaming.PowerUp
         {
             transform.localScale = Vector3.one * 1.9f;
             AudioManager.Instance.PlayFX("FallFX", 0.7f);
-            mSpawnTimer = new Timer();
-            mSpawnTimer.SetTimer(Global.SILK_SPAWN_TIME / 2.0f,
+            Timer spawnTimer = new Timer(Time.time,Global.SILK_SPAWN_TIME / 2.0f,
                 () =>
                 {
                     ResetAnimationStatus();
@@ -93,11 +84,10 @@ namespace Gaming.PowerUp
                     smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                     smoke.transform.position -= new Vector3(0.0f, 0.2f, 0.0f);
                     mCurrentState = State.Active;
-                    mSpawnTimer = null;
-                    mActiveCallBack(gameObject);
+                    mActiveCallBack?.Invoke(gameObject);
                     TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
-                }
-                );
+                });
+            spawnTimer.StartTimer(this);
 
         }
 
@@ -137,6 +127,9 @@ namespace Gaming.PowerUp
         {
             SetPosition(position);
             OnSetState(State.Spawning);
+
+            // 落下アニメーションを初期化する
+            InitSpawnAnimation();
         }
 
         public void SetInactive()

@@ -12,7 +12,6 @@ public class GameManager : Singleton<GameManager>
     private struct SpiderPlayer
     {
         public GameObject player;
-        public Timer spawnTimer;
         public GameObject camera;
     }
     private static readonly int maxPlayerCount = 2;
@@ -39,6 +38,7 @@ public class GameManager : Singleton<GameManager>
             dropPointSystem = DropPointSystem.Instance;
             dropPointSystem.Init();
         }
+
         //シーンの移行命令を受け
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
         TypeEventSystem.Instance.Register<MenuSceneSwitch>(e => { MenuSceneSwitch(); });
@@ -110,10 +110,6 @@ public class GameManager : Singleton<GameManager>
         //各システムのupdate
         //シーンの移行など
         // gaming scene process
-        if (SceneManager.GetActiveScene().name == "Gaming")
-        {
-            CheckRespawn();
-        }
 
     }
 
@@ -146,40 +142,22 @@ public class GameManager : Singleton<GameManager>
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
     }
-    /// <summary>
-    /// プレイヤーの復活タイミングをチェックする
-    /// </summary>
-    private void CheckRespawn()
-    {
-        foreach (var player in spiderPlayers.Values) 
-        {
-            if(player.spawnTimer != null)
-            {
-                player.spawnTimer.IsTimerFinished();
-            }
-        }
-    }
+
 
     private void RespawnPlayer(int ID)
     {
 
         if(spiderPlayers.ContainsKey(ID))
         {
-            
-            Timer spawnTimer = new Timer();
-            spawnTimer.SetTimer(Global.RESPAWN_TIME,
-                 () =>
-                 {
-                     spiderPlayers[ID].player.GetComponent<Player>()?.StartRespawn();
-                     spawnTimer = null;
-                 }
-                 );
             SpiderPlayer spiderPlayer = spiderPlayers[ID];
-            spiderPlayer.spawnTimer = spawnTimer;
+            Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
+                () =>
+                {
+                    spiderPlayers[ID].player.GetComponent<Player>()?.StartRespawn();
+                });
+            spawnTimer.StartTimer(spiderPlayer.player.GetComponent<MonoBehaviour>());
             ICameraController cameraCtrl = spiderPlayer.camera.GetComponent<ICameraController>();
             cameraCtrl.StopLockOn();
-            spiderPlayers[ID] = spiderPlayer;
-
         }
     }
 
@@ -208,7 +186,6 @@ public class GameManager : Singleton<GameManager>
                 SpiderPlayer spiderPlayer = new SpiderPlayer
                 {
                     player = player,
-                    spawnTimer = null,
                     camera = camera
                 };
                 spiderPlayers.Add(ID, spiderPlayer);

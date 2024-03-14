@@ -7,10 +7,10 @@ public class PlayerAnim : CharacterAnim
     private GameObject mShadow;                        // プレイヤーが復活する時の影
     private SpriteRenderer mShadowSpriteRenderer;      // プレイヤーが復活する時の影のSpriteRenderer
     private GameObject mBigSpider;                      // プレイヤーが復活するする時の大きい蜘蛛
-    private Timer mRespawnAnimationTimer;               // プレイヤー復活用タイマー
     private LineRenderer mBigSpiderLineRenderer;       // プレイヤー復活する時の空中投下する時に繋がっている糸
     private GameObject mExplosionPrefab;                // 爆発アニメーションプレハブ
     private Player mPlayer;
+    private float _respawnAnimationTimer;
 
     private void Awake()
     {
@@ -35,7 +35,7 @@ public class PlayerAnim : CharacterAnim
         mShadowSpriteRenderer.color = Color.clear;
 
         mPlayer = GetComponent<Player>();
-
+        _respawnAnimationTimer = Global.RESPAWN_TIME;
 
     }
     // Start is called before the first frame update
@@ -52,12 +52,8 @@ public class PlayerAnim : CharacterAnim
             case AnimType.None:
                 break;
             case AnimType.Respawn:
-                // 復活アニメーションタイマーがnullじゃなかったら
-                if (mRespawnAnimationTimer != null)
                 {
-                    // 復活アニメーションの処理
                     UpdateRespawnAnimation();
-                    mRespawnAnimationTimer.IsTimerFinished();
                 }
                 break;
         }
@@ -82,8 +78,9 @@ public class PlayerAnim : CharacterAnim
     //TODO カメラを二つにする時に変更する予定
     private void UpdateRespawnAnimation()
     {
+        _respawnAnimationTimer -= Time.deltaTime;
         // 復活アニメーション前半部分の処理
-        if (mRespawnAnimationTimer.GetTime() >= Global.RESPAWN_TIME / 2.0f)
+        if (_respawnAnimationTimer >= Global.RESPAWN_TIME / 2.0f)
         {
             mBigSpider.transform.Translate(new Vector3(0.0f, 0.0f, -20.0f * Time.deltaTime), Space.World);
             transform.position = mBigSpider.transform.position + new Vector3(0.0f, 0.5f, 0.0f);
@@ -103,11 +100,6 @@ public class PlayerAnim : CharacterAnim
         }
     }
 
-    public override void Pause()
-    {
-
-    }
-
     public void StartRespawnAnim()
     {
         mType = AnimType.Respawn;
@@ -117,15 +109,16 @@ public class PlayerAnim : CharacterAnim
         // 復活アニメーションを初期化する
         transform.position = mBigSpider.transform.position;
         mBigSpiderLineRenderer.positionCount = 2;
-        mRespawnAnimationTimer = new Timer();
-        mRespawnAnimationTimer.SetTimer(Global.RESPAWN_TIME,
+        Timer respawnAnimationTimer = new Timer(Time.time,Global.RESPAWN_TIME,
             () =>
             {
                 ResetRespawnAnimation();
                 isStopped = true;
-                SwitchAnimState(AnimType.None);
-                mRespawnAnimationTimer = null;
-            });
+                mType = AnimType.None;
+                _respawnAnimationTimer = Global.RESPAWN_TIME;
+            }
+            );
+        respawnAnimationTimer.StartTimer(this);
         isStopped = false;
     }
 
