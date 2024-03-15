@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1116116255098921828}
   - component: {fileID: 9166614874193091830}
   m_Layer: 0
-  m_Name: pfRandomItem
+  m_Name: pfItemObjet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

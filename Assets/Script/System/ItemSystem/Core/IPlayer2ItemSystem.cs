@@ -8,14 +8,14 @@ public interface IPlayer2ItemSystem
     //アイテムもっていますか
     public bool HadItem() => item != null;
 
-    //アイテム道具
+    //アイテム
     public IItem item { get; set; }
 }
 
 public static class IPlayer2ItemSystemExtension
 {
     /// <summary>
-    /// 道具使う
+    /// プレイヤーが道具を使う
     /// </summary>
     /// <param name="self"></param>
     /// <param name="player"></param>
@@ -29,7 +29,7 @@ public static class IPlayer2ItemSystemExtension
     }
 
     /// <summary>
-    /// 道具ゲット
+    /// ItemSystemから道具を分配する用関数
     /// </summary>
     /// <param name="self"></param>
     /// <param name="item"></param>

@@ -8,10 +8,10 @@ interface IItemSystem
     /// 
     /// </summary>
     /// <param name="spawnPos_"></param>
-    void SpawnItem(Vector3 spawnPos_);
+    GameObject SpawnItem(Vector3 spawnPos_);
 }
 
-public class ItemSystem : SingletonBase<ItemSystem>,IItemSystem
+public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
 {
     GameObject itemPrefab;
 
@@ -23,7 +23,6 @@ public class ItemSystem : SingletonBase<ItemSystem>,IItemSystem
 
     //持っているやつ
     ItemBase[] weakItemArray;
-
     System.Random rand;
 
     public void Init()
@@ -36,9 +35,10 @@ public class ItemSystem : SingletonBase<ItemSystem>,IItemSystem
     }
 
     //道具生成
-    public void SpawnItem(Vector3 spawnPos_)
+    public GameObject SpawnItem(Vector3 spawnPos_)
     {
-        GameObject.Instantiate(itemPrefab, spawnPos_, quaternion.identity);
+        GameObject temp = GameObject.Instantiate(itemPrefab, spawnPos_, quaternion.identity);
+        return temp;
     }
 
     #region 内部用

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName ="ItemTable")]
+[CreateAssetMenu(fileName ="ItemTable",menuName = "ItemSystem/ItemTable")]
 public class ItemTable : ScriptableObject
 {
     public List<ItemBase> powerItemList;
