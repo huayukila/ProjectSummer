@@ -12,8 +12,9 @@ GameObject:
   - component: {fileID: 8289412443375559863}
   - component: {fileID: 1116116255098921828}
   - component: {fileID: 9166614874193091830}
+  - component: {fileID: -5640420401765137865}
   m_Layer: 0
-  m_Name: pfItemObjet
+  m_Name: pfItemObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -94,5 +95,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 77bc9c8757bcaa0448229caacd927c31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-5640420401765137865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2633313612155404844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eb7e78780022ac408910c8284730b51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

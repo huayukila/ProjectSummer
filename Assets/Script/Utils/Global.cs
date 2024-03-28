@@ -61,6 +61,11 @@ public static class Global
     public static readonly float SILK_SPAWN_TIME = 6.0f;
     #endregion
 
+    #region Item
+    public static readonly Vector3 ITEM_BOX_POS = new Vector3 (0f,0.64f,0f);
+    public static readonly float ITEM_BOX_SPAWN_TIME = 10f;
+    public static readonly float ON_SLIP_TIME = 1f;
+    #endregion
 
     public static readonly float SET_GAME_TIME = 180f; //ÉQÅ[ÉÄéûä‘
 

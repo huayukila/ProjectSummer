@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 7107468156506239068}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -179,6 +179,14 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 9b89a428-3286-43f4-8ab0-35299f6f2871
     m_ActionName: Player2/Boost[/Keyboard/rightShift]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: bbfec0b2-5ca1-43a2-9661-5428b61886d4
+    m_ActionName: Player1/Item[/Keyboard/leftCtrl]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: a661aeea-457a-4d64-9084-b06b64c3fb85
+    m_ActionName: Player2/Item[/Keyboard/rightCtrl]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player1
@@ -196,9 +204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8784c6e7ce85a1f409b17ce3624efaa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mMaxMoveSpeed: 0
   mAcceleration: 0
-  mRotationSpeed: 0
   silkCountSprites:
   - {fileID: 1261572293, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: -939105449, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
