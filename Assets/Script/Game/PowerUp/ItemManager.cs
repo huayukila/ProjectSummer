@@ -125,7 +125,6 @@ public class ItemManager : Singleton<ItemManager>, IOnFieldSilk,IOnFieldItem
             case SpawnMode.MegaFestival:
                 break;
         }
-
     }
 
     private void SpawnNewSilk()

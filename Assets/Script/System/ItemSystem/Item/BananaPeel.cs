@@ -13,9 +13,7 @@ public class BananaPeel : ThrowItem
         if (bananaBox != null)
         {
             Vector3 throwObjDropPos = player.transform.position - player.transform.forward * (player.ColliderOffset * 2f + bananaBox.size.x / 2f);
-            Debug.Log("throwObjDropPos");
             Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
-            Debug.LogError("Stop");
         }
 
     }

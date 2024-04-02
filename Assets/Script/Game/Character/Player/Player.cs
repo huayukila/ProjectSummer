@@ -102,7 +102,11 @@ namespace Character
                     PlayerRotation();
                     break;
                 case State.Uncontrollable:
+                    // プレイヤーの動き
                     PlayerMovement();
+                    break;
+                case State.Stun:
+                    mCurrentMoveSpeed = 0f;
                     break;
             }
 
@@ -163,7 +167,6 @@ namespace Character
             CheckGroundColor();
             // 領域を描画してみる
             TryPaintArea();
-            //TODO ブースト（隠れ仕様）
 
         }
 
@@ -218,10 +221,12 @@ namespace Character
         /// </summary>
         private void PlayerRotation()
         {
-            // 方向入力を取得する
-            if (mRotateDirection != Vector3.zero)
+            // 方向入力がないと終了
+            if (mRotateDirection == Vector3.zero)
+                return;
+
+            // 入力された方向へ回転する
             {
-                // 入力された方向へ回転する
                 Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
                 mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mStatus.mRotationSpeed * Time.fixedDeltaTime);
             }
@@ -281,16 +286,27 @@ namespace Character
         {
             mRigidbody.velocity = Vector3.zero;
             mRigidbody.angularVelocity = Vector3.zero;
+
             mState = State.Dead;
+
             transform.localScale = Vector3.one;
+
             mCurrentMoveSpeed = 0.0f;
+
             _canBoost = false;
+
             mSilkData.SilkCount = 0;
+
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
+
             DropPointSystem.Instance.ClearDropPoints(mID);
+
             mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+
             mDropPointControl.ResetTrail();
+
             mSilkData.SilkRenderer.SetActive(false);
+
             _returnToFineTimer = 0f;
         }
         /// <summary>
@@ -371,19 +387,19 @@ namespace Character
             #region Pick Silk
             Vector3[] silkPos = ItemManager.Instance.GetOnFieldSilkPos();
             List<Vector3> caputuredSilk = new List<Vector3>();
-            bool IsPickedNew = false;
+            bool isPickedNew = false;
             foreach (Vector3 pos in silkPos)
             {
                 if (VectorMath.InPolygon(pos, verts))
                 {
                     mSilkData.SilkCount++;
                     caputuredSilk.Add(pos);
-                    IsPickedNew = true;
+                    isPickedNew = true;
 
                 }
             }
             // 金の糸の画像を表示
-            if (IsPickedNew)
+            if (isPickedNew)
             {
                 SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
                 {
@@ -407,7 +423,7 @@ namespace Character
             #region Pick Item
             Vector3[] itemBoxPos = ItemManager.Instance.GetOnFieldItemBoxPos();
             List<Vector3> capturedItemBoxPos = new List<Vector3>();
-            bool isPickedNew = false;
+            isPickedNew = false;
             foreach(var pos in itemBoxPos)
             {
                 if(VectorMath.InPolygon(pos,verts))
@@ -564,6 +580,13 @@ namespace Character
             _returnToFineTimer = Global.ON_SLIP_TIME;
         }
 
+        public void OnStun()
+        {
+            mState = State.Stun;
+            mCurrentMoveSpeed = 0f;
+            mRigidbody.velocity = Vector3.zero;
+            _returnToFineTimer = Global.ON_STUN_TIME;
+        }
         public float ColliderOffset => mColliderOffset;
         #endregion
 

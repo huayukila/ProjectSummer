@@ -11,7 +11,7 @@ public class BananaPeelController : MonoBehaviour
         if(other.CompareTag("Player"))
         {           
             other.gameObject.GetComponent<Player>().OnSlip();
-            //Destroy(gameObject);
+            Destroy(gameObject);
         }
     }
 }
