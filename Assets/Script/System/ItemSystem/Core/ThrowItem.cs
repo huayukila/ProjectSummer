@@ -10,10 +10,4 @@ public class ThrowItem: ItemBase
     public GameObject ThrowObj;
 
     //投げるItemには、一般的このOnUseメソッドをoverrideの必要がない
-    public override void OnUse(Player player)
-    {
-        base.OnUse(player);
-        Instantiate(ThrowObj, player.transform.position, 
-            quaternion.identity);
-    }
 }

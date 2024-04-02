@@ -7,34 +7,50 @@ public interface IOnFieldSilk
 {
     Vector3[] GetOnFieldSilkPos();
 }
-public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
-{
 
-    private List<GameObject> mOnFieldSilk;
-    private Stack<GameObject> mCapturedSilk;
-    private bool mCanSpawnNewSilk = true;
+public interface IOnFieldItem
+{
+    Vector3[] GetOnFieldItemBoxPos();
+}
+public class ItemManager : Singleton<ItemManager>, IOnFieldSilk,IOnFieldItem
+{
+    private enum SpawnMode
+    {
+        Normal = 0,
+        ItemFestival,
+        SilkFestival,
+        MegaFestival,
+    }
+    private readonly int MAX_ITEM_BOX_COUNT = 1;
+    private List<GameObject> _onFieldSilks;
+    private Stack<GameObject> _capturedSilks;
+    private bool _canSpawnNewSilk = true;
+    private List<GameObject> _onFieldItemBoxes;
+    private SpawnMode _spawnMode = SpawnMode.Normal;
     // Start is called before the first frame update
     protected override void Awake()
     {
-        mOnFieldSilk = new List<GameObject>();
-        mCapturedSilk = new Stack<GameObject>();
+        _onFieldSilks = new List<GameObject>();
+        _capturedSilks = new Stack<GameObject>();
+        _onFieldItemBoxes = new List<GameObject>();
     }
     void Start()
     {
         // イベントを登録する
+        #region Event Register
         TypeEventSystem.Instance.Register<SilkCapturedEvent>(e =>
         {
 
             foreach (var pos in e.positions)
             {
                 int index = 0;
-                while (index < mOnFieldSilk.Count)
+                while (index < _onFieldSilks.Count)
                 {
-                    GameObject silk = mOnFieldSilk[index];
+                    GameObject silk = _onFieldSilks[index];
                     if (silk.transform.position == pos)
                     {
-                        mCapturedSilk.Push(silk);
-                        mOnFieldSilk.Remove(silk);
+                        _capturedSilks.Push(silk);
+                        _onFieldSilks.Remove(silk);
                         silk.GetComponent<IGoldenSilk>()?.SetInactive();
                         break;
                     }
@@ -48,54 +64,88 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
         {
             if(e.dropCount > 0)
             {
-                GoldenSilkSystem.Instance.RecycleSilk(mCapturedSilk.Pop());
+                GoldenSilkSystem.Instance.RecycleSilk(_capturedSilks.Pop());
                 --e.dropCount;
                 while (e.dropCount > 0)
                 {
-                    if(mCapturedSilk.Count > 0)
+                    if(_capturedSilks.Count > 0)
                     {
-                        GameObject dropSilk = mCapturedSilk.Pop();
+                        GameObject dropSilk = _capturedSilks.Pop();
                         dropSilk.GetComponent<IGoldenSilk>()?.StartDrop(e.pos,e.pos + GetDropSilkEndPos(e.pos));
-                        mOnFieldSilk.Add(dropSilk);
+                        _onFieldSilks.Add(dropSilk);
                         --e.dropCount;
                     }
                 }
             }
         }).UnregisterWhenGameObjectDestroyed(gameObject);
-        TypeEventSystem.Instance.Register<GameOver>(e => 
+
+        TypeEventSystem.Instance.Register<GameOver>
+            (e => 
+            {
+                DeinitItemManager();
+            }
+            ).UnregisterWhenGameObjectDestroyed(gameObject);
+
+        TypeEventSystem.Instance.Register<GetNewItem>(e =>
         {
-            ResetGoldenSilkManager();
+            foreach (var pos in e.ItemBoxsPos)
+            {
+                foreach(var itemBox in _onFieldItemBoxes)
+                {
+                    if(itemBox.transform.position == pos)
+                    {
+                        itemBox.GetComponent<ItemBoxController>().SetInactive();
+                        break;
+                    }
+                }
+            }
+            TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         }).UnregisterWhenGameObjectDestroyed(gameObject);
+
+        #endregion
+        for (int i = 0; i < MAX_ITEM_BOX_COUNT ; ++i)
+        {
+            _onFieldItemBoxes.Add(ItemSystem.Instance.SpawnItem(Global.ITEM_BOX_POS));
+        }
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        SetSilkSpawnTimer();
+        switch(_spawnMode)
+        {
+            case SpawnMode.Normal:
+                SpawnNewSilk();
+                break;
+            case SpawnMode.ItemFestival:
+                break;
+            case SpawnMode.SilkFestival:
+                break;
+            case SpawnMode.MegaFestival:
+                break;
+        }
     }
 
-    private void SetSilkSpawnTimer()
+    private void SpawnNewSilk()
     {
         if (GoldenSilkSystem.Instance.CurrentSilkCount >= Global.MAX_SILK_COUNT)
             return;
 
-        if (!mCanSpawnNewSilk)
+        if (!_canSpawnNewSilk)
             return;
 
-        mCanSpawnNewSilk = false;
+        _canSpawnNewSilk = false;
         Timer dropSilkTimer = new Timer(Time.time, Global.SILK_SPAWN_TIME,
             () =>
             {
-                mCanSpawnNewSilk = true;
+                _canSpawnNewSilk = true;
                 GameObject obj = GoldenSilkSystem.Instance.DropNewSilk();
                 //TODO リストに入れるタイミングを修正する
-                if (obj != null)
+                obj.GetComponent<IGoldenSilk>().SetActiveCallBack(obj =>
                 {
-                    obj.GetComponent<IGoldenSilk>().SetActiveCallBack(obj =>
-                    {
-                        mOnFieldSilk.Add(obj);
-                    });
-                }
+                    _onFieldSilks.Add(obj);
+                });
             });
         dropSilkTimer.StartTimer(this);
     }
@@ -137,11 +187,7 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
             float farZ = farVert.z - startPos.z;
             float realX = Random.Range(nearX, farX);
             float realZ = Random.Range(nearZ, farZ);
-            ret = new Vector3(realX,
-                                                                                        0 ,
-                              realZ
-                             ).normalized;
-            Debug.Log(ret);
+            ret = new Vector3(realX, 0, realZ).normalized;
             ret *= Random.Range(30,50);
         }
         else
@@ -154,20 +200,31 @@ public class GoldenSilkManager : Singleton<GoldenSilkManager>, IOnFieldSilk
         return ret;
     }
 
-    private void ResetGoldenSilkManager()
+    private void DeinitItemManager()
     {
-        mOnFieldSilk.Clear();
-        mCapturedSilk.Clear();
+        _onFieldSilks.Clear();
+        _capturedSilks.Clear();
+        _onFieldItemBoxes.Clear();
     }
     public Vector3[] GetOnFieldSilkPos()
     {
         List<Vector3> silkPos = new List<Vector3>();
-        foreach(var silk in mOnFieldSilk)
+        foreach(var silk in _onFieldSilks)
         {
             silkPos.Add(silk.transform.position);
         }
         return silkPos.ToArray();
 
+    }
+
+    public Vector3[] GetOnFieldItemBoxPos() 
+    {
+        List<Vector3> itemBoxPos = new List<Vector3>();
+        foreach(var itemBox in _onFieldItemBoxes)
+        {
+            itemBoxPos.Add(itemBox.transform.position);
+        }
+        return itemBoxPos.ToArray();
     }
 
 }

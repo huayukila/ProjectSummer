@@ -29,7 +29,7 @@ public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
     {
         rand = new System.Random((int)Time.time);
         InitItemArray();
-        itemPrefab = Resources.Load("Prefabs/Item/pfRandomItem") as GameObject;
+        itemPrefab = Resources.Load("Prefabs/Item/pfItemObject") as GameObject;
         TypeEventSystem.Instance.Register<PlayerGetItem>(e => { e.player.GetItem(LotteryItem(e.player)); })
             .UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
     }

@@ -38,7 +38,7 @@ public class MiniMapController : MonoBehaviour
         miniMapSize.y = rectTransform.sizeDelta.y / 100.0f;
 
         PosInit = new Vector3(0, 1500, 0);
-        iOnFieldSilk = GoldenSilkManager.Instance;
+        iOnFieldSilk = ItemManager.Instance;
         //IOnFieldSilk iOnFieldSilk = GoldenSilkManager.Instance;
         //onFieldSilks = iOnFieldSilk.GetOnFieldSilkPos();
         if (MiniMapSilkPrefab != null) //GameProjectが入れているかどうか（以下同様）

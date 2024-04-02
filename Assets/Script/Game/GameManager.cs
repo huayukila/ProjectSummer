@@ -219,7 +219,7 @@ public class GameManager : Singleton<GameManager>
             }
 
             Gaming.PowerUp.GoldenSilkSystem.Instance.Init();
-            GoldenSilkManager goldenSilkManager = GoldenSilkManager.Instance;
+            ItemManager itemManager = ItemManager.Instance;
             DeviceSetting.Init();
         }
         else

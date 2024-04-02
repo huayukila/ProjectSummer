@@ -115,7 +115,7 @@ namespace Gaming.PowerUp
             }
         }
 
-        private void SetPosition(Vector3 position)
+        private void SetAnimationStartPosition(Vector3 position)
         {
             mSilkShadow.transform.position = position - new Vector3(0, 0.2f, 0);
             transform.position = mSilkShadow.transform.position + Vector3.forward * 150 + new Vector3(0, 0.2f, 0);
@@ -125,7 +125,7 @@ namespace Gaming.PowerUp
 
         public void StartSpawn(Vector3 position)
         {
-            SetPosition(position);
+            SetAnimationStartPosition(position);
             OnSetState(State.Spawning);
 
             // 落下アニメーションを初期化する
