@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9a9461126d2b3a48bb82c0083e2fd50, type: 3}
+  m_Name: StunSilk
+  m_EditorClassIdentifier: 
+  itemName: StunSilk
+  id: 0
+  ThrowObj: {fileID: 7679913379284494138, guid: 4d58101f374745c47a31f23a1714e9c6, type: 3}

@@ -5,19 +5,27 @@ using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
 using Unity.VisualScripting.Antlr3.Runtime;
+using UnityEngine.AI;
 
 namespace Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player : Character
+    public class Player : Character, IPlayer2ItemSystem
     {
         private enum State
         {
             None = 0,
             Fine,
             Dead,
-            Invincible
+            Invincible,
+            Uncontrollable,
+            Stun,
         }
+
+        public bool HadSilk => mSilkData.SilkCount > 0;
+
+        public IItem item { get; set; }
+
         private struct PlayerSilkData
         {
             public int SilkCount;                   // プレイヤーが持っている金の糸の数
@@ -27,8 +35,12 @@ namespace Character
         //TODO 二つを一つにする
         private InputAction mBoostAction;                   // プレイヤーのブースト入力
         private InputAction mRotateAction;                  // プレイヤーの回転入力
+        private InputAction _itemAction;
         private PlayerInput mPlayerInput;                   // playerInputAsset
+
+        [field:SerializeField]
         private State mState;                               // プレイヤーのステータス
+
         private float mColliderOffset;                      // プレイヤーコライダーの長さ（正方形）
         private float mCurrentMoveSpeed;                    // プレイヤーの現在速度
         private float mMoveSpeedCoefficient;                // プレイヤーの移動速度の係数
@@ -45,6 +57,8 @@ namespace Character
         private Color mColor;                               // プレイヤーの領域の色                          
         private PlayerSilkData mSilkData;
         private float mBoostCoefficient;
+
+        private float _returnToFineTimer = 0f;
         //TODO テスト用
         public Sprite[] silkCountSprites;
 
@@ -63,26 +77,39 @@ namespace Character
         {
             // プレイヤー画像をずっと同じ方向に向くことにする
             mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+
+            if (mState == State.Dead)
+                return;
             // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
-            if (mState != State.Fine)
+            else if(mState != State.Fine)
             {
+                ReturnToFineCountDown();
                 return;
             }
-            // 通常状態の処理
+
             UpdateFine();
+
         }
 
         private void FixedUpdate()
         {
-            // プレイヤーが「通常」状態じゃないと動きに関する処理を実行しない
-            if (mState != State.Fine)
+            switch(mState)
             {
-                return;
+                case State.Fine:
+                    // プレイヤーの動き
+                    PlayerMovement();
+                    // プレイヤーの回転
+                    PlayerRotation();
+                    break;
+                case State.Uncontrollable:
+                    // プレイヤーの動き
+                    PlayerMovement();
+                    break;
+                case State.Stun:
+                    mCurrentMoveSpeed = 0f;
+                    break;
             }
-            // プレイヤーの動き
-            PlayerMovement();
-            // プレイヤーの回転
-            PlayerRotation();
+
         }
 
 
@@ -140,7 +167,6 @@ namespace Character
             CheckGroundColor();
             // 領域を描画してみる
             TryPaintArea();
-            //TODO ブースト（隠れ仕様）
 
         }
 
@@ -195,10 +221,12 @@ namespace Character
         /// </summary>
         private void PlayerRotation()
         {
-            // 方向入力を取得する
-            if (mRotateDirection != Vector3.zero)
+            // 方向入力がないと終了
+            if (mRotateDirection == Vector3.zero)
+                return;
+
+            // 入力された方向へ回転する
             {
-                // 入力された方向へ回転する
                 Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
                 mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mStatus.mRotationSpeed * Time.fixedDeltaTime);
             }
@@ -258,16 +286,28 @@ namespace Character
         {
             mRigidbody.velocity = Vector3.zero;
             mRigidbody.angularVelocity = Vector3.zero;
+
             mState = State.Dead;
+
             transform.localScale = Vector3.one;
+
             mCurrentMoveSpeed = 0.0f;
+
             _canBoost = false;
+
             mSilkData.SilkCount = 0;
+
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
+
             DropPointSystem.Instance.ClearDropPoints(mID);
+
             mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+
             mDropPointControl.ResetTrail();
+
             mSilkData.SilkRenderer.SetActive(false);
+
+            _returnToFineTimer = 0f;
         }
         /// <summary>
         /// 地面の色をチェックする
@@ -344,21 +384,22 @@ namespace Character
 
         private void TryCaptureObject(Vector3[] verts)
         {
-            Vector3[] silkPos = GoldenSilkManager.Instance.GetOnFieldSilkPos();
+            #region Pick Silk
+            Vector3[] silkPos = ItemManager.Instance.GetOnFieldSilkPos();
             List<Vector3> caputuredSilk = new List<Vector3>();
-            bool IsPickedNew = false;
+            bool isPickedNew = false;
             foreach (Vector3 pos in silkPos)
             {
                 if (VectorMath.InPolygon(pos, verts))
                 {
                     mSilkData.SilkCount++;
                     caputuredSilk.Add(pos);
-                    IsPickedNew = true;
+                    isPickedNew = true;
 
                 }
             }
             // 金の糸の画像を表示
-            if (IsPickedNew)
+            if (isPickedNew)
             {
                 SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
                 {
@@ -378,6 +419,32 @@ namespace Character
                 }
                 SetPowerUpLevel();
             }
+            #endregion
+            #region Pick Item
+            Vector3[] itemBoxPos = ItemManager.Instance.GetOnFieldItemBoxPos();
+            List<Vector3> capturedItemBoxPos = new List<Vector3>();
+            isPickedNew = false;
+            foreach(var pos in itemBoxPos)
+            {
+                if(VectorMath.InPolygon(pos,verts))
+                {
+                    capturedItemBoxPos.Add(pos);
+                    isPickedNew = true;
+                }
+            }
+
+            if(isPickedNew)
+            {
+                TypeEventSystem.Instance.Send(new PlayerGetItem
+                {
+                    player = this,
+                });
+                TypeEventSystem.Instance.Send(new GetNewItem
+                {
+                    ItemBoxsPos = capturedItemBoxPos.ToArray()
+                });
+            }
+            #endregion
         }
 
         private void SetPlayerInputProperties()
@@ -388,6 +455,8 @@ namespace Character
             mRotateAction = mPlayerInput.actions["Rotate"];
             mBoostAction = mPlayerInput.actions["Boost"];
             mBoostAction.performed += OnBoost;
+            _itemAction = mPlayerInput.actions["Item"];
+            _itemAction.performed += OnUseItem;
         }
 
         private void SetPowerUpLevel()
@@ -403,6 +472,26 @@ namespace Character
                 mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             }
         }
+
+        private void OnUseItem(InputAction.CallbackContext ctx)
+        {
+            if(mState == State.Fine && ctx.performed)
+            {
+                this.UseItem(this);
+                
+            }
+
+
+        }
+
+        private void ReturnToFineCountDown()
+        {
+            _returnToFineTimer -= Time.deltaTime;
+            if(_returnToFineTimer <= 0f)
+            {
+                mState = State.Fine;
+            }
+        }
         private void OnEnable()
         {
             mPlayerInput?.ActivateInput();
@@ -414,6 +503,7 @@ namespace Character
         private void OnDestroy()
         {
             mBoostAction.performed -= OnBoost;
+            _itemAction.performed -= OnUseItem;
         }
         // ブースト
         private void OnBoost(InputAction.CallbackContext context)
@@ -483,7 +573,24 @@ namespace Character
                 mParticleSystemControl.Play();
             }
         }
+
+        public void OnSlip()
+        {
+            mState = State.Uncontrollable;
+            _returnToFineTimer = Global.ON_SLIP_TIME;
+        }
+
+        public void OnStun()
+        {
+            mState = State.Stun;
+            mCurrentMoveSpeed = 0f;
+            mRigidbody.velocity = Vector3.zero;
+            _returnToFineTimer = Global.ON_STUN_TIME;
+        }
+        public float ColliderOffset => mColliderOffset;
         #endregion
+
+
     }
 
 }

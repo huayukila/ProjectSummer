@@ -61,13 +61,19 @@ public static class Global
     public static readonly float SILK_SPAWN_TIME = 6.0f;
     #endregion
 
+    #region Item
+    public static readonly Vector3 ITEM_BOX_POS = new Vector3 (0f,0.64f,0f);
+    public static readonly float ITEM_BOX_SPAWN_TIME = 10f;
+    public static readonly float ON_SLIP_TIME = 1f;
+    public static readonly float ON_STUN_TIME = 2f;
+    #endregion
 
     public static readonly float SET_GAME_TIME = 180f; //ゲーム時間
 
     public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //ゲーム操作方法紹介画面 PRESS無効の時間
     public static readonly float CREDITS_SCENE_TIME = 1.5f; //ゲーム終了後の感謝画面 PRESS無効の時間
 
-    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(0, 1000.0f, 0); //生成されたオブジェクトの保存座標
+    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(10000f, 0, 0); //生成されたオブジェクトの保存座標
 
     #region Map
 

@@ -23,6 +23,7 @@ public static class IPlayer2ItemSystemExtension
     {
         if (self.HadItem())
         {
+            UnityEngine.Debug.Log("Item used");
             self.item.Use(player);
             self.item = null;
         }
