@@ -34,9 +34,7 @@ namespace Character
         private float mMoveSpeedCoefficient;                // プレイヤーの移動速度の係数
         private Rigidbody mRigidbody;                       // プレイヤーのRigidbody
         private Vector3 mRotateDirection;                   // プレイヤーの回転方向
-        private Timer mBoostCoolDownTimer = null;           // ブーストタイマー（隠れ仕様）
-        private float mBoostDurationTime;                   // ブースト持続時間（隠れ仕様）
-        private bool mIsBoosting = false;                    // ブーストしているかのフラグ
+        private bool _canBoost = false;                     // ブーストできるかのフラグ
         private SpriteRenderer mImageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
         private PlayerAnim mAnim;
         private DropPointControl mDropPointControl;         // プレイヤーのDropPointControl
@@ -143,15 +141,7 @@ namespace Character
             // 領域を描画してみる
             TryPaintArea();
             //TODO ブースト（隠れ仕様）
-            if (mBoostCoolDownTimer != null)
-            {
-                mBoostDurationTime -= Time.deltaTime;
-                if (mBoostDurationTime <= 0.0f)
-                {
-                    mBoostCoefficient = 1f;
-                }
-                mBoostCoolDownTimer.IsTimerFinished();
-            }
+
         }
 
         /// <summary>
@@ -178,7 +168,6 @@ namespace Character
             mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             mState = State.Fine;
             mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
-            mBoostDurationTime = Global.BOOST_DURATION_TIME;
             // 表示順位を変換する
             mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
             mSilkData.SilkCount = 0;
@@ -272,9 +261,7 @@ namespace Character
             mState = State.Dead;
             transform.localScale = Vector3.one;
             mCurrentMoveSpeed = 0.0f;
-            mIsBoosting = false;
-            mBoostDurationTime = Global.BOOST_DURATION_TIME;
-            mBoostCoolDownTimer = null;
+            _canBoost = false;
             mSilkData.SilkCount = 0;
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
             DropPointSystem.Instance.ClearDropPoints(mID);
@@ -428,29 +415,36 @@ namespace Character
         {
             mBoostAction.performed -= OnBoost;
         }
-        // 隠れ仕様
+        // ブースト
         private void OnBoost(InputAction.CallbackContext context)
         {
             if (context.performed)
             {
-                if (mState == State.Fine && mIsBoosting == false)
+                if (mState == State.Fine && _canBoost == false)
                 {
                     mBoostCoefficient = 1.5f;
                     mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
-                    mIsBoosting = true;
+                    _canBoost = true;
                     TypeEventSystem.Instance.Send<BoostStart>(new BoostStart 
                     { 
                         Number = mID
                     });
-                    mBoostCoolDownTimer = new Timer();
-                    mBoostCoolDownTimer.SetTimer(Global.BOOST_COOLDOWN_TIME,
+                    Timer stopBoostTimer = new Timer(Time.time, Global.BOOST_DURATION_TIME,
                         () =>
                         {
-                            mBoostDurationTime = Global.BOOST_DURATION_TIME;
-                            mIsBoosting = false;
-                            mBoostCoolDownTimer = null;
-                        });
+                            mBoostCoefficient = 1.0f;
+                        }
+                        );
+                    Timer boostCoolDownTimer = new Timer(Time.time,Global.BOOST_COOLDOWN_TIME,
+                        () =>
+                        {
+                            _canBoost = false;
+                        }
+                        );
+                    stopBoostTimer.StartTimer(this);
+                    boostCoolDownTimer.StartTimer(this);
                 }
+
             }
         }
 
