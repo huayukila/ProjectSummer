@@ -18,8 +18,7 @@ namespace Character
 
         }
         [Min(0.0f)]
-        [SerializeField]
-        protected float mAcceleration;                        // ‰Á‘¬“x
+        protected float _acceleration;                        // ‰Á‘¬“x
         protected CharaStatus mStatus;
         
         protected abstract void Init();

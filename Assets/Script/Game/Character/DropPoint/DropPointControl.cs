@@ -13,11 +13,8 @@ namespace Character
         private float trailOffset;
 
         //TODO refactorying
-        [SerializeField]
         private string _mTag;
-        [SerializeField]
         private int _mID;
-        [SerializeField]
         private Color _mColor;
 
         private Player _mPlayer;
@@ -96,7 +93,7 @@ namespace Character
             _mID = _mPlayer.GetID();
             _mTag = "DropPoint" + _mID.ToString();
             _mColor = _mPlayer.GetColor();
-            _mTrailRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            _mTrailRenderer.material = new Material(Shader.Find("Sprites/Default")) { hideFlags = HideFlags.DontSave};
             _mTrailRenderer.startColor = Global.PLAYER_TRACE_COLORS[_mID - 1];
             _mTrailRenderer.endColor = Global.PLAYER_TRACE_COLORS[_mID - 1];
             _mTrailRenderer.startWidth = 1.0f;

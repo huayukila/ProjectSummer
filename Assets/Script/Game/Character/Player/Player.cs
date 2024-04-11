@@ -69,15 +69,14 @@ namespace Character
         }
         private void Start()
         {
+            mCurrentMoveSpeed = 0.0f;
+
             GetComponent<DropPointControl>()?.Init();
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
             mParticleSystemControl.Play();
         }
         private void Update()
         {
-            // プレイヤー画像をずっと同じ方向に向くことにする
-            mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
-
             if (mState == State.Dead)
                 return;
             // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
@@ -86,7 +85,6 @@ namespace Character
                 ReturnToFineCountDown();
                 return;
             }
-
             UpdateFine();
 
         }
@@ -97,19 +95,31 @@ namespace Character
             {
                 case State.Fine:
                     // プレイヤーの動き
-                    PlayerMovement();
+                    PlayerMovement(Global.PLAYER_ACCELERATION);
                     // プレイヤーの回転
                     PlayerRotation();
                     break;
                 case State.Uncontrollable:
-                    // プレイヤーの動き
-                    PlayerMovement();
+                    float deceleration = GetDeceleration();
+                    PlayerMovement(deceleration);
                     break;
                 case State.Stun:
                     mCurrentMoveSpeed = 0f;
                     break;
             }
 
+        }
+
+        private void LateUpdate()
+        {
+            switch(mState)
+            {
+                case State.Fine:
+                    return;
+                case State.Uncontrollable:
+                    PlaySlipAnimation();
+                    return;
+            }
         }
 
 
@@ -127,7 +137,7 @@ namespace Character
                     pos = transform.position,
                 };
                 // 金の糸のドロップ場所を設定する
-                TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
+                TypeEventSystem.Instance.Send(dropSilkEvent);
             }
             // 衝突したら死亡状態に設定する
             SetDeadStatus();
@@ -146,7 +156,7 @@ namespace Character
                         {
                             pos = transform.position,
                         };
-                        TypeEventSystem.Instance.Send<DropSilkEvent>(dropSilkEvent);
+                        TypeEventSystem.Instance.Send(dropSilkEvent);
                     }
                     SetDeadStatus();
                 }
@@ -156,6 +166,8 @@ namespace Character
 
         private void UpdateFine()
         {
+            // プレイヤー画像をずっと同じ方向に向くことにする
+            //mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
             // プレイヤー画像の向きを変える
             FlipCharacterImage();
@@ -186,11 +198,10 @@ namespace Character
             // PlayerAnimコンポネントを追加する
             mAnim = gameObject.AddComponent<PlayerAnim>();
 
-            mCurrentMoveSpeed = 0.0f;
+
             mColorCheck.layerMask = LayerMask.GetMask("Ground");
             mMoveSpeedCoefficient = 1.0f;
             mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-            mAcceleration = Global.PLAYER_ACCELERATION;
             mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             mState = State.Fine;
             mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
@@ -207,10 +218,12 @@ namespace Character
         /// <summary>
         /// プレイヤーの移動を制御する
         /// </summary>
-        private void PlayerMovement()
+        private void PlayerMovement(in float acceleration)
         {
-            // 加速運動をして、最大速度まで加速する
-            mCurrentMoveSpeed = mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed ? mStatus.mMaxMoveSpeed : mCurrentMoveSpeed + mAcceleration;
+            // 速度を計算し、範囲内に制限する
+            mCurrentMoveSpeed =  mCurrentMoveSpeed + acceleration * Time.fixedDeltaTime;
+            mCurrentMoveSpeed = Mathf.Clamp(mCurrentMoveSpeed, 0f, mStatus.mMaxMoveSpeed);
+
             // 前向きの移動をする
             Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient * mBoostCoefficient;
             mRigidbody.velocity = moveDirection;
@@ -406,7 +419,7 @@ namespace Character
                     ID = mID,
                     positions = caputuredSilk.ToArray()
                 };
-                TypeEventSystem.Instance.Send<SilkCapturedEvent>(silkCapturedEvent);
+                TypeEventSystem.Instance.Send(silkCapturedEvent);
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
                 mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
@@ -489,8 +502,32 @@ namespace Character
             _returnToFineTimer -= Time.deltaTime;
             if(_returnToFineTimer <= 0f)
             {
+                mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
                 mState = State.Fine;
             }
+        }
+
+        private float GetDeceleration()
+        {
+            if(mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed / 4f)
+            {
+                return -(mCurrentMoveSpeed - mStatus.mMaxMoveSpeed / 4f) / (_returnToFineTimer - Global.ON_SLIP_TIME / 2f);  
+            }
+            if(mCurrentMoveSpeed <= Global.ON_SLIP_MIN_SPEED)
+            {
+                return 0f;
+            }
+            else
+            {
+                return -mCurrentMoveSpeed / _returnToFineTimer;
+            }
+        }
+
+        private void PlaySlipAnimation()
+        {
+            //float rotationAngle = (-720f / Global.ON_SLIP_TIME * _returnToFineTimer + 720f) * Time.deltaTime;
+            float rotationAngle = 720f / Global.ON_SLIP_TIME * Time.deltaTime;
+            mImageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
         }
         private void OnEnable()
         {
@@ -515,7 +552,7 @@ namespace Character
                     mBoostCoefficient = 1.5f;
                     mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
                     _canBoost = true;
-                    TypeEventSystem.Instance.Send<BoostStart>(new BoostStart 
+                    TypeEventSystem.Instance.Send(new BoostStart 
                     { 
                         Number = mID
                     });
