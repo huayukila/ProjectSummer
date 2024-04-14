@@ -67,6 +67,8 @@ public static class Global
     public static readonly float ON_SLIP_TIME = 1f;
     public static readonly float ON_STUN_TIME = 2f;
     public static readonly float ON_SLIP_MIN_SPEED = 8f;
+    public static readonly float STUN_SILK_SPEED = (PLAYER_MAX_MOVE_SPEED + POWER_UP_PARAMETER[POWER_UP_PARAMETER.Length - 1].SpeedUp) * 1.3f;
+    public static readonly float BUBBLE_EXPLODE_TIME = 3f;
     #endregion
 
     public static readonly float SET_GAME_TIME = 180f; //ÉQÅ[ÉÄéûä‘

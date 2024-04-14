@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
-using Unity.VisualScripting.Antlr3.Runtime;
-using UnityEngine.AI;
 
 namespace Character
 {
@@ -100,7 +98,7 @@ namespace Character
                     PlayerRotation();
                     break;
                 case State.Uncontrollable:
-                    float deceleration = GetDeceleration();
+                    float deceleration = GetOnSlipDeceleration();
                     PlayerMovement(deceleration);
                     break;
                 case State.Stun:
@@ -507,7 +505,7 @@ namespace Character
             }
         }
 
-        private float GetDeceleration()
+        private float GetOnSlipDeceleration()
         {
             if(mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed / 4f)
             {
