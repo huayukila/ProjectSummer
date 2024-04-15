@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b9a9461126d2b3a48bb82c0083e2fd50, type: 3}
-  m_Name: StunSilk
+  m_Name: StunMeteorHammer
   m_EditorClassIdentifier: 
-  itemName: StunSilk
+  itemName: StunMeteorHammer
   id: 0
-  ThrowObj: {fileID: 7679913379284494138, guid: 4d58101f374745c47a31f23a1714e9c6, type: 3}
+  ThrowObj: {fileID: 8995836012972350364, guid: 4d58101f374745c47a31f23a1714e9c6, type: 3}
