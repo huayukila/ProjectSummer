@@ -34,8 +34,8 @@ public static class Global
     public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // 自分のプレイヤーの領域上にいる時のスビート係数
 
     public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // プレイヤーの最大速度
-    public static readonly float PLAYER_ACCELERATION = 0.3f; // プレイヤーの加速度
-    public static readonly float PLAYER_ROTATION_SPEED = 3.0f; // プレイヤーの回転速度
+    public static readonly float PLAYER_ACCELERATION = 15.0f; // プレイヤーの加速度
+    public static readonly float PLAYER_ROTATION_SPEED = 4.0f; // プレイヤーの回転速度
 
     public static readonly float BOOST_DURATION_TIME = 1.0f;
     public static readonly float BOOST_COOLDOWN_TIME = 6.0f;
@@ -66,6 +66,9 @@ public static class Global
     public static readonly float ITEM_BOX_SPAWN_TIME = 10f;
     public static readonly float ON_SLIP_TIME = 1f;
     public static readonly float ON_STUN_TIME = 2f;
+    public static readonly float ON_SLIP_MIN_SPEED = 8f;
+    public static readonly float STUN_SILK_SPEED = (PLAYER_MAX_MOVE_SPEED + POWER_UP_PARAMETER[POWER_UP_PARAMETER.Length - 1].SpeedUp) * 1.3f;
+    public static readonly float BUBBLE_EXPLODE_TIME = 3f;
     #endregion
 
     public static readonly float SET_GAME_TIME = 180f; //ゲーム時間
