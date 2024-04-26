@@ -5,10 +5,15 @@ using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
 
+public interface IItemEffectable
+{
+    void OnSlip();
+    void OnStun();
+}
 namespace Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player : Character, IPlayer2ItemSystem
+    public class Player : Character, IPlayer2ItemSystem, IItemEffectable
     {
         private enum State
         {
