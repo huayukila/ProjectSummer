@@ -4,11 +4,22 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
+using Unity.VisualScripting;
 
+public enum ItemEffect
+{
+    None = 0,
+    Stun,
+    Slip,
+}
+public interface IItemAffectable
+{
+    void OnEffect(string effectName);
+}
 namespace Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player : Character, IPlayer2ItemSystem
+    public class Player : Character, IPlayer2ItemSystem,IItemAffectable
     {
         private enum State
         {
@@ -37,7 +48,7 @@ namespace Character
         private PlayerInput mPlayerInput;                   // playerInputAsset
 
         [field:SerializeField]
-        private State mState;                               // プレイヤーのステータス
+        private State _playerState;                               // プレイヤーのステータス
 
         private float mColliderOffset;                      // プレイヤーコライダーの長さ（正方形）
         private float mCurrentMoveSpeed;                    // プレイヤーの現在速度
@@ -60,10 +71,14 @@ namespace Character
         //TODO テスト用
         public Sprite[] silkCountSprites;
 
+        private Dictionary<ItemEffect, Action> _itemAffectActions;
+
         private void Awake()
         {
             // 初期化処理
             Init();
+            // Item affectable actions init
+            InitItemAffect();
         }
         private void Start()
         {
@@ -75,10 +90,10 @@ namespace Character
         }
         private void Update()
         {
-            if (mState == State.Dead)
+            if (_playerState == State.Dead)
                 return;
             // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
-            else if(mState != State.Fine)
+            else if(_playerState != State.Fine)
             {
                 ReturnToFineCountDown();
                 return;
@@ -89,7 +104,7 @@ namespace Character
 
         private void FixedUpdate()
         {
-            switch(mState)
+            switch(_playerState)
             {
                 case State.Fine:
                     // プレイヤーの動き
@@ -110,7 +125,7 @@ namespace Character
 
         private void LateUpdate()
         {
-            switch(mState)
+            switch(_playerState)
             {
                 case State.Fine:
                     return;
@@ -183,7 +198,7 @@ namespace Character
         /// <summary>
         /// プレイヤーのプロパティを初期化する
         /// </summary>
-        protected override void Init()
+        private void Init()
         {
             mRigidbody = GetComponent<Rigidbody>();
             mColorCheck = GetComponent<ColorCheck>();
@@ -201,7 +216,7 @@ namespace Character
             mMoveSpeedCoefficient = 1.0f;
             mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
-            mState = State.Fine;
+            _playerState = State.Fine;
             mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             // 表示順位を変換する
             mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
@@ -213,6 +228,15 @@ namespace Character
 
         }
 
+        private void InitItemAffect()
+        {
+            _itemAffectActions = new Dictionary<ItemEffect, Action>
+            {
+                // Item Effect     Action
+                { ItemEffect.Stun, OnStun },
+                { ItemEffect.Slip, OnSlip }
+            };
+        }
         /// <summary>
         /// プレイヤーの移動を制御する
         /// </summary>
@@ -298,7 +322,7 @@ namespace Character
             mRigidbody.velocity = Vector3.zero;
             mRigidbody.angularVelocity = Vector3.zero;
 
-            mState = State.Dead;
+            _playerState = State.Dead;
 
             transform.localScale = Vector3.one;
 
@@ -486,7 +510,7 @@ namespace Character
 
         private void OnUseItem(InputAction.CallbackContext ctx)
         {
-            if(mState == State.Fine && ctx.performed)
+            if(_playerState == State.Fine && ctx.performed)
             {
                 this.UseItem(this);
                 
@@ -501,7 +525,7 @@ namespace Character
             if(_returnToFineTimer <= 0f)
             {
                 mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
-                mState = State.Fine;
+                _playerState = State.Fine;
             }
         }
 
@@ -545,7 +569,7 @@ namespace Character
         {
             if (context.performed)
             {
-                if (mState == State.Fine && _canBoost == false)
+                if (_playerState == State.Fine && _canBoost == false)
                 {
                     mBoostCoefficient = 1.5f;
                     mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
@@ -575,7 +599,7 @@ namespace Character
 
         #endregion
         #region interface
-        public bool IsDead() => mState == State.Dead;
+        public bool IsDead() => _playerState == State.Dead;
         public int GetID() => mID;
         public Color GetColor() => mColor;
         public void SetProperties(int ID, Color color)
@@ -594,11 +618,11 @@ namespace Character
 
         public void StartRespawn()
         {
-            if(mState == State.Dead)
+            if(_playerState == State.Dead)
             {
                 transform.position = Global.PLAYER_START_POSITIONS[mID - 1];
                 transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
-                mState = State.Fine;
+                _playerState = State.Fine;
                 GetComponentInChildren<TrailRenderer>().enabled = true;
                 GetComponent<DropPointControl>().enabled = true;
                 GetComponent<Collider>().enabled = true;
@@ -609,18 +633,34 @@ namespace Character
             }
         }
 
-        public void OnSlip()
+        private void OnSlip()
         {
-            mState = State.Uncontrollable;
+            _playerState = State.Uncontrollable;
             _returnToFineTimer = Global.ON_SLIP_TIME;
         }
 
-        public void OnStun()
+        private void OnStun()
         {
-            mState = State.Stun;
+            _playerState = State.Stun;
             mCurrentMoveSpeed = 0f;
             mRigidbody.velocity = Vector3.zero;
             _returnToFineTimer = Global.ON_STUN_TIME;
+        }
+
+        public void OnEffect(string effectName)
+        {
+            effectName.ToTitleCast();
+
+            object receivedEffect;
+
+            if(Enum.TryParse(typeof(ItemEffect), effectName,out receivedEffect))
+            {
+                _itemAffectActions[(ItemEffect)receivedEffect].Invoke();
+            }
+            else
+            {
+                Debug.LogWarning("Can't find action of " + effectName + " effect." + "(In class " + GetType().Name + " )");
+            }
         }
         public float ColliderOffset => mColliderOffset;
         #endregion
