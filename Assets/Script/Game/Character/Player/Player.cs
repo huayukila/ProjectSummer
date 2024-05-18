@@ -406,7 +406,7 @@ namespace Character
                         }
                         verts.Add(crossPoint);
                         // •`‰æ‚·‚é
-                        PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
+                        // PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
                         TryCaptureObject(verts.ToArray());
                         // ‘S‚Ä‚ÌDropPoint‚ğÁ‚·
                         DropPointSystem.Instance.ClearDropPoints(mID);
