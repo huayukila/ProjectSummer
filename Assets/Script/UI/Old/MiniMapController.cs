@@ -42,7 +42,7 @@ public class MiniMapController : MonoBehaviour
         }
 
         RawImage miniMapImage = GetComponent<RawImage>();
-        miniMapImage.texture = PolygonPaintManager.Instance.GetMiniMapRT();
+        // miniMapImage.texture = PolygonPaintManager.Instance.GetMiniMapRT();
         if (MiniMapSpider_Left != null)
         {
             // MiniMapSpider_Left.transform.position = PosInit; // GameManager.Instance.GetPlayerPos(1) + 

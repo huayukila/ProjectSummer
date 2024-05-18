@@ -24,6 +24,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 
     void RegisterAllSystem() // ‚·‚×‚Ä‚ÌƒVƒXƒeƒ€‚ð“o˜^‚·‚é
     {
+        _framework.RegisterSystem<IPaintSystem>(new PaintSystem());
         _framework.RegisterSystem<ITestSystem>(new TestSystem());
     }
 

@@ -31,10 +31,10 @@ public class VsBarController : MonoBehaviour
             m_LeftValue = e.PlayerPixelNums[0] + 1;
             m_RightValue = e.PlayerPixelNums[1] + 1;
             m_FullValue = m_LeftValue + m_RightValue;
-            LeftText.text = (Mathf.Round(PolygonPaintManager.Instance.GetPlayersAreaPercent()[0] * 100f) / 100f)
-                .ToString() + "%";
-            RightText.text = (Mathf.Round(PolygonPaintManager.Instance.GetPlayersAreaPercent()[1] * 100f) / 100f)
-                .ToString() + "%";
+            // LeftText.text = (Mathf.Round(PolygonPaintManager.Instance.GetPlayersAreaPercent()[0] * 100f) / 100f)
+                // .ToString() + "%";
+            // RightText.text = (Mathf.Round(PolygonPaintManager.Instance.GetPlayersAreaPercent()[1] * 100f) / 100f)
+                // .ToString() + "%";
         }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
 
