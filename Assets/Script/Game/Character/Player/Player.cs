@@ -79,6 +79,7 @@ namespace Character
             Init();
             // Item affectable actions init
             InitItemAffect();
+
         }
         private void Start()
         {
