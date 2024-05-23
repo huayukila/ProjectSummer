@@ -191,7 +191,7 @@ MonoBehaviour:
     m_ActionName: Player2/Item[/Keyboard/rightCtrl]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: Player1
+  m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!114 &5556957149856731237
@@ -206,8 +206,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8784c6e7ce85a1f409b17ce3624efaa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mAcceleration: 0
-  mState: 0
+  _playerState: 0
+  _playerInfo:
+    ID: 0
+    AreaColor: {r: 0, g: 0, b: 0, a: 0}
   silkCountSprites:
   - {fileID: 1261572293, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: -939105449, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
