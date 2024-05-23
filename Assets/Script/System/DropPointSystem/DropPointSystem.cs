@@ -7,8 +7,6 @@ using UnityEngine;
 // システムインターフェース
 public interface IDropPointSystem
 {
-    // 初期化
-    void Init();
     // デイニシャライゼーション
     void Deinit();
     void InitPlayerDropPointGroup(int ID);
@@ -25,6 +23,11 @@ public class DropPointSystem : SingletonBase<DropPointSystem>, IDropPointSystem
 
     // 各プレイヤーのPlayerDropPointsを管理する変数
     private Dictionary<int, PlayerDropPoints> _playerDropPoints;
+
+    public DropPointSystem()
+    {
+        _playerDropPoints = new Dictionary<int, PlayerDropPoints>();
+    }
 
     /// <summary>
     /// Listにある全てのDropPoint(GameObject)のワールド座標を返す
@@ -136,16 +139,6 @@ public class DropPointSystem : SingletonBase<DropPointSystem>, IDropPointSystem
 
 
     #region interface
-    /// <summary>
-    /// DropPointSystemを初期化する関数
-    /// </summary>
-    public void Init()
-    {
-        if (_playerDropPoints == null)
-        {
-            _playerDropPoints = new Dictionary<int, PlayerDropPoints>();
-        }
-    }
 
     /// <summary>
     /// DropPointSystemをデイニシャライゼーションする関数

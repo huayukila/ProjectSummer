@@ -4,22 +4,11 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
-using Unity.VisualScripting;
 
-public enum ItemEffect
-{
-    None = 0,
-    Stun,
-    Slip,
-}
-public interface IItemAffectable
-{
-    void OnEffect(string effectName);
-}
 namespace Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player : Character, IPlayer2ItemSystem,IItemAffectable
+    public class Player : Character, IPlayer2ItemSystem, IItemAffectable, IPlayerCommand, IPlayerInfo, IPlayerState, IPlayerInterfaceContainer
     {
         private enum State
         {
@@ -31,26 +20,34 @@ namespace Character
             Stun,
         }
 
-        public bool HadSilk => mSilkData.SilkCount > 0;
-
-        public IItem item { get; set; }
-
+        // プレイヤーの情報
+        [Serializable]
+        private struct PlayerInfo
+        {
+            public int ID;          //プレイヤーのID
+            public Color AreaColor; //プレイヤーの領域の色
+        }
         private struct PlayerSilkData
         {
             public int SilkCount;                   // プレイヤーが持っている金の糸の数
             public GameObject SilkRenderer;         // プレイヤーが持っている金の糸を画面に表示するGameObject
         }
+
+        public bool HadSilk => _silkData.SilkCount > 0;
+
+        public IItem item { get; set; }
+
         private ColorCheck mColorCheck;                     // カラーチェックコンポネント
         //TODO 二つを一つにする
         private InputAction mBoostAction;                   // プレイヤーのブースト入力
         private InputAction mRotateAction;                  // プレイヤーの回転入力
         private InputAction _itemAction;
-        private PlayerInput mPlayerInput;                   // playerInputAsset
+        private PlayerInput _input;                         // playerInputAsset
 
         [field:SerializeField]
-        private State _playerState;                               // プレイヤーのステータス
+        private State _playerState;                         // プレイヤーのステータス
 
-        private float mColliderOffset;                      // プレイヤーコライダーの長さ（正方形）
+        private float _itemPlaceOffset;                     // アイテムの放置場所とプレイヤー座標の間の距離（プレイヤーコライダーの辺の長さ（正方形））
         private float mCurrentMoveSpeed;                    // プレイヤーの現在速度
         private float mMoveSpeedCoefficient;                // プレイヤーの移動速度の係数
         private Rigidbody mRigidbody;                       // プレイヤーのRigidbody
@@ -59,35 +56,38 @@ namespace Character
         private SpriteRenderer mImageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
         private PlayerAnim mAnim;
         private DropPointControl mDropPointControl;         // プレイヤーのDropPointControl
-        private PlayerParticleSystemControl mParticleSystemControl;
+        private PlayerParticleSystemControl _particleSystemControl; // プレイヤー自身にくっつけているパーティクルシステムを管理するコントローラー
 
         //TODO refactorying
-        private int mID = -1;                               // プレイヤーID
-        private Color mColor;                               // プレイヤーの領域の色                          
-        private PlayerSilkData mSilkData;
+                  
+        private PlayerSilkData _silkData;
         private float mBoostCoefficient;
+        [SerializeField]
+        private PlayerInfo _playerInfo = default;           // プレイヤーの情報
 
         private float _returnToFineTimer = 0f;
         //TODO テスト用
         public Sprite[] silkCountSprites;
 
-        private Dictionary<ItemEffect, Action> _itemAffectActions;
+        private Dictionary<EItemEffect, Action> _itemAffectActions;
+
+        private PlayerInterfaceContainer _playerInterface;
 
         private void Awake()
         {
+            _playerInterface = new PlayerInterfaceContainer(this);
             // 初期化処理
             Init();
             // Item affectable actions init
             InitItemAffect();
-
         }
         private void Start()
         {
             mCurrentMoveSpeed = 0.0f;
 
             GetComponent<DropPointControl>()?.Init();
-            transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
-            mParticleSystemControl.Play();
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
+            _particleSystemControl.Play();
         }
         private void Update()
         {
@@ -136,46 +136,6 @@ namespace Character
             }
         }
 
-
-        /// <summary>
-        /// 衝突があったとき処理する
-        /// </summary>
-        /// <param name="collision"></param>
-        private void OnCollisionEnter(Collision collision)
-        {
-            // 死亡したプレイヤーは金の網を持っていたら
-            if (mSilkData.SilkCount > 0)
-            {
-                DropSilkEvent dropSilkEvent = new DropSilkEvent()
-                {
-                    pos = transform.position,
-                };
-                // 金の糸のドロップ場所を設定する
-                TypeEventSystem.Instance.Send(dropSilkEvent);
-            }
-            // 衝突したら死亡状態に設定する
-            SetDeadStatus();
-        }
-
-        private void OnTriggerEnter(Collider other)
-        {
-            if (other.gameObject.tag.Contains("DropPoint"))
-            {
-                // 自分のDropPoint以外のDropPointに当たったら
-                if (other.gameObject.tag.Contains(mID.ToString()) == false)
-                {
-                    if (mSilkData.SilkCount > 0)
-                    {
-                        DropSilkEvent dropSilkEvent = new DropSilkEvent()
-                        {
-                            pos = transform.position,
-                        };
-                        TypeEventSystem.Instance.Send(dropSilkEvent);
-                    }
-                    SetDeadStatus();
-                }
-            }
-        }
         #region InternalLogic
 
         private void UpdateFine()
@@ -203,10 +163,9 @@ namespace Character
         {
             mRigidbody = GetComponent<Rigidbody>();
             mColorCheck = GetComponent<ColorCheck>();
-            mPlayerInput = GetComponent<PlayerInput>();
             // プレイヤー自分の画像のレンダラーを取得する
             mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
+            _particleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
             // DropPointControlコンポネントを追加する
             mDropPointControl = gameObject.AddComponent<DropPointControl>();
             // PlayerAnimコンポネントを追加する
@@ -218,24 +177,26 @@ namespace Character
             mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
             mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             _playerState = State.Fine;
-            mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+            _itemPlaceOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             // 表示順位を変換する
             mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
-            mSilkData.SilkCount = 0;
-            mSilkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
-            mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
-            mSilkData.SilkRenderer.SetActive(false);
+            _silkData.SilkCount = 0;
+            _silkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
+            _silkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
+            _silkData.SilkRenderer.SetActive(false);
             mBoostCoefficient = 1f;
+
+            SetPlayerInputProperties();
 
         }
 
         private void InitItemAffect()
         {
-            _itemAffectActions = new Dictionary<ItemEffect, Action>
+            _itemAffectActions = new Dictionary<EItemEffect, Action>
             {
                 // Item Effect     Action
-                { ItemEffect.Stun, OnStun },
-                { ItemEffect.Slip, OnSlip }
+                { EItemEffect.Stun, OnStun },
+                { EItemEffect.Slip, OnSlip }
             };
         }
         /// <summary>
@@ -286,18 +247,18 @@ namespace Character
         /// <summary>
         /// プレイヤーの死亡状態を設定する
         /// </summary>
-        private void SetDeadStatus()
+        private void StartDead()
         {
             mAnim.StartExplosionAnim();
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
             {
-                dropCount = mSilkData.SilkCount,
+                dropCount = _silkData.SilkCount,
                 pos = transform.position
             };
             TypeEventSystem.Instance.Send(dropSilkEvent);
             PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
             {
-                ID = mID
+                ID = _playerInfo.ID
             };
             TypeEventSystem.Instance.Send(playerRespawnEvent);
 
@@ -311,7 +272,7 @@ namespace Character
             GetComponent<Collider>().enabled = false;
             // プレイヤー復活イベントを喚起する
             mAnim.StartRespawnAnim();
-            mParticleSystemControl.Stop();
+            _particleSystemControl.Stop();
             SetPowerUpLevel();
         }
 
@@ -331,17 +292,17 @@ namespace Character
 
             _canBoost = false;
 
-            mSilkData.SilkCount = 0;
+            _silkData.SilkCount = 0;
 
-            transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
 
-            DropPointSystem.Instance.ClearDropPoints(mID);
+            DropPointSystem.Instance.ClearDropPoints(_playerInfo.ID);
 
             mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
             mDropPointControl.ResetTrail();
 
-            mSilkData.SilkRenderer.SetActive(false);
+            _silkData.SilkRenderer.SetActive(false);
 
             _returnToFineTimer = 0f;
         }
@@ -356,7 +317,7 @@ namespace Character
                 mMoveSpeedCoefficient = 1.0f;
             }
             // 別のプレイヤーの領域にいたら
-            else if (mColorCheck.isTargetColor(mColor))
+            else if (mColorCheck.isTargetColor(_playerInfo.AreaColor))
             {
                 mMoveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
             }
@@ -372,12 +333,12 @@ namespace Character
         /// </summary>
         private void TryPaintArea()
         {
-            Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(mID);
+            Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(_playerInfo.ID);
             // DropPointは4個以上あれば描画できる
             if (dropPoints.Length >= 4)
             {
                 // プレイヤーの先頭座標
-                Vector3 endPoint1 = transform.position + transform.forward * mColliderOffset;
+                Vector3 endPoint1 = transform.position + transform.forward * _itemPlaceOffset;
                 // プレイヤーが直前にインスタンス化したDropPoint
                 Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
                 // endPoint1とendPoint2で作ったベクトルとendPoint2以外のDropPointを先頭から順番で2個ずつで作ったベクトルが交わっているかどうかをチェックする
@@ -409,7 +370,7 @@ namespace Character
                         // PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
                         TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
-                        DropPointSystem.Instance.ClearDropPoints(mID);
+                        DropPointSystem.Instance.ClearDropPoints(_playerInfo.ID);
                         // 尻尾のTrailRendererの状態をリセットする
                         mDropPointControl.ResetTrail();
                         break;
@@ -428,7 +389,7 @@ namespace Character
             {
                 if (VectorMath.InPolygon(pos, verts))
                 {
-                    mSilkData.SilkCount++;
+                    _silkData.SilkCount++;
                     caputuredSilk.Add(pos);
                     isPickedNew = true;
 
@@ -439,18 +400,18 @@ namespace Character
             {
                 SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
                 {
-                    ID = mID,
+                    ID = _playerInfo.ID,
                     positions = caputuredSilk.ToArray()
                 };
                 TypeEventSystem.Instance.Send(silkCapturedEvent);
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
-                mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
-                mSilkData.SilkRenderer.SetActive(true);
-                Transform silkCount = mSilkData.SilkRenderer.transform.GetChild(0);
+                _silkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
+                _silkData.SilkRenderer.SetActive(true);
+                Transform silkCount = _silkData.SilkRenderer.transform.GetChild(0);
                 if (silkCount != null)
                 {
-                    silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkData.SilkCount];
+                    silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[_silkData.SilkCount];
                     silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
                 }
                 SetPowerUpLevel();
@@ -485,22 +446,23 @@ namespace Character
 
         private void SetPlayerInputProperties()
         {
-            mPlayerInput.defaultActionMap = name;
-            mPlayerInput.neverAutoSwitchControlSchemes = true;
-            mPlayerInput.SwitchCurrentActionMap(name);
-            mRotateAction = mPlayerInput.actions["Rotate"];
-            mBoostAction = mPlayerInput.actions["Boost"];
+            _input = GetComponent<PlayerInput>();
+            _input.defaultActionMap = "Player";
+            _input.neverAutoSwitchControlSchemes = true;
+            _input.SwitchCurrentActionMap("Player");
+            mRotateAction = _input.actions["Rotate"];
+            mBoostAction = _input.actions["Boost"];
             mBoostAction.performed += OnBoost;
-            _itemAction = mPlayerInput.actions["Item"];
+            _itemAction = _input.actions["Item"];
             _itemAction.performed += OnUseItem;
         }
 
         private void SetPowerUpLevel()
         {
-            if (mSilkData.SilkCount > 0)
+            if (_silkData.SilkCount > 0)
             {
-                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].SpeedUp;
-                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].RotateUp;
+                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].SpeedUp;
+                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].RotateUp;
             }
             else
             {
@@ -554,11 +516,11 @@ namespace Character
         }
         private void OnEnable()
         {
-            mPlayerInput?.ActivateInput();
+            _input?.ActivateInput();
         }
         private void OnDisable()
         {
-            mPlayerInput?.DeactivateInput();
+            _input?.DeactivateInput();
         }
         private void OnDestroy()
         {
@@ -577,7 +539,7 @@ namespace Character
                     _canBoost = true;
                     TypeEventSystem.Instance.Send(new BoostStart 
                     { 
-                        Number = mID
+                        Number = _playerInfo.ID
                     });
                     Timer stopBoostTimer = new Timer(Time.time, Global.BOOST_DURATION_TIME,
                         () =>
@@ -598,41 +560,9 @@ namespace Character
             }
         }
 
-        #endregion
-        #region interface
-        public bool IsDead() => _playerState == State.Dead;
-        public int GetID() => mID;
-        public Color GetColor() => mColor;
-        public void SetProperties(int ID, Color color)
-        {
-            if (mID == -1)
-            {
-                mID = ID;
-                mColor = color;
-                name = "Player" + mID.ToString();
-            }
-            if(mID != -1)
-            {
-                SetPlayerInputProperties();
-            }
-        }
+        #endregion // InternalLogic
 
-        public void StartRespawn()
-        {
-            if(_playerState == State.Dead)
-            {
-                transform.position = Global.PLAYER_START_POSITIONS[mID - 1];
-                transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
-                _playerState = State.Fine;
-                GetComponentInChildren<TrailRenderer>().enabled = true;
-                GetComponent<DropPointControl>().enabled = true;
-                GetComponent<Collider>().enabled = true;
-                GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
-                smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
-                smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
-                mParticleSystemControl.Play();
-            }
-        }
+        #region Item Effect
 
         private void OnSlip()
         {
@@ -648,24 +578,142 @@ namespace Character
             _returnToFineTimer = Global.ON_STUN_TIME;
         }
 
+        #endregion //Item Effect
+
+        #region Interface
+        public int ID => _playerInfo.ID;
+        public int SilkCount => _silkData.SilkCount;
+        public Color AreaColor => _playerInfo.AreaColor;
+        public void SetProperties(int ID, Color color)
+        {
+
+            if (_playerInfo.ID != 0)
+                return;
+            
+            {
+                _playerInfo.ID = ID;
+                _playerInfo.AreaColor = color;
+                name = "Player" + _playerInfo.ID.ToString();
+            }
+        }
+        public bool IsDead => _playerState == State.Dead;
+        public bool IsFine => _playerState == State.Fine;
+        public bool IsInvincible => _playerState == State.Invincible;
+        public bool IsUncontrollable => _playerState == State.Uncontrollable;
+        public bool IsStuning => _playerState == State.Stun;
+
+        public PlayerInterfaceContainer GetContainer()
+        {
+            return _playerInterface;
+        }
+
+        public void CallPlayerCommand(EPlayerCommand cmd)
+        {
+            Debug.Log("Command:" + cmd.ToString() + " get called");
+            switch(cmd)
+            {
+                case EPlayerCommand.Respawn:
+                    StartRespawn();
+                    break;
+                case EPlayerCommand.Dead:
+                    StartDead();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void StartRespawn()
+        {
+            // 死亡以外は再生処理しない
+            if (_playerState != State.Dead)
+                return;
+
+            // 再生処理
+            {
+                transform.position = Global.PLAYER_START_POSITIONS[_playerInfo.ID - 1];
+                transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
+                _playerState = State.Fine;
+
+                GetComponentInChildren<TrailRenderer>().enabled = true;
+                GetComponent<DropPointControl>().enabled = true;
+                GetComponent<Collider>().enabled = true;
+
+                // 落下後の煙エフェクトの作成
+                GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
+                smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
+                smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
+
+                // パーティクルシステムの再開
+                _particleSystemControl.Play();
+            }
+        }
+
         public void OnEffect(string effectName)
         {
             effectName.ToTitleCast();
 
             object receivedEffect;
 
-            if(Enum.TryParse(typeof(ItemEffect), effectName,out receivedEffect))
+            if(Enum.TryParse(typeof(EItemEffect), effectName,out receivedEffect))
             {
-                _itemAffectActions[(ItemEffect)receivedEffect].Invoke();
+                _itemAffectActions[(EItemEffect)receivedEffect].Invoke();
             }
             else
             {
                 Debug.LogWarning("Can't find action of " + effectName + " effect." + "(In class " + GetType().Name + " )");
             }
         }
-        public float ColliderOffset => mColliderOffset;
-        #endregion
+        public float ItemPlaceOffset => _itemPlaceOffset;
+        #endregion // Interface
 
+        #region Obsolete Code
+            /*
+            /// <summary>
+            /// 衝突があったとき処理する
+            /// </summary>
+            /// <param name="collision"></param>
+            private void OnCollisionEnter(Collision collision)
+            {
+                // 死亡したプレイヤーは金の網を持っていたら
+                if (_silkData.SilkCount > 0)
+                {
+                    DropSilkEvent dropSilkEvent = new DropSilkEvent()
+                    {
+                        pos = transform.position,
+                    };
+                    // 金の糸のドロップ場所を設定する
+                    //HACK EventSystem temporary invalid
+                    //TypeEventSystem.Instance.Send(dropSilkEvent);
+                }
+                // 衝突したら死亡状態に設定する
+                StartDead();
+            }
+
+            private void OnTriggerEnter(Collider other)
+            {
+
+                if (other.gameObject.tag.Contains("DropPoint"))
+                {
+                    // 自分のDropPoint以外のDropPointに当たったら
+                    if (other.gameObject.tag.Contains(_playerInfo.ID.ToString()) == false)
+                    {
+                        if (_silkData.SilkCount > 0)
+                        {
+                            DropSilkEvent dropSilkEvent = new DropSilkEvent()
+                            {
+                                pos = transform.position,
+                            };
+                            TypeEventSystem.Instance.Send(dropSilkEvent);
+                        }
+                        // 死亡状態に設定する
+                        StartDead();
+                    }
+                }
+            }
+
+                    */
+        #endregion //Obsolete Code
 
     }
 
