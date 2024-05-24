@@ -40,7 +40,6 @@ namespace Gaming.PowerUp
         
         /// <summary>
         /// ‹à‚Ì–Ô‚Ì¶¬ˆÊ’u‚ğŒˆ‚ß‚éŠÖ”
-        /// –¢Š®¬‚Ì‚½‚ßAŒÅ’èˆÊ’u‚É¶¬‚µ‚Ä‚¢‚é
         /// </summary>
         /// <returns></returns>
         private Vector3 GetInSpaceRandomPosition()

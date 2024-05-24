@@ -10,7 +10,7 @@ public class ScoreModel : Singleton<ScoreModel>
 
     public void SetScore()
     {
-        playerScore = PolygonPaintManager.Instance.GetPlayersAreaPercent();
+        // playerScore = PolygonPaintManager.Instance.GetPlayersAreaPercent();
     }
     public float GetPlayer1Score()
     {

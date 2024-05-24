@@ -6,14 +6,15 @@ using Character;
 using Gaming;
 
 
+
 public class GameManager : Singleton<GameManager>
 {
     private struct SpiderPlayer
     {
         public GameObject player;
         public GameObject camera;
+        public PlayerInterfaceContainer playerInterface;
     }
-
     private static readonly int maxPlayerCount = 2;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
     private ItemSystem itemSystem;
@@ -29,14 +30,13 @@ public class GameManager : Singleton<GameManager>
             itemSystem.Init();
         }
 
+        // ゲームリソースシステムの初期化
         {
             gameResourceSystem = GameResourceSystem.Instance;
-            gameResourceSystem.Init();
         }
 
         {
             dropPointSystem = DropPointSystem.Instance;
-            dropPointSystem.Init();
         }
 
         //シーンの移行命令を受け
@@ -47,7 +47,7 @@ public class GameManager : Singleton<GameManager>
         TypeEventSystem.Instance.Register<GameOver>(e => { EndSceneSwitch(); });
 
         Init();
-
+        
         SceneManager.sceneLoaded += SceneLoaded;
 
         InputSystem.onDeviceChange += (device, change) =>
@@ -57,6 +57,7 @@ public class GameManager : Singleton<GameManager>
                 case InputDeviceChange.Added:
                     if (device is Keyboard)
                     {
+
                     }
                     else if (device is Gamepad)
                     {
@@ -65,13 +66,12 @@ public class GameManager : Singleton<GameManager>
                             if (PlayerInput.all[i].GetDevice<InputDevice>() is not Gamepad)
                             {
                                 PlayerInput.all[i].SwitchCurrentControlScheme(
-                                    "Gamepad",
-                                    device as Gamepad);
+                                "Gamepad",
+                                device as Gamepad);
                                 break;
                             }
                         }
                     }
-
                     break;
                 case InputDeviceChange.Disconnected:
                     InputSystem.FlushDisconnectedDevices();
@@ -84,19 +84,16 @@ public class GameManager : Singleton<GameManager>
                             if (PlayerInput.all[i].GetDevice<InputDevice>() == device && Keyboard.current != null)
                             {
                                 PlayerInput.all[i].SwitchCurrentControlScheme(
-                                    "Keyboard&Mouse",
-                                    Keyboard.current);
+                                "Keyboard&Mouse",
+                                Keyboard.current);
                                 break;
                             }
                         }
                     }
-
                     InputSystem.RemoveDevice(device);
                     break;
             }
         };
-
-        OpenMultScreen();
 
         Cursor.lockState = CursorLockMode.Locked;
 
@@ -113,6 +110,7 @@ public class GameManager : Singleton<GameManager>
         //各システムのupdate
         //シーンの移行など
         // gaming scene process
+
     }
 
     //シーンの移行
@@ -121,17 +119,14 @@ public class GameManager : Singleton<GameManager>
         SceneManager.LoadScene("Title");
         //ScoreSystem.Instance.ResetScore();
     }
-
     void MenuSceneSwitch()
     {
         SceneManager.LoadScene("MenuScene");
     }
-
     void GamingSceneSwitch()
     {
         SceneManager.LoadScene("Gaming");
     }
-
     void EndSceneSwitch()
     {
         SceneManager.LoadScene("End");
@@ -140,18 +135,26 @@ public class GameManager : Singleton<GameManager>
     private void Init()
     {
         spiderPlayers = new Dictionary<int, SpiderPlayer>();
-        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e => { RespawnPlayer(e.ID); })
-            .UnregisterWhenGameObjectDestroyed(gameObject);
+        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
+        {
+            RespawnPlayer(e.ID);
+
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
+
     }
 
 
     private void RespawnPlayer(int ID)
     {
-        if (spiderPlayers.ContainsKey(ID))
+
+        if(spiderPlayers.ContainsKey(ID))
         {
             SpiderPlayer spiderPlayer = spiderPlayers[ID];
-            Timer spawnTimer = new Timer(Time.time, Global.RESPAWN_TIME,
-                () => { spiderPlayers[ID].player.GetComponent<Player>()?.StartRespawn(); });
+            Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
+                () =>
+                {
+                    spiderPlayers[ID].playerInterface.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
+                });
             spawnTimer.StartTimer(spiderPlayer.player.GetComponent<MonoBehaviour>());
             ICameraController cameraCtrl = spiderPlayer.camera.GetComponent<ICameraController>();
             cameraCtrl.StopLockOn();
@@ -165,8 +168,7 @@ public class GameManager : Singleton<GameManager>
         {
             if (!spiderPlayers.ContainsKey(ID))
             {
-                GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[ID - 1],
-                    Quaternion.identity);
+                GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[ID - 1], Quaternion.identity);
                 player.GetComponent<Player>()?.SetProperties(ID, Global.PLAYER_TRACE_COLORS[ID - 1]);
                 SpriteRenderer playerImage = player.GetComponentInChildren<SpriteRenderer>();
                 playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + ID.ToString());
@@ -174,7 +176,7 @@ public class GameManager : Singleton<GameManager>
                 GameObject camera = new GameObject("Player" + (ID).ToString() + "Camera");
                 camera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
                 Camera cam = camera.AddComponent<Camera>();
-                cam.rect = new Rect((float)(ID - 1) / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
+                cam.rect = new Rect((float)(ID -1) / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
                 cam.orthographic = true;
                 cam.orthographicSize = 54.0f;
                 cam.depth = 1.0f;
@@ -184,7 +186,8 @@ public class GameManager : Singleton<GameManager>
                 SpiderPlayer spiderPlayer = new SpiderPlayer
                 {
                     player = player,
-                    camera = camera
+                    camera = camera,
+                    playerInterface = player.GetComponent<IPlayerInterfaceContainer>().GetContainer()
                 };
                 spiderPlayers.Add(ID, spiderPlayer);
                 dropPointSystem.InitPlayerDropPointGroup(ID);
@@ -194,12 +197,13 @@ public class GameManager : Singleton<GameManager>
         {
             Debug.LogError("Can't find Resource of Player" + ID.ToString());
         }
+
     }
 
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= SceneLoaded;
-        gameResourceSystem.Deinit();
+        gameResourceSystem.Dispose();
     }
 
     private void SceneLoaded(Scene nextScene, LoadSceneMode mode)
@@ -225,16 +229,7 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    void OpenMultScreen()
-    {
-        for (int i = 0; i < Display.displays.Length; i++)
-        {
-            Display.displays[i].Activate();
-        }
-    }
-
     #region interface
-
     /// <summary>
     /// プレイヤーの座標を取得する関数
     /// </summary>
@@ -243,25 +238,26 @@ public class GameManager : Singleton<GameManager>
     public Vector3 GetPlayerPos(int ID)
     {
         Vector3 ret = Vector3.zero;
-        if (spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
+        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
         {
             ret = value.player.transform.position;
         }
-
         return ret;
     }
 
+    // TODO this method sucks
     public bool IsPlayerDead(int ID)
     {
-        bool ret = true;
-        if (spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
+        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value))
         {
             //TODO インターフェースでやる
-            ret = value.player.GetComponent<Player>().IsDead();
+            return value.playerInterface.GetInterface<IPlayerState>().IsDead;
         }
-
-        return ret;
+        else
+        {
+            Debug.LogError("No such Player" + ID.ToString());
+            return true;
+        }
     }
-
     #endregion
 }

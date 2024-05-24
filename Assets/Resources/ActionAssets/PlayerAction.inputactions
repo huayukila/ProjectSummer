@@ -2,7 +2,7 @@
     "name": "PlayerAction",
     "maps": [
         {
-            "name": "Player1",
+            "name": "Player",
             "id": "1c087241-a2e1-4068-b128-29a9d5078eff",
             "actions": [
                 {
@@ -136,7 +136,7 @@
             ]
         },
         {
-            "name": "Player2",
+            "name": "Player2(Obsolete)",
             "id": "4ee5966a-0c4c-487a-83c6-bde703daa974",
             "actions": [
                 {

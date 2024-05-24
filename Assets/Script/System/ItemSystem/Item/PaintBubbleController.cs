@@ -72,7 +72,7 @@ public class PaintBubbleController : MonoBehaviour,IExplodable
             explodeAreaVertexes.Add(vert.normalized * _explodeRadius + transform.position);
         }
 
-        PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_bubbleColor);
+        //PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_bubbleColor);
         foreach(var pos in explodeAreaVertexes)
         {
             Debug.Log(pos);

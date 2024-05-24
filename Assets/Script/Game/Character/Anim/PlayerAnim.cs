@@ -89,7 +89,7 @@ public class PlayerAnim : CharacterAnim
         else
         {
             //TODO
-            transform.Translate(-(mBigSpider.transform.position - Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1]) * 0.4f * Time.deltaTime, Space.World);
+            transform.Translate(-(mBigSpider.transform.position - Global.PLAYER_START_POSITIONS[mPlayer.ID - 1]) * 0.4f * Time.deltaTime, Space.World);
             transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
             mShadowSpriteRenderer.color += Color.white * 0.4f * Time.deltaTime;
             mShadow.transform.localScale += Vector3.one * 0.4f * Time.deltaTime * 0.8f;
@@ -103,7 +103,7 @@ public class PlayerAnim : CharacterAnim
     public void StartRespawnAnim()
     {
         mType = AnimType.Respawn;
-        int index = mPlayer.GetID() - 1;
+        int index = mPlayer.ID - 1;
         mBigSpider.transform.position = Global.PLAYER_START_POSITIONS[index] + new Vector3(0.0f, 0.0f, 100.0f);
         mShadow.transform.position = Global.PLAYER_START_POSITIONS[index];
         // 復活アニメーションを初期化する

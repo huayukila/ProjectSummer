@@ -24,7 +24,7 @@ public class PaintBubble : ThrowItem
             Mathf.Pow(playerCol.size.z * player.transform.localScale.z, 2f)
             ) * 5f;
 
-        explodeCtrl.SetExplodeProperty(player.GetID(), explodeRadius, player.GetColor());
+        explodeCtrl.SetExplodeProperty(player.ID, explodeRadius, player.AreaColor);
     }
 }
 

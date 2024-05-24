@@ -1,34 +1,22 @@
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public interface IResourceManagement
 {
-    void Init();
-    void Deinit();
     GameObject GetPrefabResource(string name);
     Sprite GetCharacterImage(string name);
 }
-public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceManagement
+public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceManagement,IDisposable
 {
-    private Dictionary<string, GameObject> mPrefabs;
-    private Dictionary<string, Sprite> mCharacterImages; 
+    private Dictionary<string, GameObject> _prefabs = new Dictionary<string, GameObject>();
+    private Dictionary<string, Sprite> _characterImages = new Dictionary<string, Sprite>(); 
 
-    public void Init()
+    public GameResourceSystem()
     {
-        mPrefabs = new Dictionary<string, GameObject>();
-        mCharacterImages = new Dictionary<string, Sprite>();
-        CharacterImageDataBase characterImageDataBase = Resources.Load("CharacterImageDataBase") as CharacterImageDataBase;
-        mCharacterImages = characterImageDataBase.GetCharacterImageList();
+        Init();
     }
-    
-    public void Deinit()
-    {
-        mPrefabs.Clear();
-        mCharacterImages.Clear();
-        Resources.UnloadUnusedAssets();
-    }
-
     /// <summary>
     /// プレハブを取得する関数
     /// </summary>
@@ -36,28 +24,28 @@ public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceMan
     /// <returns>プレハブ,見つからない場合はnullを返す</returns>
     public GameObject GetPrefabResource(string name)
     {
-        GameObject gameObject = null;
-        if(mPrefabs.TryGetValue(name,out GameObject value) == true)
+        GameObject obj = null;
+        if(_prefabs.TryGetValue(name,out obj) == true)
         {
-            gameObject = value;
+            return obj;
         }
-        else
+
+        obj = Resources.Load("Prefabs/" + name) as GameObject;
+        if(obj != null)
         {
-            gameObject = Resources.Load("Prefabs/" + name) as GameObject;
-            if(gameObject != null)
-            {
-                mPrefabs.Add(name, gameObject);
-            }
+            _prefabs.Add(name, obj);
         }
-        return gameObject;
+     
+        return obj;
+
     }
 
     public Sprite GetCharacterImage(string name) 
     {
         Sprite sprite = null;
-        if(mCharacterImages.ContainsKey(name))
+        if(_characterImages.ContainsKey(name))
         {
-            sprite = mCharacterImages[name];
+            sprite = _characterImages[name];
         }
         else
         {
@@ -65,4 +53,32 @@ public class GameResourceSystem : SingletonBase<GameResourceSystem>,IResourceMan
         }
         return sprite;
     }
+
+    public void Dispose()
+    {
+        Deinit();
+    }
+
+    private void Init()
+    {
+        CharacterImageDataBase characterImageDataBase = Resources.Load("CharacterImageDataBase") as CharacterImageDataBase;
+        _characterImages = characterImageDataBase.GetCharacterImageList();
+    }
+
+    private void Deinit()
+    {
+        if (_prefabs != null)
+        {
+            _prefabs.Clear();
+            _prefabs = null;
+        }
+        if (_characterImages != null)
+        {
+            _characterImages.Clear();
+            _characterImages = null;
+        }
+        Resources.UnloadUnusedAssets();
+    }
+
+
 }
