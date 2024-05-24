@@ -93,6 +93,7 @@ namespace Character
         {
             if (_playerState == State.Dead)
                 return;
+
             // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
             else if(_playerState != State.Fine)
             {
