@@ -7,18 +7,21 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/Init.unity
-    guid: 46d9a96f8073c7544b6caec7f5a39fb3
+    guid: 222d9dadbdac99f4e9da93b6e29df64f
   - enabled: 1
     path: Assets/Scenes/Title.unity
-    guid: 5d91cc50791ec0343b42bd203bef5ccf
+    guid: f0b08607c1dd5294b97768c2e321b281
   - enabled: 1
-    path: Assets/Scenes/MenuScene.unity
-    guid: 5f15759f1da0df6428ad7847d3d72556
+    path: Assets/Scenes/Room.unity
+    guid: acd3d70d2d807e84ea1f313a8be7b1d3
   - enabled: 1
     path: Assets/Scenes/Gaming.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
-    path: Assets/Scenes/End.unity
-    guid: a60d28dc5e7099f45ba34374fac37a87
+    path: Assets/Scenes/testScene/test material.unity
+    guid: 6e03fabdcc1920e44a33ad23ae3fdd6b
+  - enabled: 1
+    path: Assets/Scenes/testScene/test material memory leak1.unity
+    guid: 03fef1335f7d381438443457fadaf854
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 576eabdae8c9e8a40ad2cbba1c39eba3, type: 2}

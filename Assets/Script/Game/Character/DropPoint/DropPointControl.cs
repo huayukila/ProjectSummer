@@ -90,9 +90,9 @@ namespace Character
         /// </summary>
         public void Init()
         {
-            _mID = _mPlayer.GetID();
+            _mID = _mPlayer.ID;
             _mTag = "DropPoint" + _mID.ToString();
-            _mColor = _mPlayer.GetColor();
+            _mColor = _mPlayer.AreaColor;
             _mTrailRenderer.material = new Material(Shader.Find("Sprites/Default")) { hideFlags = HideFlags.DontSave};
             _mTrailRenderer.startColor = Global.PLAYER_TRACE_COLORS[_mID - 1];
             _mTrailRenderer.endColor = Global.PLAYER_TRACE_COLORS[_mID - 1];

@@ -1,4 +1,5 @@
 using Character;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,12 +21,26 @@ public class StunSilkController : MonoBehaviour
         Debug.LogWarning(other.gameObject.name);
         if (other.CompareTag("Player"))
         {
-            other.gameObject.GetComponent<Player>().OnStun();
+            other.gameObject.GetComponent<Player>().OnEffect("Stun");
             Destroy(gameObject);
         }
         if(other.CompareTag("Wall"))
         {
             Destroy(gameObject);
         }
+    }
+}
+
+public static class StringExtensions
+{
+    public static string ToTitleCast(this string s)
+    {
+        if(String.IsNullOrEmpty(s))
+        {
+            throw new ArgumentException("String is null or empty");
+        }
+        string titleCastStr = s[0].ToString().ToUpper() + s.Substring(1).ToLower();
+
+        return titleCastStr;
     }
 }

@@ -13,6 +13,7 @@ public class GameManager : Singleton<GameManager>
     {
         public GameObject player;
         public GameObject camera;
+        public PlayerInterfaceContainer playerInterface;
     }
     private static readonly int maxPlayerCount = 2;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
@@ -29,14 +30,13 @@ public class GameManager : Singleton<GameManager>
             itemSystem.Init();
         }
 
+        // ゲームリソースシステムの初期化
         {
             gameResourceSystem = GameResourceSystem.Instance;
-            gameResourceSystem.Init();
         }
 
         {
             dropPointSystem = DropPointSystem.Instance;
-            dropPointSystem.Init();
         }
 
         //シーンの移行命令を受け
@@ -153,7 +153,7 @@ public class GameManager : Singleton<GameManager>
             Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
                 () =>
                 {
-                    spiderPlayers[ID].player.GetComponent<Player>()?.StartRespawn();
+                    spiderPlayers[ID].playerInterface.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
                 });
             spawnTimer.StartTimer(spiderPlayer.player.GetComponent<MonoBehaviour>());
             ICameraController cameraCtrl = spiderPlayer.camera.GetComponent<ICameraController>();
@@ -186,7 +186,8 @@ public class GameManager : Singleton<GameManager>
                 SpiderPlayer spiderPlayer = new SpiderPlayer
                 {
                     player = player,
-                    camera = camera
+                    camera = camera,
+                    playerInterface = player.GetComponent<IPlayerInterfaceContainer>().GetContainer()
                 };
                 spiderPlayers.Add(ID, spiderPlayer);
                 dropPointSystem.InitPlayerDropPointGroup(ID);
@@ -202,7 +203,7 @@ public class GameManager : Singleton<GameManager>
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= SceneLoaded;
-        gameResourceSystem.Deinit();
+        gameResourceSystem.Dispose();
     }
 
     private void SceneLoaded(Scene nextScene, LoadSceneMode mode)
@@ -244,15 +245,19 @@ public class GameManager : Singleton<GameManager>
         return ret;
     }
 
+    // TODO this method sucks
     public bool IsPlayerDead(int ID)
     {
-        bool ret = true;
-        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
+        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value))
         {
             //TODO インターフェースでやる
-            ret = value.player.GetComponent<Player>().IsDead();
+            return value.playerInterface.GetInterface<IPlayerState>().IsDead;
         }
-        return ret;
+        else
+        {
+            Debug.LogError("No such Player" + ID.ToString());
+            return true;
+        }
     }
     #endregion
 }
