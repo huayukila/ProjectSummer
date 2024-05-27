@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 
 namespace Character
 {
@@ -648,6 +649,7 @@ namespace Character
                 // パーティクルシステムの再開
                 _particleSystemControl.Play();
             }
+
         }
 
         public void OnEffect(string effectName)
