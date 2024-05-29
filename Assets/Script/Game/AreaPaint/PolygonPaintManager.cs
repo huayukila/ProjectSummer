@@ -13,6 +13,7 @@ public class PolygonPaintManager : View
     public ComputeShader computeShader;
     public Sprite player1AreaTexture;
     public Sprite player2AreaTexture;
+    public int AreaTextureSize;
 
     CommandBuffer command;
     ComputeBuffer countBuffer;
@@ -20,11 +21,15 @@ public class PolygonPaintManager : View
     Material areaMaterial;
     RenderTexture copyRT;
 
+    
+    //shader変数
     int kernelHandle;
     int colorID = Shader.PropertyToID("_Color");
     int textureID = Shader.PropertyToID("_MainTex");
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
     int playerAreaTextureID = Shader.PropertyToID("_PlayerAreaText");
+    private int worldPointID = Shader.PropertyToID("_worldPosList");
+    int textureSizeID=Shader.PropertyToID("_TextureSize");
 
     protected void Awake()
     {
@@ -61,12 +66,7 @@ public class PolygonPaintManager : View
     /// <returns></returns>
     public RenderTexture GetMiniMapRT()
     {
-        if (copyRT == null)
-        {
-            Debug.LogError("render texture is not already");
-            return null;
-        }
-        return copyRT;
+        return mapPaintable.GetCopy();
     }
 
 
@@ -132,16 +132,17 @@ public class PolygonPaintManager : View
             posList[i] = worldPosList[i];
         }
 
-        //shader変数設置
+        //領域shader変数設置
         paintMaterial.SetInt(maxVertNum, worldPosList.Length);
-        paintMaterial.SetVectorArray("_worldPosList", posList);
+        paintMaterial.SetVectorArray(worldPointID, posList);
         paintMaterial.SetColor(colorID, color);
         paintMaterial.SetTexture(textureID, copy);
 
-        //shader変数設置
+        //家紋shader変数設置
         areaMaterial.SetInt(maxVertNum, worldPosList.Length);
-        areaMaterial.SetVectorArray("_worldPosList", posList);
+        areaMaterial.SetVectorArray(worldPointID, posList);
         areaMaterial.SetTexture(textureID, areaCopy);
+        areaMaterial.SetInt(textureSizeID,AreaTextureSize);
 
 
         switch (index)
@@ -196,6 +197,13 @@ public class PolygonPaintManager : View
     {
         countBuffer.Release();
         countBuffer = null;
+        copyRT.Release();
+        copyRT = null;
+        Destroy(paintMaterial);
+        paintMaterial = null;
+        Destroy(areaMaterial);
+        areaMaterial = null;
+        CountResultList.Callback -= OnsyncListChanged;
     }
 
     #endregion
