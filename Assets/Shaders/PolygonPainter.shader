@@ -48,6 +48,7 @@ Shader "Paint/PolygonPainter"
             vector _worldPosList[100];
             int _MaxVertNum;
 
+
             v2f vert (appdata v)
             {
                 v2f o;
