@@ -48,7 +48,8 @@ Shader "Paint/AreaPainter"
 
             vector _worldPosList[100];
             int _MaxVertNum;
-
+            int _TextureSize;
+            
             v2f vert (appdata v)
             {
                 v2f o;
@@ -65,6 +66,8 @@ Shader "Paint/AreaPainter"
                 bool isMasked = mask(_MaxVertNum, _worldPosList, i.worldPos);
                 if (isMasked)
                 {
+                    // float UV_X=(i.worldPos.x%_TextureSize)/_TextureSize;
+                    // float UV_Y=(i.worldPos.z%_TextureSize)/_TextureSize;
                     fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, i.uv);
                     return playerAreaTextColor;
                 }
