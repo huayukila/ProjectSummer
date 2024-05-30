@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 
 public enum AnimType
@@ -14,7 +15,7 @@ public interface IAnim
 
 }
 
-public abstract class CharacterAnim : MonoBehaviour, IAnim
+public abstract class CharacterAnim : NetworkBehaviour, IAnim
 {
     protected AnimType mType = AnimType.None;
     public static bool isStopped { get; set; } = true;

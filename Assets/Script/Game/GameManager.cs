@@ -9,6 +9,7 @@ using Gaming;
 
 public class GameManager : Singleton<GameManager>
 {
+    /*
     private struct SpiderPlayer
     {
         public GameObject player;
@@ -17,6 +18,7 @@ public class GameManager : Singleton<GameManager>
     }
     private static readonly int maxPlayerCount = 2;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
+    */
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
     private IDropPointSystem dropPointSystem;
@@ -134,16 +136,18 @@ public class GameManager : Singleton<GameManager>
 
     private void Init()
     {
-        spiderPlayers = new Dictionary<int, SpiderPlayer>();
+        //spiderPlayers = new Dictionary<int, SpiderPlayer>();
+        /*
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
             RespawnPlayer(e.ID);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
-
+        */
     }
 
 
+/*
     private void RespawnPlayer(int ID)
     {
 
@@ -160,7 +164,8 @@ public class GameManager : Singleton<GameManager>
             cameraCtrl.StopLockOn();
         }
     }
-
+*/
+/*
     private void SpawnPlayer(int ID)
     {
         GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player");
@@ -199,7 +204,7 @@ public class GameManager : Singleton<GameManager>
         }
 
     }
-
+*/
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= SceneLoaded;
@@ -214,21 +219,14 @@ public class GameManager : Singleton<GameManager>
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreModel.Instance.ResetScore();
-            for (int i = 0; i < maxPlayerCount; ++i)
-            {
-                SpawnPlayer(i + 1);
-            }
-
             Gaming.PowerUp.GoldenSilkSystem.Instance.Init();
             ItemManager itemManager = ItemManager.Instance;
             DeviceSetting.Init();
         }
-        else
-        {
-            spiderPlayers.Clear();
-        }
+
     }
 
+/*
     #region interface
     /// <summary>
     /// プレイヤーの座標を取得する関数
@@ -260,4 +258,5 @@ public class GameManager : Singleton<GameManager>
         }
     }
     #endregion
+*/
 }

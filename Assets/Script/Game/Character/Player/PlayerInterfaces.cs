@@ -22,6 +22,8 @@ public interface IPlayerInfo : IPlayerControl
     int ID { get; }
     int SilkCount { get; }
     Color AreaColor { get; }
+
+    void SetInfo(int ID,Color color);
 }
 
 public interface IPlayerState : IPlayerControl
