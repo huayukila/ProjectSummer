@@ -1,5 +1,6 @@
 using UnityEngine;
 using Character;
+using Mirror;
 
 public class PlayerAnim : CharacterAnim
 {
@@ -53,7 +54,7 @@ public class PlayerAnim : CharacterAnim
                 break;
             case AnimType.Respawn:
                 {
-                    UpdateRespawnAnimation();
+                    RpcUpdateRespawnAnimation();
                 }
                 break;
         }
@@ -63,7 +64,8 @@ public class PlayerAnim : CharacterAnim
     /// <summary>
     /// 復活アニメーションをリセットする
     /// </summary>
-    private void ResetRespawnAnimation()
+    [ClientRpc]
+    private void RpcResetRespawnAnimation()
     {
 
         mBigSpider.transform.position = Global.GAMEOBJECT_STACK_POS;
@@ -76,7 +78,8 @@ public class PlayerAnim : CharacterAnim
     /// 復活アニメーションを更新する関数
     /// </summary>
     //TODO カメラを二つにする時に変更する予定
-    private void UpdateRespawnAnimation()
+    [ClientRpc]
+    private void RpcUpdateRespawnAnimation()
     {
         _respawnAnimationTimer -= Time.deltaTime;
         // 復活アニメーション前半部分の処理
@@ -100,7 +103,8 @@ public class PlayerAnim : CharacterAnim
         }
     }
 
-    public void StartRespawnAnim()
+    [ClientRpc]
+    public void RpcStartRespawnAnim()
     {
         mType = AnimType.Respawn;
         int index = mPlayer.ID - 1;
@@ -112,7 +116,7 @@ public class PlayerAnim : CharacterAnim
         Timer respawnAnimationTimer = new Timer(Time.time,Global.RESPAWN_TIME,
             () =>
             {
-                ResetRespawnAnimation();
+                RpcResetRespawnAnimation();
                 isStopped = true;
                 mType = AnimType.None;
                 _respawnAnimationTimer = Global.RESPAWN_TIME;
@@ -122,7 +126,8 @@ public class PlayerAnim : CharacterAnim
         isStopped = false;
     }
 
-    public void StartExplosionAnim()
+    [ClientRpc]
+    public void RpcStartExplosionAnim()
     {
         GameObject explosion = Instantiate(mExplosionPrefab, transform.position, Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);

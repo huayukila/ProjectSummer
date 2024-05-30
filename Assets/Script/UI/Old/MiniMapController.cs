@@ -66,6 +66,7 @@ public class MiniMapController : MonoBehaviour
         if (MiniMapSpider_Left != null)
         {
             //TODO changed by Mai プレイヤーが死亡した場合更新しません。
+            /*
             if (!GameManager.Instance.IsPlayerDead(1))
             {
                 Vector3 Spider_Left = GameManager.Instance.GetPlayerPos(1);
@@ -74,11 +75,13 @@ public class MiniMapController : MonoBehaviour
                     Spider_Left.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.localPosition.y,
                     0.0f);
             }
+            */
         }
 
         if (MiniMapSpider_Right != null)
         {
             //TODO changed by Mai プレイヤーが死亡した場合更新しません。
+            /*
             if (!GameManager.Instance.IsPlayerDead(2))
             {
                 Vector3 Spider_Right = GameManager.Instance.GetPlayerPos(2);
@@ -87,6 +90,7 @@ public class MiniMapController : MonoBehaviour
                     Spider_Right.z / Global.MAP_SIZE_HEIGHT * miniMapSize.y + transform.localPosition.y,
                     0.0f);
             }
+            */
         }
     }
 

@@ -11,6 +11,7 @@ namespace Character
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
     public class Player : Character, IPlayer2ItemSystem, IItemAffectable, IPlayerCommand, IPlayerInfo, IPlayerState, IPlayerInterfaceContainer
     {
+        // プレイヤーの状態
         private enum State
         {
             None = 0,
@@ -20,7 +21,6 @@ namespace Character
             Uncontrollable,
             Stun,
         }
-
         // プレイヤーの情報
         [Serializable]
         private struct PlayerInfo
@@ -33,15 +33,12 @@ namespace Character
             public int SilkCount;                   // プレイヤーが持っている金の糸の数
             public GameObject SilkRenderer;         // プレイヤーが持っている金の糸を画面に表示するGameObject
         }
-
         public bool HadSilk => _silkData.SilkCount > 0;
-
         public IItem item { get; set; }
-
-        private ColorCheck mColorCheck;                     // カラーチェックコンポネント
+        private ColorCheck _colorCheck;                     // カラーチェックコンポネント
         //TODO 二つを一つにする
-        private InputAction mBoostAction;                   // プレイヤーのブースト入力
-        private InputAction mRotateAction;                  // プレイヤーの回転入力
+        private InputAction _boostAction;                   // プレイヤーのブースト入力
+        private InputAction _rotateAction;                  // プレイヤーの回転入力
         private InputAction _itemAction;
         private PlayerInput _input;                         // playerInputAsset
 
@@ -49,31 +46,25 @@ namespace Character
         private State _playerState;                         // プレイヤーのステータス
 
         private float _itemPlaceOffset;                     // アイテムの放置場所とプレイヤー座標の間の距離（プレイヤーコライダーの辺の長さ（正方形））
-        private float mCurrentMoveSpeed;                    // プレイヤーの現在速度
-        private float mMoveSpeedCoefficient;                // プレイヤーの移動速度の係数
-        private Rigidbody mRigidbody;                       // プレイヤーのRigidbody
-        private Vector3 mRotateDirection;                   // プレイヤーの回転方向
+        private float _currentMoveSpeed;                    // プレイヤーの現在速度
+        private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
+        private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
+        private Vector3 _rotateDirection;                   // プレイヤーの回転方向
         private bool _canBoost = false;                     // ブーストできるかのフラグ
-        private SpriteRenderer mImageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
-        private PlayerAnim mAnim;
-        private DropPointControl mDropPointControl;         // プレイヤーのDropPointControl
-        private PlayerParticleSystemControl _particleSystemControl; // プレイヤー自身にくっつけているパーティクルシステムを管理するコントローラー
-
-        //TODO refactorying
-                  
+        private SpriteRenderer _imageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
+        private PlayerAnim _playerAnim;
+        private DropPointControl _dropPointCtrl;            // プレイヤーのDropPointControl
+        private PlayerParticleSystemControl _particleSystemCtrl; // プレイヤー自身にくっつけているパーティクルシステムを管理するコントローラー
+        //TODO refactoring           
         private PlayerSilkData _silkData;
         private float mBoostCoefficient;
         [SerializeField]
         private PlayerInfo _playerInfo = default;           // プレイヤーの情報
-
         private float _returnToFineTimer = 0f;
         //TODO テスト用
         public Sprite[] silkCountSprites;
-
         private Dictionary<EItemEffect, Action> _itemAffectActions;
-
         private PlayerInterfaceContainer _playerInterface;
-
         private void Awake()
         {
             _playerInterface = new PlayerInterfaceContainer(this);
@@ -84,11 +75,11 @@ namespace Character
         }
         private void Start()
         {
-            mCurrentMoveSpeed = 0.0f;
+            _currentMoveSpeed = 0.0f;
 
-            GetComponent<DropPointControl>()?.Init();
+            _dropPointCtrl?.Init();
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
-            _particleSystemControl.Play();
+            _particleSystemCtrl.Play();
         }
         private void Update()
         {
@@ -120,7 +111,7 @@ namespace Character
                     PlayerMovement(deceleration);
                     break;
                 case State.Stun:
-                    mCurrentMoveSpeed = 0f;
+                    _currentMoveSpeed = 0f;
                     break;
             }
 
@@ -148,9 +139,9 @@ namespace Character
             // プレイヤー画像の向きを変える
             FlipCharacterImage();
             // プレイヤーインプットを取得する
-            Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
+            Vector2 rotateInput = _rotateAction.ReadValue<Vector2>();
             // 回転方向を決める
-            mRotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+            _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
             // プレイヤーがいるところの地面の色をチェックする
             CheckGroundColor();
             // 領域を描画してみる
@@ -163,28 +154,28 @@ namespace Character
         /// </summary>
         private void Init()
         {
-            mRigidbody = GetComponent<Rigidbody>();
-            mColorCheck = GetComponent<ColorCheck>();
+            _rigidbody = GetComponent<Rigidbody>();
+            _colorCheck = GetComponent<ColorCheck>();
             // プレイヤー自分の画像のレンダラーを取得する
-            mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            _particleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
+            _imageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            _particleSystemCtrl = gameObject.GetComponent<PlayerParticleSystemControl>();
             // DropPointControlコンポネントを追加する
-            mDropPointControl = gameObject.AddComponent<DropPointControl>();
+            _dropPointCtrl = gameObject.AddComponent<DropPointControl>();
             // PlayerAnimコンポネントを追加する
-            mAnim = gameObject.AddComponent<PlayerAnim>();
+            _playerAnim = gameObject.AddComponent<PlayerAnim>();
 
 
-            mColorCheck.layerMask = LayerMask.GetMask("Ground");
-            mMoveSpeedCoefficient = 1.0f;
-            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-            mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
+            _colorCheck.layerMask = LayerMask.GetMask("Ground");
+            _moveSpeedCoefficient = 1.0f;
+            _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            _status.RotationSpeed = Global.PLAYER_ROTATION_SPEED;
             _playerState = State.Fine;
             _itemPlaceOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             // 表示順位を変換する
-            mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
+            _imageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
             _silkData.SilkCount = 0;
             _silkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
-            _silkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
+            _silkData.SilkRenderer.transform.parent = _imageSpriteRenderer.transform;
             _silkData.SilkRenderer.SetActive(false);
             mBoostCoefficient = 1f;
 
@@ -207,12 +198,12 @@ namespace Character
         private void PlayerMovement(in float acceleration)
         {
             // 速度を計算し、範囲内に制限する
-            mCurrentMoveSpeed =  mCurrentMoveSpeed + acceleration * Time.fixedDeltaTime;
-            mCurrentMoveSpeed = Mathf.Clamp(mCurrentMoveSpeed, 0f, mStatus.mMaxMoveSpeed);
+            _currentMoveSpeed =  _currentMoveSpeed + acceleration * Time.fixedDeltaTime;
+            _currentMoveSpeed = Mathf.Clamp(_currentMoveSpeed, 0f, _status.MaxMoveSpeed);
 
             // 前向きの移動をする
-            Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient * mBoostCoefficient;
-            mRigidbody.velocity = moveDirection;
+            Vector3 moveDirection = transform.forward * _currentMoveSpeed * _moveSpeedCoefficient * mBoostCoefficient;
+            _rigidbody.velocity = moveDirection;
         }
 
         /// <summary>
@@ -221,13 +212,13 @@ namespace Character
         private void PlayerRotation()
         {
             // 方向入力がないと終了
-            if (mRotateDirection == Vector3.zero)
+            if (_rotateDirection == Vector3.zero)
                 return;
 
             // 入力された方向へ回転する
             {
-                Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
-                mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mStatus.mRotationSpeed * Time.fixedDeltaTime);
+                Quaternion rotation = Quaternion.LookRotation(_rotateDirection, Vector3.up);
+                _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, _status.RotationSpeed * Time.fixedDeltaTime);
             }
         }
 
@@ -238,11 +229,11 @@ namespace Character
         {
             if (transform.forward.x < 0.0f)
             {
-                mImageSpriteRenderer.flipX = false;
+                _imageSpriteRenderer.flipX = false;
             }
             else
             {
-                mImageSpriteRenderer.flipX = true;
+                _imageSpriteRenderer.flipX = true;
             }
         }
 
@@ -251,18 +242,14 @@ namespace Character
         /// </summary>
         private void StartDead()
         {
-            mAnim.StartExplosionAnim();
+            _playerAnim.RpcStartExplosionAnim();
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
             {
                 dropCount = _silkData.SilkCount,
                 pos = transform.position
             };
             TypeEventSystem.Instance.Send(dropSilkEvent);
-            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
-            {
-                ID = _playerInfo.ID
-            };
-            TypeEventSystem.Instance.Send(playerRespawnEvent);
+            TypeEventSystem.Instance.Send(new PlayerRespawnEvent());
 
             // プレイヤーの状態をリセットする
             ResetStatus();
@@ -273,8 +260,8 @@ namespace Character
             GetComponentInChildren<TrailRenderer>().enabled = false;
             GetComponent<Collider>().enabled = false;
             // プレイヤー復活イベントを喚起する
-            mAnim.StartRespawnAnim();
-            _particleSystemControl.Stop();
+            _playerAnim.RpcStartRespawnAnim();
+            _particleSystemCtrl.Stop();
             SetPowerUpLevel();
         }
 
@@ -283,14 +270,14 @@ namespace Character
         /// </summary>
         private void ResetStatus()
         {
-            mRigidbody.velocity = Vector3.zero;
-            mRigidbody.angularVelocity = Vector3.zero;
+            _rigidbody.velocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
 
             _playerState = State.Dead;
 
             transform.localScale = Vector3.one;
 
-            mCurrentMoveSpeed = 0.0f;
+            _currentMoveSpeed = 0.0f;
 
             _canBoost = false;
 
@@ -300,9 +287,9 @@ namespace Character
 
             DropPointSystem.Instance.ClearDropPoints(_playerInfo.ID);
 
-            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
-            mDropPointControl.ResetTrail();
+            _dropPointCtrl.ResetTrail();
 
             _silkData.SilkRenderer.SetActive(false);
 
@@ -314,19 +301,19 @@ namespace Character
         private void CheckGroundColor()
         {
             // 自分の領域にいたら
-            if (mColorCheck.isTargetColor(Color.clear))
+            if (_colorCheck.isTargetColor(Color.clear))
             {
-                mMoveSpeedCoefficient = 1.0f;
+                _moveSpeedCoefficient = 1.0f;
             }
             // 別のプレイヤーの領域にいたら
-            else if (mColorCheck.isTargetColor(_playerInfo.AreaColor))
+            else if (_colorCheck.isTargetColor(_playerInfo.AreaColor))
             {
-                mMoveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
+                _moveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
             }
             // 塗られていない地面にいたら
             else
             {
-                mMoveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
+                _moveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
             }
         }
 
@@ -374,7 +361,7 @@ namespace Character
                         // 全てのDropPointを消す
                         DropPointSystem.Instance.ClearDropPoints(_playerInfo.ID);
                         // 尻尾のTrailRendererの状態をリセットする
-                        mDropPointControl.ResetTrail();
+                        _dropPointCtrl.ResetTrail();
                         break;
                     }
                 }
@@ -408,13 +395,13 @@ namespace Character
                 TypeEventSystem.Instance.Send(silkCapturedEvent);
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
-                _silkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
+                _silkData.SilkRenderer.transform.localPosition = new Vector3(-_imageSpriteRenderer.bounds.size.x / 4f, _imageSpriteRenderer.bounds.size.z * 1.2f, 0);
                 _silkData.SilkRenderer.SetActive(true);
                 Transform silkCount = _silkData.SilkRenderer.transform.GetChild(0);
                 if (silkCount != null)
                 {
                     silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[_silkData.SilkCount];
-                    silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
+                    silkCount.transform.localPosition = new Vector3(_imageSpriteRenderer.bounds.size.x, 0, 0);
                 }
                 SetPowerUpLevel();
             }
@@ -452,9 +439,9 @@ namespace Character
             _input.defaultActionMap = "Player";
             _input.neverAutoSwitchControlSchemes = true;
             _input.SwitchCurrentActionMap("Player");
-            mRotateAction = _input.actions["Rotate"];
-            mBoostAction = _input.actions["Boost"];
-            mBoostAction.performed += OnBoost;
+            _rotateAction = _input.actions["Rotate"];
+            _boostAction = _input.actions["Boost"];
+            _boostAction.performed += OnBoost;
             _itemAction = _input.actions["Item"];
             _itemAction.performed += OnUseItem;
         }
@@ -463,13 +450,13 @@ namespace Character
         {
             if (_silkData.SilkCount > 0)
             {
-                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].SpeedUp;
-                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].RotateUp;
+                _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].SpeedUp;
+                _status.RotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].RotateUp;
             }
             else
             {
-                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
+                _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+                _status.RotationSpeed = Global.PLAYER_ROTATION_SPEED;
             }
         }
 
@@ -489,24 +476,24 @@ namespace Character
             _returnToFineTimer -= Time.deltaTime;
             if(_returnToFineTimer <= 0f)
             {
-                mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
+                _imageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
                 _playerState = State.Fine;
             }
         }
 
         private float GetOnSlipDeceleration()
         {
-            if(mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed / 4f)
+            if(_currentMoveSpeed >= _status.MaxMoveSpeed / 4f)
             {
-                return -(mCurrentMoveSpeed - mStatus.mMaxMoveSpeed / 4f) / (_returnToFineTimer - Global.ON_SLIP_TIME / 2f);  
+                return -(_currentMoveSpeed - _status.MaxMoveSpeed / 4f) / (_returnToFineTimer - Global.ON_SLIP_TIME / 2f);  
             }
-            if(mCurrentMoveSpeed <= Global.ON_SLIP_MIN_SPEED)
+            if(_currentMoveSpeed <= Global.ON_SLIP_MIN_SPEED)
             {
                 return 0f;
             }
             else
             {
-                return -mCurrentMoveSpeed / _returnToFineTimer;
+                return -_currentMoveSpeed / _returnToFineTimer;
             }
         }
 
@@ -514,7 +501,7 @@ namespace Character
         {
             //float rotationAngle = (-720f / Global.ON_SLIP_TIME * _returnToFineTimer + 720f) * Time.deltaTime;
             float rotationAngle = 720f / Global.ON_SLIP_TIME * Time.deltaTime;
-            mImageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
+            _imageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
         }
         private void OnEnable()
         {
@@ -526,7 +513,7 @@ namespace Character
         }
         private void OnDestroy()
         {
-            mBoostAction.performed -= OnBoost;
+            _boostAction.performed -= OnBoost;
             _itemAction.performed -= OnUseItem;
         }
         // ブースト
@@ -537,7 +524,7 @@ namespace Character
                 if (_playerState == State.Fine && _canBoost == false)
                 {
                     mBoostCoefficient = 1.5f;
-                    mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
+                    _currentMoveSpeed = _status.MaxMoveSpeed;
                     _canBoost = true;
                     TypeEventSystem.Instance.Send(new BoostStart 
                     { 
@@ -575,8 +562,8 @@ namespace Character
         private void OnStun()
         {
             _playerState = State.Stun;
-            mCurrentMoveSpeed = 0f;
-            mRigidbody.velocity = Vector3.zero;
+            _currentMoveSpeed = 0f;
+            _rigidbody.velocity = Vector3.zero;
             _returnToFineTimer = Global.ON_STUN_TIME;
         }
 
@@ -586,7 +573,7 @@ namespace Character
         public int ID => _playerInfo.ID;
         public int SilkCount => _silkData.SilkCount;
         public Color AreaColor => _playerInfo.AreaColor;
-        public void SetProperties(int ID, Color color)
+        public void SetInfo(int ID, Color color)
         {
 
             if (_playerInfo.ID != 0)
@@ -647,7 +634,7 @@ namespace Character
                 smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
 
                 // パーティクルシステムの再開
-                _particleSystemControl.Play();
+                _particleSystemCtrl.Play();
             }
 
         }

@@ -11,15 +11,15 @@ namespace Character
         protected struct CharaStatus
         {
             [SerializeField]
-            public float mMaxMoveSpeed;                        // 最大速度
+            public float MaxMoveSpeed;                        // 最大速度
             [Min(0.0f)]
             [SerializeField]
-            public float mRotationSpeed;                       // 回転速度
+            public float RotationSpeed;                       // 回転速度
 
         }
         [Min(0.0f)]
         protected float _acceleration;                        // 加速度
-        protected CharaStatus mStatus;
+        protected CharaStatus _status;
 
     }
 

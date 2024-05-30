@@ -5,6 +5,10 @@ using Mirror.Discovery;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using Character;
+using Unity.VisualScripting;
+using Gaming;
+
 // ルーム管理のインターフェース
 interface IRoomManager
 {
@@ -21,6 +25,17 @@ interface IRoomManager
 public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 {
     private EasyFramework _framework;
+
+    
+    private struct SpiderPlayer
+    {
+        public int ID;
+        public GameObject player;
+        public ICameraController cameraCtrl;
+        public PlayerInterfaceContainer playerInterface;
+    }
+    private SpiderPlayer _spiderPlayer;
+
 
     void RegisterAllSystem() // すべてのシステムを登録する
     {
@@ -50,6 +65,15 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 
         RegisterAllSystem();
         _framework.FrameworkInit();
+
+        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
+        {
+            RespawnPlayer();
+
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
+
+        _spiderPlayer = new SpiderPlayer();
+
     }
 
     public override void Start() // 開始時
@@ -109,12 +133,35 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         Transform startPos = GetStartPosition();
         var table = Resources.Load<NetWorkPrefabsTable>("NetworkPrefabsTable");
         var gamePlayer = startPos != null
-            ? Instantiate(table.PlayerPrefabs[index],
+            ? Instantiate(table.PlayerPrefabs[0],
                 startPos.position, startPos.rotation)
-            : Instantiate(table.PlayerPrefabs[index],
+            : Instantiate(table.PlayerPrefabs[0],
                 Vector3.zero, Quaternion.identity);
 
+
+
+        // プレイヤー情報を初期化
+        {
+            Camera mainCam = Camera.main;
+            _spiderPlayer.ID = index;
+            _spiderPlayer.player = gamePlayer;
+            _spiderPlayer.cameraCtrl = mainCam.AddComponent<CameraControl>();
+            _spiderPlayer.cameraCtrl.LockOnTarget(_spiderPlayer.player);
+            _spiderPlayer.playerInterface = gamePlayer.GetComponent<IPlayerInterfaceContainer>().GetContainer();
+
+            _spiderPlayer.playerInterface.GetInterface<IPlayerInfo>().SetInfo(index,Global.PLAYER_TRACE_COLORS[index - 1]);
+
+            SpriteRenderer playerImage = _spiderPlayer.player.GetComponentInChildren<SpriteRenderer>();
+            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + index.ToString());
+
+            // TODO need registry system(Network base)
+            DropPointSystem.Instance.InitPlayerDropPointGroup(index);
+        }
+
+        //TODO need refactoring
         gamePlayer.GetComponent<GamePlayer>().playerIndex = index;
+        gamePlayer.GetComponent<GamePlayer>().SetPlayerInterface(_spiderPlayer.playerInterface);
+
         Resources.UnloadAsset(table);
         return gamePlayer;
     }
@@ -162,4 +209,40 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
     #endregion
 
     #endregion
+
+    #region Player Spawn
+    private void RespawnPlayer()
+    {
+        Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
+            () =>
+            {
+                _spiderPlayer.playerInterface.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
+            });
+        spawnTimer.StartTimer(_spiderPlayer.player.GetComponent<MonoBehaviour>());
+        _spiderPlayer.cameraCtrl.StopLockOn();
+    }
+    #endregion // Player Spawn
+
+    #region Interface
+    /// <summary>
+    /// プレイヤーの座標を取得する関数
+    /// </summary>
+    /// <param name="ID">プレイヤーのID</param>
+    /// <returns>プレイヤーが存在したらワールド座標を返し、存在しない場合は常にVector3.zeroを返す</returns>
+    public Vector3 GetPlayerPos()
+    {
+        if(_spiderPlayer.player == null)
+            return Vector3.zero;
+        return _spiderPlayer.player.transform.position;
+    }
+
+    // TODO this method sucks
+    public bool IsPlayerDead()
+    {
+        if(_spiderPlayer.player == null)
+            return false;
+
+        return _spiderPlayer.playerInterface.GetInterface<IPlayerState>().IsDead;
+    }
+    #endregion // Interface
 }

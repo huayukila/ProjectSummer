@@ -20,6 +20,11 @@ public class GamePlayer : View
                 Debug.LogError("Can't Get Player Interface Container:(" + name + ")");
             }
         }
+        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
+        {
+            RespawnPlayer();
+
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
 
     private void Update()
@@ -65,6 +70,7 @@ public class GamePlayer : View
         _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
     }
 
+    [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
 
@@ -85,5 +91,20 @@ public class GamePlayer : View
                 _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
             }
         }
+    }
+
+   private void RespawnPlayer()
+    {
+        Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
+            () =>
+            {
+                _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
+            });
+        spawnTimer.StartTimer(this);
+        Camera.main.GetComponent<ICameraController>()?.StopLockOn();
+    }
+    public void SetPlayerInterface(PlayerInterfaceContainer container)
+    {
+        _playerInterfaceContainer = container;
     }
 }
