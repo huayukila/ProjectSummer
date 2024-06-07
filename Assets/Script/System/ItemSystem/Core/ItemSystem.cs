@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Mirror.Examples.NetworkRoom;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -31,7 +32,7 @@ public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
         InitItemArray();
         itemPrefab = Resources.Load("Prefabs/Item/pfItemObject") as GameObject;
         TypeEventSystem.Instance.Register<PlayerGetItem>(e => { e.player.GetItem(LotteryItem(e.player)); })
-            .UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
+            .UnregisterWhenGameObjectDestroyed(NetWorkRoomManagerExt.singleton.gameObject);
     }
 
     //道具生成

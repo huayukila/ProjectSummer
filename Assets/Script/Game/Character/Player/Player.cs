@@ -162,7 +162,7 @@ namespace Character
             // DropPointControlコンポネントを追加する
             _dropPointCtrl = gameObject.AddComponent<DropPointControl>();
             // PlayerAnimコンポネントを追加する
-            _playerAnim = gameObject.AddComponent<PlayerAnim>();
+            _playerAnim = gameObject.GetComponent<PlayerAnim>();
 
 
             _colorCheck.layerMask = LayerMask.GetMask("Ground");

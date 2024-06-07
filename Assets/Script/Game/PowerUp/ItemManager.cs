@@ -102,10 +102,13 @@ public class ItemManager : Singleton<ItemManager>, IOnFieldSilk,IOnFieldItem
             TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
-        #endregion
+        #endregion //Event Register
+
+        ItemSystem instance = ItemSystem.Instance;
+
         for (int i = 0; i < MAX_ITEM_BOX_COUNT ; ++i)
         {
-            _onFieldItemBoxes.Add(ItemSystem.Instance.SpawnItem(Global.ITEM_BOX_POS));
+            _onFieldItemBoxes.Add(instance.SpawnItem(Global.ITEM_BOX_POS));
         }
 
     }
