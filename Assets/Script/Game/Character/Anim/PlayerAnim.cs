@@ -132,6 +132,6 @@ public class PlayerAnim : CharacterAnim
         GameObject explosion = Instantiate(mExplosionPrefab, transform.position, Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         // ”š”­‚ÌŒø‰Ê‰¹‚ð—¬‚·
-        AudioManager.Instance.PlayFX("BoomFX", 0.7f);
+        //AudioManager.Instance.PlayFX("BoomFX", 0.7f);
     }
 }

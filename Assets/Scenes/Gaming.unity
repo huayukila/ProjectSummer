@@ -890,7 +890,7 @@ Camera:
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 3
+  m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -1971,6 +1971,7 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: bcf1799c9ec914444936ecf65a8da3eb, type: 3}
   player1AreaTexture: {fileID: 21300000, guid: 486ec434fed651b49b4d133be4e4705f, type: 3}
   player2AreaTexture: {fileID: 21300000, guid: de4247bd550338f438f05803aceefbf2, type: 3}
+  AreaTextureSize: 0
 --- !u!4 &1107591390
 Transform:
   m_ObjectHideFlags: 0
@@ -2105,7 +2106,7 @@ Transform:
   m_GameObject: {fileID: 1188172888}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4, y: 0, z: 0}
+  m_LocalPosition: {x: 4, y: 0.64, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2821,7 +2822,7 @@ Transform:
   m_GameObject: {fileID: 1748820685}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4, y: 0, z: 0}
+  m_LocalPosition: {x: -4, y: 0.64, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

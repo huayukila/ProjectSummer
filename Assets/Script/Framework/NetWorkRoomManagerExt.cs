@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using Character;
 using Unity.VisualScripting;
 using Gaming;
+using JetBrains.Annotations;
 
 // ルーム管理のインターフェース
 interface IRoomManager
@@ -74,6 +75,12 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 
         _spiderPlayer = new SpiderPlayer();
 
+        // HACK Temp need delete
+        {
+            ItemSystem.Instance.Init();
+            var hoge = ItemManager.Instance;
+        }
+
     }
 
     public override void Start() // 開始時
@@ -82,6 +89,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         networkDiscovery.OnServerFound.AddListener(OnDiscoverServer);
         RegisterNetPrefabs();
         SceneManager.LoadScene("Title");
+
     }
 
     public void HostGame() // ゲームホスティング
@@ -138,28 +146,26 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
             : Instantiate(table.PlayerPrefabs[0],
                 Vector3.zero, Quaternion.identity);
 
-
-
         // プレイヤー情報を初期化
         {
             Camera mainCam = Camera.main;
-            _spiderPlayer.ID = index;
+            _spiderPlayer.ID = index + 1;
             _spiderPlayer.player = gamePlayer;
             _spiderPlayer.cameraCtrl = mainCam.AddComponent<CameraControl>();
             _spiderPlayer.cameraCtrl.LockOnTarget(_spiderPlayer.player);
-            _spiderPlayer.playerInterface = gamePlayer.GetComponent<IPlayerInterfaceContainer>().GetContainer();
 
-            _spiderPlayer.playerInterface.GetInterface<IPlayerInfo>().SetInfo(index,Global.PLAYER_TRACE_COLORS[index - 1]);
+            _spiderPlayer.playerInterface = gamePlayer.GetComponent<IPlayerInterfaceContainer>().GetContainer();
+            _spiderPlayer.playerInterface.GetInterface<IPlayerInfo>().SetInfo(index + 1,Global.PLAYER_TRACE_COLORS[index]);
 
             SpriteRenderer playerImage = _spiderPlayer.player.GetComponentInChildren<SpriteRenderer>();
-            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + index.ToString());
+            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + (index + 1).ToString());
 
             // TODO need registry system(Network base)
-            DropPointSystem.Instance.InitPlayerDropPointGroup(index);
+            DropPointSystem.Instance.InitPlayerDropPointGroup(index + 1);
         }
 
         //TODO need refactoring
-        gamePlayer.GetComponent<GamePlayer>().playerIndex = index;
+        gamePlayer.GetComponent<GamePlayer>().playerIndex = index + 1;
         gamePlayer.GetComponent<GamePlayer>().SetPlayerInterface(_spiderPlayer.playerInterface);
 
         Resources.UnloadAsset(table);
