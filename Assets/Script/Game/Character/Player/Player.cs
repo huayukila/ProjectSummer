@@ -65,6 +65,8 @@ namespace Character
         public Sprite[] silkCountSprites;
         private Dictionary<EItemEffect, Action> _itemAffectActions;
         private PlayerInterfaceContainer _playerInterface;
+
+        private Vector3 _spawnPos;
         private void Awake()
         {
             _playerInterface = new PlayerInterfaceContainer(this);
@@ -80,6 +82,7 @@ namespace Character
             _dropPointCtrl?.Init();
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
             _particleSystemCtrl.Play();
+            _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(_playerInfo.ID - 1).position;
         }
         private void Update()
         {
@@ -160,7 +163,7 @@ namespace Character
             _imageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
             _particleSystemCtrl = gameObject.GetComponent<PlayerParticleSystemControl>();
             // DropPointControlコンポネントを追加する
-            _dropPointCtrl = gameObject.AddComponent<DropPointControl>();
+            _dropPointCtrl = gameObject.GetComponent<DropPointControl>();
             // PlayerAnimコンポネントを追加する
             _playerAnim = gameObject.GetComponent<PlayerAnim>();
 
@@ -285,7 +288,7 @@ namespace Character
 
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
 
-            DropPointSystem.Instance.ClearDropPoints(_playerInfo.ID);
+            _dropPointCtrl.CmdClearDropPoints();
 
             _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
@@ -322,7 +325,7 @@ namespace Character
         /// </summary>
         private void TryPaintArea()
         {
-            Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(_playerInfo.ID);
+            Vector3[] dropPoints = _dropPointCtrl.GetPlayerDropPoints();
             // DropPointは4個以上あれば描画できる
             if (dropPoints.Length >= 4)
             {
@@ -359,7 +362,7 @@ namespace Character
                         // PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
                         TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
-                        DropPointSystem.Instance.ClearDropPoints(_playerInfo.ID);
+                        _dropPointCtrl.CmdClearDropPoints();
                         // 尻尾のTrailRendererの状態をリセットする
                         _dropPointCtrl.ResetTrail();
                         break;
@@ -620,7 +623,7 @@ namespace Character
 
             // 再生処理
             {
-                transform.position = Global.PLAYER_START_POSITIONS[_playerInfo.ID - 1];
+                transform.position = _spawnPos;
                 transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
                 _playerState = State.Fine;
 

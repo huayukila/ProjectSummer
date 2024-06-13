@@ -22,7 +22,7 @@ public class GamePlayer : View
         }
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
-            RespawnPlayer();
+            RpcRespawnPlayer();
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
@@ -93,7 +93,8 @@ public class GamePlayer : View
         }
     }
 
-   private void RespawnPlayer()
+    [ClientRpc]
+    private void RpcRespawnPlayer()
     {
         Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
             () =>
