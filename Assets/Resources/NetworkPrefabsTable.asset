@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f7388df915ae1e4abe850a6428cb9bd, type: 3}
   m_Name: NetworkPrefabsTable
   m_EditorClassIdentifier: 
-  Prefabs: []
+  Prefabs:
+  - {fileID: 6464861002968553651, guid: 997fe10ad3f99a049afe783acce5814b, type: 3}
   PlayerPrefabs:
   - {fileID: 8858506136169357921, guid: 17b22499758c47c4ab366714e2167c85, type: 3}

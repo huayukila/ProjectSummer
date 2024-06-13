@@ -67,12 +67,6 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         RegisterAllSystem();
         _framework.FrameworkInit();
 
-        TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
-        {
-            RespawnPlayer();
-
-        }).UnregisterWhenGameObjectDestroyed(gameObject);
-
         _spiderPlayer = new SpiderPlayer();
 
         // HACK Temp need delete
@@ -160,8 +154,6 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
             SpriteRenderer playerImage = _spiderPlayer.player.GetComponentInChildren<SpriteRenderer>();
             playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + (index + 1).ToString());
 
-            // TODO need registry system(Network base)
-            DropPointSystem.Instance.InitPlayerDropPointGroup(index + 1);
         }
 
         //TODO need refactoring
@@ -215,19 +207,6 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
     #endregion
 
     #endregion
-
-    #region Player Spawn
-    private void RespawnPlayer()
-    {
-        Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
-            () =>
-            {
-                _spiderPlayer.playerInterface.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
-            });
-        spawnTimer.StartTimer(_spiderPlayer.player.GetComponent<MonoBehaviour>());
-        _spiderPlayer.cameraCtrl.StopLockOn();
-    }
-    #endregion // Player Spawn
 
     #region Interface
     /// <summary>

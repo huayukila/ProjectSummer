@@ -21,7 +21,7 @@ public class GameManager : Singleton<GameManager>
     */
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
-    private IDropPointSystem dropPointSystem;
+    // private IDropPointSystem dropPointSystem;
 
     protected override void Awake()
     {
@@ -38,7 +38,7 @@ public class GameManager : Singleton<GameManager>
         }
 
         {
-            dropPointSystem = DropPointSystem.Instance;
+            // dropPointSystem = DropPointSystem.Instance;
         }
 
         //ÉVÅ[ÉìÇÃà⁄çsñΩóﬂÇéÛÇØ
@@ -215,7 +215,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (nextScene.name == "Gaming")
         {
-            dropPointSystem.Deinit();
+            // dropPointSystem.Deinit();
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreModel.Instance.ResetScore();

@@ -13,6 +13,8 @@ public class PlayerAnim : CharacterAnim
     private Player mPlayer;
     private float _respawnAnimationTimer;
 
+    private Vector3 _spawnPos;
+
     private void Awake()
     {
         mExplosionPrefab = GameResourceSystem.Instance.GetPrefabResource("Explosion");
@@ -42,7 +44,9 @@ public class PlayerAnim : CharacterAnim
     // Start is called before the first frame update
     void Start()
     {
-        
+        PlayerInterfaceContainer playerInterfaces = GetComponent<IPlayerInterfaceContainer>().GetContainer();
+        int id = playerInterfaces.GetInterface<IPlayerInfo>().ID;
+        _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(id - 1).position;
     }
 
     // Update is called once per frame
@@ -72,6 +76,9 @@ public class PlayerAnim : CharacterAnim
         mBigSpiderLineRenderer.positionCount = 0;
         mShadow.transform.localScale = Vector3.zero;
         mShadowSpriteRenderer.color = Color.clear;
+        isStopped = true;
+        mType = AnimType.None;
+        _respawnAnimationTimer = Global.RESPAWN_TIME;
     }
 
     /// <summary>
@@ -92,7 +99,7 @@ public class PlayerAnim : CharacterAnim
         else
         {
             //TODO
-            transform.Translate(-(mBigSpider.transform.position - Global.PLAYER_START_POSITIONS[mPlayer.ID - 1]) * 0.4f * Time.deltaTime, Space.World);
+            transform.Translate(-(mBigSpider.transform.position - _spawnPos) * 0.4f * Time.deltaTime, Space.World);
             transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
             mShadowSpriteRenderer.color += Color.white * 0.4f * Time.deltaTime;
             mShadow.transform.localScale += Vector3.one * 0.4f * Time.deltaTime * 0.8f;
@@ -108,8 +115,8 @@ public class PlayerAnim : CharacterAnim
     {
         mType = AnimType.Respawn;
         int index = mPlayer.ID - 1;
-        mBigSpider.transform.position = Global.PLAYER_START_POSITIONS[index] + new Vector3(0.0f, 0.0f, 100.0f);
-        mShadow.transform.position = Global.PLAYER_START_POSITIONS[index];
+        mBigSpider.transform.position = _spawnPos + new Vector3(0.0f, 0.0f, 100.0f);
+        mShadow.transform.position = _spawnPos;
         // 復活アニメーションを初期化する
         transform.position = mBigSpider.transform.position;
         mBigSpiderLineRenderer.positionCount = 2;
@@ -117,9 +124,7 @@ public class PlayerAnim : CharacterAnim
             () =>
             {
                 RpcResetRespawnAnimation();
-                isStopped = true;
-                mType = AnimType.None;
-                _respawnAnimationTimer = Global.RESPAWN_TIME;
+                
             }
             );
         respawnAnimationTimer.StartTimer(this);
