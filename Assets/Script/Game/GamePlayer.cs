@@ -53,6 +53,7 @@ public class GamePlayer : View
     /// Õ“Ë‚ª‚ ‚Á‚½‚Æ‚«ˆ—‚·‚é
     /// </summary>
     /// <param name="collision"></param>
+    [ServerCallback]
     private void OnCollisionEnter(Collision collision)
     {
         // €–S‚µ‚½ƒvƒŒƒCƒ„[‚Í‹à‚Ì–Ô‚ğ‚Á‚Ä‚¢‚½‚ç

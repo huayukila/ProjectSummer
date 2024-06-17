@@ -2,12 +2,14 @@ using Mirror;
 using Unity.VisualScripting;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System;
 
 namespace Character
 {
     public class DropPointControl : NetworkBehaviour
     {
-        
+        [Serializable]
         private struct PlayerDropPoints
         {
             // DropPoint‚ª•Û‘¶‚³‚ê‚éList
@@ -16,6 +18,7 @@ namespace Character
             public GameObject pointGroup;
         }
 
+        [SerializeField]
         private PlayerDropPoints _playerDropPoints;
 
         private TrailRenderer _tailTrailRenderer;      // DropPoint‚ªŒq‚ª‚Á‚Ä‚¢‚é‚±‚Æ‚ð•\‚·TrailRenderer
@@ -88,6 +91,9 @@ namespace Character
                 }
                 SetTrailGradient(alpha);
             }
+            Debug.LogWarning(_playerDropPoints.playerPoints.Count);
+            
+
 
         }
 
@@ -104,8 +110,11 @@ namespace Character
             GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, transform.rotation);
             pt.tag = _dropPointTag;
             pt.GetComponent<DropPoint>().SetDestroyCallback(CmdRemovePoint);
-            NetworkServer.Spawn(pt);
+            Debug.Log("set callback");
+            // TODO 
             AddPoint(pt);
+            NetworkServer.Spawn(pt);
+
         }
 
         /// <summary>
@@ -205,7 +214,16 @@ namespace Character
         [Command]
         private void CmdRemovePoint(GameObject dropPoint)
         {
+            if(!_playerDropPoints.playerPoints.Contains(dropPoint))
+            {
+                foreach(var pt in _playerDropPoints.playerPoints)
+                {
+                    Debug.Log(pt.GetInstanceID());
+                }
+            }
+
             _playerDropPoints.playerPoints.Remove(dropPoint);
+            NetworkServer.Destroy(dropPoint);
         }
 
         /// <summary>

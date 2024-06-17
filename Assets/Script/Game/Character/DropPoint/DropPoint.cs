@@ -1,7 +1,8 @@
 using System;
+using Mirror;
 using UnityEngine;
 
-public class DropPoint : MonoBehaviour
+public class DropPoint : NetworkBehaviour
 {
     private Timer _lifeTimeTimer;            // DropPointのタイマー
     private Action<GameObject> _destroyCallback;
@@ -12,13 +13,16 @@ public class DropPoint : MonoBehaviour
             () =>
             {
                 _destroyCallback.Invoke(gameObject);
-                Debug.Log("Destroyed");
-                Destroy(gameObject);
+
             });
         _lifeTimeTimer.StartTimer(this);
     }
     public void SetDestroyCallback(Action<GameObject> callback)
     {
         _destroyCallback = callback;
+        if(callback != null)
+        {
+            Debug.Log("OK");
+        }
     }
 }
