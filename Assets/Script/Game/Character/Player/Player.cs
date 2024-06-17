@@ -130,6 +130,7 @@ namespace Character
                     PlaySlipAnimation();
                     return;
             }
+            
         }
 
         #region InternalLogic
@@ -331,7 +332,7 @@ namespace Character
             {
                 // プレイヤーの先頭座標
                 Vector3 endPoint1 = transform.position + transform.forward * _itemPlaceOffset;
-                // プレイヤーが直前にインスタンス化したDropPoint
+                // プレイヤーが直前にインスタンス化したDropPointの座標
                 Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
                 // endPoint1とendPoint2で作ったベクトルとendPoint2以外のDropPointを先頭から順番で2個ずつで作ったベクトルが交わっているかどうかをチェックする
                 for (int i = 0; i < dropPoints.Length - 2; ++i)
