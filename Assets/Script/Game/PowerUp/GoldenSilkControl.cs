@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Mirror;
 
 namespace Gaming.PowerUp
 {
     public interface IGoldenSilk
     {
         void StartSpawn(Vector3 position);
-        void SetInactive();
         void StartDrop(Vector3 startPos,Vector3 endPos);
         
         void SetActiveCallBack(Action<GameObject> callback); 
     }
 
-    public class GoldenSilkControl : MonoBehaviour, IGoldenSilk
+    public class GoldenSilkControl : NetworkBehaviour, IGoldenSilk
     {
         private enum State
         {       
@@ -36,7 +36,7 @@ namespace Gaming.PowerUp
         void Awake()
         {
             mSilkShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("SilkShadow"), transform.position, Quaternion.identity);
-            ResetAnimationStatus();
+            RpcResetAnimationStatus();
         }
 
         // Update is called once per frame
@@ -50,10 +50,10 @@ namespace Gaming.PowerUp
                 // 落下状態ときの処理
                 case State.Spawning:
                     // 落下アニメーションを更新する
-                    UpdateSpawnAnimation();
+                    RpcUpdateSpawnAnimation();
                     break;
                 case State.Drop:
-                    UpdateDropAnimation();
+                    RpcUpdateDropAnimation();
                     break;
             }
 
@@ -62,7 +62,9 @@ namespace Gaming.PowerUp
         /// <summary>
         /// 落下アニメーションを更新する関数
         /// </summary>
-        private void UpdateSpawnAnimation()
+        
+        [ClientRpc]
+        private void RpcUpdateSpawnAnimation()
         {
             transform.Translate(0, 0, -300.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
             transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
@@ -79,7 +81,7 @@ namespace Gaming.PowerUp
             Timer spawnTimer = new Timer(Time.time,Global.SILK_SPAWN_TIME / 2.0f,
                 () =>
                 {
-                    ResetAnimationStatus();
+                    RpcResetAnimationStatus();
                     GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
                     smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                     smoke.transform.position -= new Vector3(0.0f, 0.2f, 0.0f);
@@ -94,14 +96,16 @@ namespace Gaming.PowerUp
         /// <summary>
         /// 落下アニメーションの状態をリセットする関数
         /// </summary>
-        private void ResetAnimationStatus()
+        [ClientRpc]
+        private void RpcResetAnimationStatus()
         {
             mSilkShadow.transform.localScale = Vector3.zero;
             mSilkShadow.GetComponent<Renderer>().material.color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
             mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
         }
 
-        private void UpdateDropAnimation()
+        [ClientRpc]
+        private void RpcUpdateDropAnimation()
         {
             transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime * 2);
             mDropStartPos = transform.position;
@@ -115,7 +119,8 @@ namespace Gaming.PowerUp
             }
         }
 
-        private void SetAnimationStartPosition(Vector3 position)
+        [ClientRpc]
+        private void RpcSetAnimationStartPosition(Vector3 position)
         {
             mSilkShadow.transform.position = position - new Vector3(0, 0.2f, 0);
             transform.position = mSilkShadow.transform.position + Vector3.forward * 150 + new Vector3(0, 0.2f, 0);
@@ -125,14 +130,15 @@ namespace Gaming.PowerUp
 
         public void StartSpawn(Vector3 position)
         {
-            SetAnimationStartPosition(position);
+            RpcSetAnimationStartPosition(position);
             OnSetState(State.Spawning);
 
             // 落下アニメーションを初期化する
             InitSpawnAnimation();
         }
 
-        public void SetInactive()
+        [ClientRpc]
+        public void RpcSetInactive()
         {
             mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
             transform.position = Global.GAMEOBJECT_STACK_POS;

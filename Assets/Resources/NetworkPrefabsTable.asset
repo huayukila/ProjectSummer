@@ -14,5 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Prefabs:
   - {fileID: 6464861002968553651, guid: 997fe10ad3f99a049afe783acce5814b, type: 3}
+  - {fileID: 27412645482129278, guid: b87a6c1f38c4f1e46a942c0fc3bcdff9, type: 3}
+  - {fileID: 8570378904976638915, guid: c45901fffd803ae4eb8dc145436e57a0, type: 3}
+  - {fileID: 2633313612155404844, guid: 773449e97ec69e146800a8dbe4f4c506, type: 3}
   PlayerPrefabs:
   - {fileID: 8858506136169357921, guid: 17b22499758c47c4ab366714e2167c85, type: 3}

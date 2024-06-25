@@ -27,10 +27,7 @@ public class GameManager : Singleton<GameManager>
     {
         base.Awake();
         //各システムの実例化と初期化
-        {
-            itemSystem = ItemSystem.Instance;
-            itemSystem.Init();
-        }
+
 
         // ゲームリソースシステムの初期化
         {
@@ -219,8 +216,6 @@ public class GameManager : Singleton<GameManager>
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreModel.Instance.ResetScore();
-            Gaming.PowerUp.GoldenSilkSystem.Instance.Init();
-            ItemManager itemManager = ItemManager.Instance;
             DeviceSetting.Init();
         }
 

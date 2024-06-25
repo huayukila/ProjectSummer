@@ -3,16 +3,20 @@ using Mirror.Examples.NetworkRoom;
 using Unity.Mathematics;
 using UnityEngine;
 
-interface IItemSystem
+public interface IItemSystem : ISystem
 {
     /// <summary>
     /// 
     /// </summary>
     /// <param name="spawnPos_"></param>
     GameObject SpawnItem(Vector3 spawnPos_);
+
+    Vector3[] GetOnFieldItemBoxPos();
+    Vector3[] GetOnFieldSilkPos();
 }
 
-public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
+
+public class ItemSystem : AbstractSystem, IItemSystem
 {
     GameObject itemPrefab;
 
@@ -26,7 +30,9 @@ public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
     ItemBase[] weakItemArray;
     System.Random rand;
 
-    public void Init()
+    ItemManager _itemManager;
+
+    protected override void OnInit()
     {
         rand = new System.Random((int)Time.time);
         InitItemArray();
@@ -40,6 +46,11 @@ public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
     {
         GameObject temp = GameObject.Instantiate(itemPrefab, spawnPos_, quaternion.identity);
         return temp;
+    }
+
+    public void RegisterManager(ItemManager itemManager)
+    {
+        _itemManager = itemManager;
     }
 
     #region 内部用
@@ -79,6 +90,16 @@ public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
 
         //普通の場合獲得できるのアイテム
         return normalItemArray[rand.Next(0, normalItemArray.Count())];
+    }
+
+    public Vector3[] GetOnFieldSilkPos()
+    {
+        return _itemManager.GetOnFieldSilkPos();
+    }
+
+    public Vector3[] GetOnFieldItemBoxPos() 
+    {
+        return _itemManager.GetOnFieldItemBoxPos();
     }
 
     #endregion

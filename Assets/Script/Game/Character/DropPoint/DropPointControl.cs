@@ -91,9 +91,6 @@ namespace Character
                 }
                 SetTrailGradient(alpha);
             }
-            Debug.LogWarning(_playerDropPoints.playerPoints.Count);
-            
-
 
         }
 
@@ -110,7 +107,6 @@ namespace Character
             GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, transform.rotation);
             pt.tag = _dropPointTag;
             pt.GetComponent<DropPoint>().SetDestroyCallback(CmdRemovePoint);
-            Debug.Log("set callback");
             // TODO 
             AddPoint(pt);
             NetworkServer.Spawn(pt);
