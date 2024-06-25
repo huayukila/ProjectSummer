@@ -22,7 +22,7 @@ public class ItemObject : MonoBehaviour
         });
 
         //ìπãÔê∂ê¨
-        ItemSystem.Instance.SpawnItem(Vector3.zero);
+       // ItemSystem.Instance.SpawnItem(Vector3.zero);
         
     }
 }

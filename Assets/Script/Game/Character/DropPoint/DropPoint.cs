@@ -20,9 +20,5 @@ public class DropPoint : NetworkBehaviour
     public void SetDestroyCallback(Action<GameObject> callback)
     {
         _destroyCallback = callback;
-        if(callback != null)
-        {
-            Debug.Log("OK");
-        }
     }
 }

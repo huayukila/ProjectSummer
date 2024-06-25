@@ -4,7 +4,13 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
-using Unity.VisualScripting.Antlr3.Runtime.Tree;
+
+public struct PaintAreaEvent
+{
+    public Vector3[] Verts;
+    public int PlayerID;
+    public Color32 PlayerAreaColor;
+}
 
 namespace Character
 {
@@ -67,6 +73,9 @@ namespace Character
         private PlayerInterfaceContainer _playerInterface;
 
         private Vector3 _spawnPos;
+
+        //TODO need refactorying(player should not know the existence of system)
+        private IItemSystem _itemSystem;
         private void Awake()
         {
             _playerInterface = new PlayerInterfaceContainer(this);
@@ -83,6 +92,25 @@ namespace Character
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
             _particleSystemCtrl.Play();
             _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(_playerInfo.ID - 1).position;
+
+            {
+                IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
+                if(paintSystem != null)
+                {
+                    TypeEventSystem.Instance.Register<PaintAreaEvent>
+                    (
+                        e =>
+                        {
+                            paintSystem.Paint(e.Verts,e.PlayerID,e.PlayerAreaColor);
+                        }
+                    ).UnregisterWhenGameObjectDestroyed(gameObject);
+
+                }
+            }
+
+            {
+                _itemSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IItemSystem>();
+            }
         }
         private void Update()
         {
@@ -184,6 +212,7 @@ namespace Character
             mBoostCoefficient = 1f;
 
             SetPlayerInputProperties();
+
 
         }
 
@@ -361,6 +390,15 @@ namespace Character
                         verts.Add(crossPoint);
                         // ï`âÊÇ∑ÇÈ
                         // PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
+
+                        PaintAreaEvent paintEvent = new PaintAreaEvent
+                        {
+                            Verts = verts.ToArray(),
+                            PlayerID = _playerInfo.ID,
+                            PlayerAreaColor = _playerInfo.AreaColor
+                        };
+                        TypeEventSystem.Instance.Send(paintEvent);
+
                         TryCaptureObject(verts.ToArray());
                         // ëSÇƒÇÃDropPointÇè¡Ç∑
                         _dropPointCtrl.CmdClearDropPoints();
@@ -375,26 +413,31 @@ namespace Character
         private void TryCaptureObject(Vector3[] verts)
         {
             #region Pick Silk
-            Vector3[] silkPos = ItemManager.Instance.GetOnFieldSilkPos();
-            List<Vector3> caputuredSilk = new List<Vector3>();
             bool isPickedNew = false;
-            foreach (Vector3 pos in silkPos)
+            List<Vector3> caputuredSilk = null;
+            if(_itemSystem != null)
             {
-                if (VectorMath.InPolygon(pos, verts))
+                Vector3[] silkPos = _itemSystem.GetOnFieldSilkPos();
+                caputuredSilk = new List<Vector3>();
+                
+                foreach (Vector3 pos in silkPos)
                 {
-                    _silkData.SilkCount++;
-                    caputuredSilk.Add(pos);
-                    isPickedNew = true;
-
+                    if (VectorMath.InPolygon(pos, verts))
+                    {
+                        _silkData.SilkCount++;
+                        caputuredSilk.Add(pos);
+                        isPickedNew = true;
+                    }
                 }
             }
+            
             // ã‡ÇÃéÖÇÃâÊëúÇï\é¶
             if (isPickedNew)
             {
                 SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
                 {
                     ID = _playerInfo.ID,
-                    positions = caputuredSilk.ToArray()
+                    positions = caputuredSilk?.ToArray()
                 };
                 TypeEventSystem.Instance.Send(silkCapturedEvent);
                 AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
@@ -411,18 +454,22 @@ namespace Character
             }
             #endregion
             #region Pick Item
-            Vector3[] itemBoxPos = ItemManager.Instance.GetOnFieldItemBoxPos();
-            List<Vector3> capturedItemBoxPos = new List<Vector3>();
-            isPickedNew = false;
-            foreach(var pos in itemBoxPos)
+            List<Vector3> capturedItemBoxPos = null;
+            if(_itemSystem != null)
             {
-                if(VectorMath.InPolygon(pos,verts))
+                Vector3[] itemBoxPos = _itemSystem.GetOnFieldItemBoxPos();
+                capturedItemBoxPos = new List<Vector3>();
+                isPickedNew = false;
+                foreach(var pos in itemBoxPos)
                 {
-                    capturedItemBoxPos.Add(pos);
-                    isPickedNew = true;
+                    if(VectorMath.InPolygon(pos,verts))
+                    {
+                        capturedItemBoxPos.Add(pos);
+                        isPickedNew = true;
+                    }
                 }
             }
-
+            
             if(isPickedNew)
             {
                 TypeEventSystem.Instance.Send(new PlayerGetItem
@@ -431,7 +478,7 @@ namespace Character
                 });
                 TypeEventSystem.Instance.Send(new GetNewItem
                 {
-                    ItemBoxsPos = capturedItemBoxPos.ToArray()
+                    ItemBoxsPos = capturedItemBoxPos?.ToArray()
                 });
             }
             #endregion
