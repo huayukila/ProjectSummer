@@ -13,7 +13,8 @@ public class BananaPeel : ThrowItem
         if (bananaBox != null)
         {
             Vector3 throwObjDropPos = player.transform.position - player.transform.forward * (player.ItemPlaceOffset * 2f + bananaBox.size.x / 2f);
-            Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
+            GameObject bananaPeel = Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
+            player.GetComponent<GamePlayer>().CmdOnItemSpawn(bananaPeel);
         }
 
     }
