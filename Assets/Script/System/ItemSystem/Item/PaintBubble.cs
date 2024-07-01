@@ -25,6 +25,8 @@ public class PaintBubble : ThrowItem
             ) * 5f;
 
         explodeCtrl.SetExplodeProperty(player.ID, explodeRadius, player.AreaColor);
+
+        player.GetComponent<GamePlayer>().CmdOnItemSpawn(bubble);
     }
 }
 

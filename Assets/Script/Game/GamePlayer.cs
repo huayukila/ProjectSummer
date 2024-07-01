@@ -109,4 +109,11 @@ public class GamePlayer : View
     {
         _playerInterfaceContainer = container;
     }
+
+
+    [Command]
+    public void CmdOnItemSpawn(GameObject item)
+    {
+        NetworkServer.Spawn(item);
+    }
 }

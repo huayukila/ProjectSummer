@@ -516,9 +516,7 @@ namespace Character
             if(_playerState == State.Fine && ctx.performed)
             {
                 this.UseItem(this);
-                
             }
-
 
         }
 
