@@ -1,6 +1,7 @@
 using Mirror;
 using Mirror.Examples.MultipleMatch;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class GamePlayer : View
@@ -115,9 +116,12 @@ public class GamePlayer : View
 
 
     [Command]
-    public void CmdOnItemSpawn(GameObject item)
+    public void CmdOnItemSpawn(GameObject prefab,Vector3 position,Quaternion rotation)
     {
-        NetworkServer.Spawn(item);
+        Debug.Log($"start spawn {prefab.name}");
+        GameObject obj = Instantiate(prefab,position,rotation);
+        NetworkServer.Spawn(obj);
+         Debug.Log($"end spawn {prefab.name}");
     }
 
     [Command]

@@ -21,7 +21,7 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
 
     private void Awake()
     {
-        Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,RpcExplodeBubble);
+        Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,ExplodeBubble);
         explodeTimer.StartTimer(this);
         _meshRenderer = GetComponent<MeshRenderer>();
     }
@@ -47,8 +47,8 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
         }
     }
 
-    [ClientRpc]
-    private void RpcExplodeBubble()
+    [Server]
+    private void ExplodeBubble()
     {
         PaintExplodeArea();
         JamEnemyPlayerScreen();

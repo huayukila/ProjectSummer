@@ -14,7 +14,7 @@ public class StunSilk: ThrowItem
         {
             Vector3 throwObjDropPos = player.transform.position + player.transform.forward * (player.ItemPlaceOffset * 2f + stunSilkCol.size.x / 2f);
             GameObject stunSilk = Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
-            player.GetComponent<GamePlayer>().CmdOnItemSpawn(stunSilk);
+            //player.GetComponent<GamePlayer>().CmdOnItemSpawn(stunSilk);
         }
     }
 
