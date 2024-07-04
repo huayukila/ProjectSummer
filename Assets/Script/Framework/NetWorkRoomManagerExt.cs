@@ -139,6 +139,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         // ƒvƒŒƒCƒ„[î•ñ‚ğ‰Šú‰»
         {
             Camera mainCam = Camera.main;
+            mainCam.orthographicSize = 35f;
             _spiderPlayer.ID = index + 1;
             _spiderPlayer.player = gamePlayer;
             _spiderPlayer.cameraCtrl = mainCam.AddComponent<CameraControl>();

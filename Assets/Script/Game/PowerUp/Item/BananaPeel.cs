@@ -14,7 +14,7 @@ public class BananaPeel : ThrowItem
         {
             Vector3 throwObjDropPos = player.transform.position - player.transform.forward * (player.ItemPlaceOffset * 2f + bananaBox.size.x / 2f);
             GameObject bananaPeel = Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
-            player.GetComponent<GamePlayer>().CmdOnItemSpawn(bananaPeel);
+            //player.GetComponent<GamePlayer>().CmdOnItemSpawn(bananaPeel);
         }
 
     }
