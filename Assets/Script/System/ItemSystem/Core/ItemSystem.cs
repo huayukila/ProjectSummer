@@ -13,6 +13,7 @@ public interface IItemSystem : ISystem
 
     Vector3[] GetOnFieldItemBoxPos();
     Vector3[] GetOnFieldSilkPos();
+    void InitItemSystem();
 }
 
 
@@ -100,6 +101,11 @@ public class ItemSystem : AbstractSystem, IItemSystem
     public Vector3[] GetOnFieldItemBoxPos() 
     {
         return _itemManager.GetOnFieldItemBoxPos();
+    }
+
+    public void InitItemSystem()
+    {
+        _itemManager.RpcInitItemBox();
     }
 
     #endregion

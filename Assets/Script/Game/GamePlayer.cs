@@ -1,5 +1,6 @@
 using Mirror;
 using Mirror.Examples.MultipleMatch;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GamePlayer : View
@@ -25,6 +26,8 @@ public class GamePlayer : View
             RpcRespawnPlayer();
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
+
+        CmdInitItemSystem();
     }
 
     private void Update()
@@ -115,5 +118,11 @@ public class GamePlayer : View
     public void CmdOnItemSpawn(GameObject item)
     {
         NetworkServer.Spawn(item);
+    }
+
+    [Command]
+    public void CmdInitItemSystem()
+    {
+        GetSystem<IItemSystem>().InitItemSystem();
     }
 }

@@ -36,7 +36,7 @@ namespace Gaming.PowerUp
         void Awake()
         {
             mSilkShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("SilkShadow"), transform.position, Quaternion.identity);
-            RpcResetAnimationStatus();
+            ResetAnimationStatus();
         }
 
         // Update is called once per frame
@@ -50,10 +50,10 @@ namespace Gaming.PowerUp
                 // 落下状態ときの処理
                 case State.Spawning:
                     // 落下アニメーションを更新する
-                    RpcUpdateSpawnAnimation();
+                    UpdateSpawnAnimation();
                     break;
                 case State.Drop:
-                    RpcUpdateDropAnimation();
+                    UpdateDropAnimation();
                     break;
             }
 
@@ -63,8 +63,7 @@ namespace Gaming.PowerUp
         /// 落下アニメーションを更新する関数
         /// </summary>
         
-        [ClientRpc]
-        private void RpcUpdateSpawnAnimation()
+        private void UpdateSpawnAnimation()
         {
             transform.Translate(0, 0, -300.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
             transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
@@ -77,11 +76,11 @@ namespace Gaming.PowerUp
         private void InitSpawnAnimation()
         {
             transform.localScale = Vector3.one * 1.9f;
-            AudioManager.Instance.PlayFX("FallFX", 0.7f);
+            //AudioManager.Instance.PlayFX("FallFX", 0.7f);
             Timer spawnTimer = new Timer(Time.time,Global.SILK_SPAWN_TIME / 2.0f,
                 () =>
                 {
-                    RpcResetAnimationStatus();
+                    ResetAnimationStatus();
                     GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
                     smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                     smoke.transform.position -= new Vector3(0.0f, 0.2f, 0.0f);
@@ -96,16 +95,14 @@ namespace Gaming.PowerUp
         /// <summary>
         /// 落下アニメーションの状態をリセットする関数
         /// </summary>
-        [ClientRpc]
-        private void RpcResetAnimationStatus()
+        private void ResetAnimationStatus()
         {
             mSilkShadow.transform.localScale = Vector3.zero;
             mSilkShadow.GetComponent<Renderer>().material.color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
             mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
         }
 
-        [ClientRpc]
-        private void RpcUpdateDropAnimation()
+        private void UpdateDropAnimation()
         {
             transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime * 2);
             mDropStartPos = transform.position;
@@ -119,8 +116,7 @@ namespace Gaming.PowerUp
             }
         }
 
-        [ClientRpc]
-        private void RpcSetAnimationStartPosition(Vector3 position)
+        private void SetAnimationStartPosition(Vector3 position)
         {
             mSilkShadow.transform.position = position - new Vector3(0, 0.2f, 0);
             transform.position = mSilkShadow.transform.position + Vector3.forward * 150 + new Vector3(0, 0.2f, 0);
@@ -130,15 +126,14 @@ namespace Gaming.PowerUp
 
         public void StartSpawn(Vector3 position)
         {
-            RpcSetAnimationStartPosition(position);
+            SetAnimationStartPosition(position);
             OnSetState(State.Spawning);
 
             // 落下アニメーションを初期化する
             InitSpawnAnimation();
         }
 
-        [ClientRpc]
-        public void RpcSetInactive()
+        public void SetInactive()
         {
             mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
             transform.position = Global.GAMEOBJECT_STACK_POS;

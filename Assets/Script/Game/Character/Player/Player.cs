@@ -440,7 +440,7 @@ namespace Character
                     positions = caputuredSilk?.ToArray()
                 };
                 TypeEventSystem.Instance.Send(silkCapturedEvent);
-                AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
+                //AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
                 // キャラクター画像の縦の大きさを取得して画像の上で表示する
                 _silkData.SilkRenderer.transform.localPosition = new Vector3(-_imageSpriteRenderer.bounds.size.x / 4f, _imageSpriteRenderer.bounds.size.z * 1.2f, 0);
                 _silkData.SilkRenderer.SetActive(true);

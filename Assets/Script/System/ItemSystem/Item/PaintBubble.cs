@@ -11,6 +11,8 @@ public class PaintBubble : ThrowItem
     {
         GameObject bubble = Instantiate(ThrowObj, player.gameObject.transform.position, Quaternion.identity);
 
+        player.GetComponent<GamePlayer>().CmdOnItemSpawn(bubble);
+
         IExplodable explodeCtrl;
         if(!bubble.TryGetComponent(out explodeCtrl))
         {
@@ -26,7 +28,7 @@ public class PaintBubble : ThrowItem
 
         explodeCtrl.SetExplodeProperty(player.ID, explodeRadius, player.AreaColor);
 
-        player.GetComponent<GamePlayer>().CmdOnItemSpawn(bubble);
+
     }
 }
 

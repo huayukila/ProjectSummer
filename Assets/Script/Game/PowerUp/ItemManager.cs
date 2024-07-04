@@ -34,6 +34,8 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
 
     private GameObject _silkPrefab;
 
+    private bool _initialized;
+
     // Start is called before the first frame update
     private void Awake()
     {
@@ -43,6 +45,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         _unactivedItemBoxes = new List<GameObject>();
 
         _silkPrefab = GameResourceSystem.Instance.GetPrefabResource("GoldenSilk");
+        _initialized = false;
     }
     void Start()
     {
@@ -61,7 +64,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
                     {
                         _capturedSilks.Add(silk);
                         _onFieldSilks.Remove(silk);
-                        silk.GetComponent<GoldenSilkControl>().RpcSetInactive();
+                        silk.GetComponent<GoldenSilkControl>().SetInactive();
                         break;
                     }
                     ++index;
@@ -133,7 +136,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         _itemSystem.RegisterManager(this);
 
         {
-            CmdInitItemBox();
+            //CmdInitItemBox();
         }
 
 
@@ -145,7 +148,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         switch(_spawnMode)
         {
             case SpawnMode.Normal:
-                CmdSpawnNewSilk();
+                RpcSpawnNewSilk();
                 break;
             case SpawnMode.ItemFestival:
                 break;
@@ -156,8 +159,8 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         }
     }
 
-    [Command]
-    private void CmdSpawnNewSilk()
+    [ClientRpc]
+    public void RpcSpawnNewSilk()
     {
         if (_onFieldSilks.Count >= Global.MAX_SILK_COUNT)
             return;
@@ -176,11 +179,13 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         dropSilkTimer.StartTimer(this);
     }
 
-    [Command]
-    private void CmdInitItemBox()
+    [ClientRpc]
+    public void RpcInitItemBox()
     {
+        if(_initialized)
+            return;
 
-
+        _initialized = true;
         for (int i = 0; i < MAX_ITEM_BOX_COUNT ; ++i)
         {
             GameObject itemBox = _itemSystem.SpawnItem(Global.ITEM_BOX_POS);
