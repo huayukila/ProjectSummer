@@ -27,7 +27,7 @@ public class PaintSystem : AbstractSystem,IPaintSystem
 
     public void Paint(Vector3[] worldPosList, int index, Color32 color)
     {
-        m_PaintManager.CmdPaint(worldPosList,index,color);
+        m_PaintManager.Paint(worldPosList,index,color);
     }
 
     public float[] GetPlayerAreaPercent()

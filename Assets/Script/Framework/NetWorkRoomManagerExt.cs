@@ -26,6 +26,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
     {
         _framework.RegisterSystem<IPaintSystem>(new PaintSystem());
         _framework.RegisterSystem<ITestSystem>(new TestSystem());
+        _framework.RegisterSystem<IItemSystem>(new ItemSystem());
     }
 
     public EasyFramework GetFramework()

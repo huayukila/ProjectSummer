@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// É}ÉbÉvÇ≈ê∂ê¨Ç∑ÇÈitem
 /// </summary>
-public class ItemObject : MonoBehaviour
+public class ItemObject : View
 {
     private void OnCollisionEnter(Collision other)
     {
@@ -22,7 +22,6 @@ public class ItemObject : MonoBehaviour
         });
 
         //ìπãÔê∂ê¨
-        ItemSystem.Instance.SpawnItem(Vector3.zero);
-        
+        GetSystem<IItemSystem>().SpawnItem(Vector3.zero);
     }
 }

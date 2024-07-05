@@ -2,16 +2,16 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-interface IItemSystem
+interface IItemSystem : ISystem
 {
     /// <summary>
-    /// 
+    /// マップ上の道具Box生成
     /// </summary>
     /// <param name="spawnPos_"></param>
     GameObject SpawnItem(Vector3 spawnPos_);
 }
 
-public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
+public class ItemSystem : AbstractSystem, IItemSystem
 {
     GameObject itemPrefab;
 
@@ -25,7 +25,7 @@ public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
     ItemBase[] weakItemArray;
     System.Random rand;
 
-    public void Init()
+    protected override void OnInit()
     {
         rand = new System.Random((int)Time.time);
         InitItemArray();

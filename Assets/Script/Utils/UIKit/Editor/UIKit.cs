@@ -11,7 +11,7 @@ public class UIKit : ScriptableObject
     // 自動生成スクリプト保存パース
     private static string m_ClassPath = "Assets/Script/UI/Panel";
 
-    private static bool isCompile = false;
+    private bool isCompile = false;
 
     public static UIKit Default
     {
@@ -35,7 +35,7 @@ public class UIKit : ScriptableObject
     [MenuItem("UIKit/CreateScript")]
     public static void CreateCode()
     {
-        isCompile = true;
+        Default.isCompile = true;
         GameObject selectedPrefab = Selection.activeGameObject as GameObject;
         if (selectedPrefab == null ||
             PrefabUtility.GetPrefabAssetType(selectedPrefab) == PrefabAssetType.NotAPrefab)
@@ -77,7 +77,7 @@ public class UIKit : ScriptableObject
 
     private void AddReferencesToPrefab()
     {
-        if (!isCompile)
+        if (!Default.isCompile)
             return;
         GameObject prefab = Selection.activeGameObject;
         var viewController = prefab.GetComponent<ViewController>();
@@ -114,6 +114,6 @@ public class UIKit : ScriptableObject
     static void Compile()
     {
         Default.AddReferencesToPrefab();
-        isCompile = false;
+        Default.isCompile = false;
     }
 }
