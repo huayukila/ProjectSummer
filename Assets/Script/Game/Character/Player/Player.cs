@@ -4,12 +4,20 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
+using Mirror;
+using Character;
 
 public struct PaintAreaEvent
 {
     public Vector3[] Verts;
     public int PlayerID;
     public Color32 PlayerAreaColor;
+}
+
+public struct PlayerItemContainer
+{
+    public IPlayer2ItemSystem Player2ItemSystem;
+    public Player Player;
 }
 
 namespace Character
@@ -76,6 +84,8 @@ namespace Character
 
         //TODO need refactorying(player should not know the existence of system)
         private IItemSystem _itemSystem;
+
+        private GamePlayer _gamePlayer;
         private void Awake()
         {
             _playerInterface = new PlayerInterfaceContainer(this);
@@ -212,6 +222,8 @@ namespace Character
             mBoostCoefficient = 1f;
 
             SetPlayerInputProperties();
+
+            _gamePlayer = GetComponent<GamePlayer>();
 
 
         }
@@ -515,9 +527,12 @@ namespace Character
         {
             if(_playerState == State.Fine && ctx.performed)
             {
-                this.UseItem(this);
+                if(_gamePlayer != null)
+                {
+                    _gamePlayer.CmdOnItemSpawn(gameObject);
+                    //this.UseItem(this);
+                }
             }
-
         }
 
         private void ReturnToFineCountDown()

@@ -22,6 +22,8 @@ public class ItemBase : ScriptableObject, IItem
     //Item実際のロジックコードはここに書いてください
     public virtual void OnUse(Player player)
     {
+        if(player == null)
+            return;
         Debug.Log(itemName); //ひとまずデバッグ
     }
 
