@@ -105,7 +105,7 @@ public class ItemManager : Singleton<ItemManager>, IOnFieldSilk,IOnFieldItem
         #endregion
         for (int i = 0; i < MAX_ITEM_BOX_COUNT ; ++i)
         {
-            _onFieldItemBoxes.Add(ItemSystem.Instance.SpawnItem(Global.ITEM_BOX_POS));
+            // _onFieldItemBoxes.Add(ItemSystem.Instance.SpawnItem(Global.ITEM_BOX_POS));
         }
 
     }

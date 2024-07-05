@@ -25,11 +25,6 @@ public class GameManager : Singleton<GameManager>
         base.Awake();
         //各システムの実例化と初期化
         {
-            itemSystem = ItemSystem.Instance;
-            itemSystem.Init();
-        }
-
-        {
             gameResourceSystem = GameResourceSystem.Instance;
             gameResourceSystem.Init();
         }

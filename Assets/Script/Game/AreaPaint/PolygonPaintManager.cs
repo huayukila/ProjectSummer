@@ -93,8 +93,7 @@ public class PolygonPaintManager : View
     /// <param name="worldPosList">輸入の世界座標の点</param>
     /// <param name="color">描きたいの色</param>
     /// <param name="index">プレイヤーの番号(1-2)</param>
-    [Command]
-    public void CmdPaint(Vector3[] worldPosList, int index, Color32 color)
+    public void Paint(Vector3[] worldPosList, int index, Color32 color)
     {
         RpcPaintPolygon(worldPosList, index, color);
         CountPixelByColor();
