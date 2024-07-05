@@ -1,3 +1,4 @@
+using Character;
 using Mirror;
 using Mirror.Examples.MultipleMatch;
 using Unity.VisualScripting;
@@ -116,12 +117,14 @@ public class GamePlayer : View
 
 
     [Command]
-    public void CmdOnItemSpawn(GameObject prefab,Vector3 position,Quaternion rotation)
+    public void CmdOnItemSpawn(GameObject player)
     {
-        Debug.Log($"start spawn {prefab.name}");
-        GameObject obj = Instantiate(prefab,position,rotation);
-        NetworkServer.Spawn(obj);
-         Debug.Log($"end spawn {prefab.name}");
+        IPlayer2ItemSystem player2ItemSystem;
+        if(player.TryGetComponent<IPlayer2ItemSystem>(out player2ItemSystem))
+        {
+            player2ItemSystem.UseItem(player.GetComponent<Player>());
+        }
+        //NetworkServer.Spawn(obj);
     }
 
     [Command]

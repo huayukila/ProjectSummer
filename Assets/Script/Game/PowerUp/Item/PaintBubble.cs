@@ -1,5 +1,6 @@
 using Character;
 using Mirror;
+using Org.BouncyCastle.Asn1.Misc;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,8 +11,6 @@ public class PaintBubble : ThrowItem
 {
     public override void OnUse(Player player)
     {
-        // GameObject bubble = null;
-        // player.GetComponent<GamePlayer>().CmdOnItemSpawn(ThrowObj, player.gameObject.transform.position, Quaternion.identity);\
         GameObject bubble = Instantiate(ThrowObj,player.gameObject.transform.position,Quaternion.identity);
         NetworkServer.Spawn(bubble);
         
