@@ -3,7 +3,6 @@ Shader "Unlit/TestShader"
     Properties
     {
         _MainTex ("Base (RGB)", 2D) = "white" {}
-        _TileSize ("Tile Size", Float) = 1.0
         _TextureSize("TextureSize",Float)=1.0
     }
     SubShader
@@ -29,9 +28,9 @@ Shader "Unlit/TestShader"
 
             struct v2f
             {
-                float4 vertex : SV_POSITION;
+                float4 pos : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float4 worldPos : TEXCOORD1;
+                float3 modelSpacePos : TEXCOORD1;
             };
 
             sampler2D _MainTex;
@@ -41,19 +40,23 @@ Shader "Unlit/TestShader"
             v2f vert(appdata v)
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.modelSpacePos = v.vertex.xyz;
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float UV_X = (i.worldPos.x % _TextureSize) / _TextureSize;
-                float UV_Y = (i.worldPos.z % _TextureSize) / _TextureSize;
+                float3 scale;
+                scale.x = length(UNITY_MATRIX_M[0].xyz);
+                scale.y = length(UNITY_MATRIX_M[1].xyz);
+                scale.z = length(UNITY_MATRIX_M[2].xyz);
 
-                i.uv.x = UV_X;
-                i.uv.y = UV_Y;
-                fixed4 col = tex2D(_MainTex, i.uv);
+                float UV_X = ((i.modelSpacePos.x + 5) * scale.x % _TextureSize) / _TextureSize;
+                float UV_Y = ((i.modelSpacePos.z + 5) * scale.z % _TextureSize) / _TextureSize;
+
+                float2 newUV = float2(UV_X, UV_Y);
+                fixed4 col = tex2D(_MainTex, newUV);
                 return col;
             }
             ENDCG

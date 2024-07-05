@@ -9,33 +9,29 @@ using Gaming;
 
 public class GameManager : Singleton<GameManager>
 {
-    /*
     private struct SpiderPlayer
     {
         public GameObject player;
         public GameObject camera;
-        public PlayerInterfaceContainer playerInterface;
     }
     private static readonly int maxPlayerCount = 2;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
-    */
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
-    // private IDropPointSystem dropPointSystem;
+    private IDropPointSystem dropPointSystem;
 
     protected override void Awake()
     {
         base.Awake();
         //各システムの実例化と初期化
-
-
-        // ゲームリソースシステムの初期化
         {
             gameResourceSystem = GameResourceSystem.Instance;
+            gameResourceSystem.Init();
         }
 
         {
-            // dropPointSystem = DropPointSystem.Instance;
+            dropPointSystem = DropPointSystem.Instance;
+            dropPointSystem.Init();
         }
 
         //シーンの移行命令を受け
@@ -133,18 +129,16 @@ public class GameManager : Singleton<GameManager>
 
     private void Init()
     {
-        //spiderPlayers = new Dictionary<int, SpiderPlayer>();
-        /*
+        spiderPlayers = new Dictionary<int, SpiderPlayer>();
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
             RespawnPlayer(e.ID);
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
-        */
+
     }
 
 
-/*
     private void RespawnPlayer(int ID)
     {
 
@@ -154,15 +148,14 @@ public class GameManager : Singleton<GameManager>
             Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
                 () =>
                 {
-                    spiderPlayers[ID].playerInterface.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
+                    spiderPlayers[ID].player.GetComponent<Player>()?.StartRespawn();
                 });
             spawnTimer.StartTimer(spiderPlayer.player.GetComponent<MonoBehaviour>());
             ICameraController cameraCtrl = spiderPlayer.camera.GetComponent<ICameraController>();
             cameraCtrl.StopLockOn();
         }
     }
-*/
-/*
+
     private void SpawnPlayer(int ID)
     {
         GameObject playerPrefab = gameResourceSystem.GetPrefabResource("Player");
@@ -188,8 +181,7 @@ public class GameManager : Singleton<GameManager>
                 SpiderPlayer spiderPlayer = new SpiderPlayer
                 {
                     player = player,
-                    camera = camera,
-                    playerInterface = player.GetComponent<IPlayerInterfaceContainer>().GetContainer()
+                    camera = camera
                 };
                 spiderPlayers.Add(ID, spiderPlayer);
                 dropPointSystem.InitPlayerDropPointGroup(ID);
@@ -201,27 +193,36 @@ public class GameManager : Singleton<GameManager>
         }
 
     }
-*/
+
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= SceneLoaded;
-        gameResourceSystem.Dispose();
+        gameResourceSystem.Deinit();
     }
 
     private void SceneLoaded(Scene nextScene, LoadSceneMode mode)
     {
         if (nextScene.name == "Gaming")
         {
-            // dropPointSystem.Deinit();
+            dropPointSystem.Deinit();
             AudioManager.Instance.StopBGM();
             AudioManager.Instance.PlayBGM("GamingBGM", 0.3f);
             ScoreModel.Instance.ResetScore();
+            for (int i = 0; i < maxPlayerCount; ++i)
+            {
+                SpawnPlayer(i + 1);
+            }
+
+            Gaming.PowerUp.GoldenSilkSystem.Instance.Init();
+            ItemManager itemManager = ItemManager.Instance;
             DeviceSetting.Init();
         }
-
+        else
+        {
+            spiderPlayers.Clear();
+        }
     }
 
-/*
     #region interface
     /// <summary>
     /// プレイヤーの座標を取得する関数
@@ -238,20 +239,15 @@ public class GameManager : Singleton<GameManager>
         return ret;
     }
 
-    // TODO this method sucks
     public bool IsPlayerDead(int ID)
     {
-        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value))
+        bool ret = true;
+        if(spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
         {
             //TODO インターフェースでやる
-            return value.playerInterface.GetInterface<IPlayerState>().IsDead;
+            ret = value.player.GetComponent<Player>().IsDead();
         }
-        else
-        {
-            Debug.LogError("No such Player" + ID.ToString());
-            return true;
-        }
+        return ret;
     }
     #endregion
-*/
 }
