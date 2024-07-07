@@ -46,6 +46,11 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
 
         _silkPrefab = GameResourceSystem.Instance.GetPrefabResource("GoldenSilk");
         _initialized = false;
+       
+        _itemSystem = GetSystem<IItemSystem>() as ItemSystem;
+
+        _itemSystem.RegisterManager(this);
+
     }
     void Start()
     {
@@ -129,15 +134,6 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
         #endregion //Event Register
-
-
-        _itemSystem = GetSystem<IItemSystem>() as ItemSystem;
-
-        _itemSystem.RegisterManager(this);
-
-        {
-            //CmdInitItemBox();
-        }
 
 
     }
