@@ -1,5 +1,6 @@
 using UnityEngine;
 using Character;
+using Mirror;
 
 public class PlayerAnim : CharacterAnim
 {
@@ -11,6 +12,8 @@ public class PlayerAnim : CharacterAnim
     private GameObject mExplosionPrefab;                // 爆発アニメーションプレハブ
     private Player mPlayer;
     private float _respawnAnimationTimer;
+
+    private Vector3 _spawnPos;
 
     private void Awake()
     {
@@ -41,7 +44,9 @@ public class PlayerAnim : CharacterAnim
     // Start is called before the first frame update
     void Start()
     {
-        
+        PlayerInterfaceContainer playerInterfaces = GetComponent<IPlayerInterfaceContainer>().GetContainer();
+        int id = playerInterfaces.GetInterface<IPlayerInfo>().ID;
+        _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(id - 1).position;
     }
 
     // Update is called once per frame
@@ -53,7 +58,7 @@ public class PlayerAnim : CharacterAnim
                 break;
             case AnimType.Respawn:
                 {
-                    UpdateRespawnAnimation();
+                    RpcUpdateRespawnAnimation();
                 }
                 break;
         }
@@ -63,20 +68,25 @@ public class PlayerAnim : CharacterAnim
     /// <summary>
     /// 復活アニメーションをリセットする
     /// </summary>
-    private void ResetRespawnAnimation()
+    [ClientRpc]
+    private void RpcResetRespawnAnimation()
     {
 
         mBigSpider.transform.position = Global.GAMEOBJECT_STACK_POS;
         mBigSpiderLineRenderer.positionCount = 0;
         mShadow.transform.localScale = Vector3.zero;
         mShadowSpriteRenderer.color = Color.clear;
+        isStopped = true;
+        mType = AnimType.None;
+        _respawnAnimationTimer = Global.RESPAWN_TIME;
     }
 
     /// <summary>
     /// 復活アニメーションを更新する関数
     /// </summary>
     //TODO カメラを二つにする時に変更する予定
-    private void UpdateRespawnAnimation()
+    [ClientRpc]
+    private void RpcUpdateRespawnAnimation()
     {
         _respawnAnimationTimer -= Time.deltaTime;
         // 復活アニメーション前半部分の処理
@@ -89,7 +99,7 @@ public class PlayerAnim : CharacterAnim
         else
         {
             //TODO
-            transform.Translate(-(mBigSpider.transform.position - Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1]) * 0.4f * Time.deltaTime, Space.World);
+            transform.Translate(-(mBigSpider.transform.position - _spawnPos) * 0.4f * Time.deltaTime, Space.World);
             transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
             mShadowSpriteRenderer.color += Color.white * 0.4f * Time.deltaTime;
             mShadow.transform.localScale += Vector3.one * 0.4f * Time.deltaTime * 0.8f;
@@ -100,33 +110,33 @@ public class PlayerAnim : CharacterAnim
         }
     }
 
-    public void StartRespawnAnim()
+    [ClientRpc]
+    public void RpcStartRespawnAnim()
     {
         mType = AnimType.Respawn;
-        int index = mPlayer.GetID() - 1;
-        mBigSpider.transform.position = Global.PLAYER_START_POSITIONS[index] + new Vector3(0.0f, 0.0f, 100.0f);
-        mShadow.transform.position = Global.PLAYER_START_POSITIONS[index];
+        int index = mPlayer.ID - 1;
+        mBigSpider.transform.position = _spawnPos + new Vector3(0.0f, 0.0f, 100.0f);
+        mShadow.transform.position = _spawnPos;
         // 復活アニメーションを初期化する
         transform.position = mBigSpider.transform.position;
         mBigSpiderLineRenderer.positionCount = 2;
         Timer respawnAnimationTimer = new Timer(Time.time,Global.RESPAWN_TIME,
             () =>
             {
-                ResetRespawnAnimation();
-                isStopped = true;
-                mType = AnimType.None;
-                _respawnAnimationTimer = Global.RESPAWN_TIME;
+                RpcResetRespawnAnimation();
+                
             }
             );
         respawnAnimationTimer.StartTimer(this);
         isStopped = false;
     }
 
-    public void StartExplosionAnim()
+    [ClientRpc]
+    public void RpcStartExplosionAnim()
     {
         GameObject explosion = Instantiate(mExplosionPrefab, transform.position, Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         // 爆発の効果音を流す
-        AudioManager.Instance.PlayFX("BoomFX", 0.7f);
+        //AudioManager.Instance.PlayFX("BoomFX", 0.7f);
     }
 }

@@ -1,33 +1,24 @@
+using System;
+using Mirror;
 using UnityEngine;
 
-public class DropPoint : MonoBehaviour
+public class DropPoint : NetworkBehaviour
 {
-    private Timer m_NewTimer;            // DropPointのタイマー
+    private Timer _lifeTimeTimer;            // DropPointのタイマー
+    private Action<GameObject> _destroyCallback;
 
     void Awake()
     {
-        m_NewTimer = new Timer(Time.time,Global.DROP_POINT_ALIVE_TIME,
+        _lifeTimeTimer = new Timer(Time.time,Global.DROP_POINT_ALIVE_TIME,
             () =>
             {
-                Destroy(gameObject);
+                _destroyCallback.Invoke(gameObject);
+
             });
-        m_NewTimer.StartTimer(this);
+        _lifeTimeTimer.StartTimer(this);
     }
-
-    private void OnDestroy()
+    public void SetDestroyCallback(Action<GameObject> callback)
     {
-        // どのプレイヤーが落としたDropPointをチェック
-        int i = -1;
-        string numString = null;
-        if (tag.Length > 9)
-        {
-            numString = tag.Substring(9);
-        }
-        if (int.TryParse(numString, out int num) == true)
-        {
-            i = num;
-        }
-        DropPointSystem.Instance.RemovePoint(i, gameObject);
-
+        _destroyCallback = callback;
     }
 }

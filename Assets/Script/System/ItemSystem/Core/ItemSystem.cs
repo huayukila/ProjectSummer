@@ -1,15 +1,21 @@
 ﻿using System.Linq;
+using Mirror.Examples.NetworkRoom;
 using Unity.Mathematics;
 using UnityEngine;
 
-interface IItemSystem : ISystem
+public interface IItemSystem : ISystem
 {
     /// <summary>
-    /// マップ上の道具Box生成
+    /// 
     /// </summary>
     /// <param name="spawnPos_"></param>
     GameObject SpawnItem(Vector3 spawnPos_);
+
+    Vector3[] GetOnFieldItemBoxPos();
+    Vector3[] GetOnFieldSilkPos();
+    void InitItemSystem();
 }
+
 
 public class ItemSystem : AbstractSystem, IItemSystem
 {
@@ -25,13 +31,15 @@ public class ItemSystem : AbstractSystem, IItemSystem
     ItemBase[] weakItemArray;
     System.Random rand;
 
+    ItemManager _itemManager;
+
     protected override void OnInit()
     {
         rand = new System.Random((int)Time.time);
         InitItemArray();
         itemPrefab = Resources.Load("Prefabs/Item/pfItemObject") as GameObject;
         TypeEventSystem.Instance.Register<PlayerGetItem>(e => { e.player.GetItem(LotteryItem(e.player)); })
-            .UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
+            .UnregisterWhenGameObjectDestroyed(NetWorkRoomManagerExt.singleton.gameObject);
     }
 
     //道具生成
@@ -39,6 +47,11 @@ public class ItemSystem : AbstractSystem, IItemSystem
     {
         GameObject temp = GameObject.Instantiate(itemPrefab, spawnPos_, quaternion.identity);
         return temp;
+    }
+
+    public void RegisterManager(ItemManager itemManager)
+    {
+        _itemManager = itemManager;
     }
 
     #region 内部用
@@ -78,6 +91,21 @@ public class ItemSystem : AbstractSystem, IItemSystem
 
         //普通の場合獲得できるのアイテム
         return normalItemArray[rand.Next(0, normalItemArray.Count())];
+    }
+
+    public Vector3[] GetOnFieldSilkPos()
+    {
+        return _itemManager.GetOnFieldSilkPos();
+    }
+
+    public Vector3[] GetOnFieldItemBoxPos() 
+    {
+        return _itemManager.GetOnFieldItemBoxPos();
+    }
+
+    public void InitItemSystem()
+    {
+        _itemManager.RpcInitItemBox();
     }
 
     #endregion

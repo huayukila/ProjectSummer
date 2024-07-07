@@ -15,7 +15,7 @@ public class droppointtester : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.R))
         {
-            DropPointSystem.Instance.DebugFunc();
+            //DropPointSystem.Instance.DebugFunc();
         }
     }
 }

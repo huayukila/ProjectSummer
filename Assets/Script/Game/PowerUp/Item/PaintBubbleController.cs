@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Timers;
+using Mirror;
 using UnityEngine;
 
 
-public class PaintBubbleController : MonoBehaviour,IExplodable
+public class PaintBubbleController : NetworkBehaviour,IExplodable
 {
     private Color _bubbleColor = Color.clear;
 
@@ -31,10 +32,6 @@ public class PaintBubbleController : MonoBehaviour,IExplodable
         _meshRenderer.sharedMaterial = _material;
     }
     // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public void SetExplodeProperty(int owner, float radius, Color color)
     {
         _ownerPlayerID = owner;
@@ -49,12 +46,13 @@ public class PaintBubbleController : MonoBehaviour,IExplodable
             Destroy(_material);
         }
     }
+
+    [Server]
     private void ExplodeBubble()
     {
-        Debug.LogWarning("Explode!!!");
         PaintExplodeArea();
         JamEnemyPlayerScreen();
-        Destroy(gameObject);
+        NetworkServer.Destroy(gameObject);
     }
 
     private void PaintExplodeArea()
@@ -72,11 +70,13 @@ public class PaintBubbleController : MonoBehaviour,IExplodable
             explodeAreaVertexes.Add(vert.normalized * _explodeRadius + transform.position);
         }
 
-        // PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_bubbleColor);
-        foreach(var pos in explodeAreaVertexes)
+        PaintAreaEvent paintEvent = new PaintAreaEvent
         {
-            Debug.Log(pos);
-        }
+            Verts = explodeAreaVertexes.ToArray(),
+            PlayerID = _ownerPlayerID,
+            PlayerAreaColor = _bubbleColor
+        };
+        TypeEventSystem.Instance.Send(paintEvent);
     }
 
     private void JamEnemyPlayerScreen()

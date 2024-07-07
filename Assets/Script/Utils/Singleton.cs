@@ -1,5 +1,6 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 
 public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
@@ -58,5 +59,10 @@ public class SingletonBase<T> where T : class, new()
             }
             return instance;
         }
+    }
+
+    protected SingletonBase() 
+    {
+        Assert.IsNull(instance);
     }
 }

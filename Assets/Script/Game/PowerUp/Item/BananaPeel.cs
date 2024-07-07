@@ -12,8 +12,9 @@ public class BananaPeel : ThrowItem
         BoxCollider bananaBox = ThrowObj.GetComponent<BoxCollider>();
         if (bananaBox != null)
         {
-            Vector3 throwObjDropPos = player.transform.position - player.transform.forward * (player.ColliderOffset * 2f + bananaBox.size.x / 2f);
-            Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
+            Vector3 throwObjDropPos = player.transform.position - player.transform.forward * (player.ItemPlaceOffset * 2f + bananaBox.size.x / 2f);
+            GameObject bananaPeel = Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
+            //player.GetComponent<GamePlayer>().CmdOnItemSpawn(bananaPeel);
         }
 
     }

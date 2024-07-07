@@ -101,6 +101,8 @@ GameObject:
   - component: {fileID: 5852782570855390569}
   - component: {fileID: 7107468156506239068}
   - component: {fileID: 282311515637009442}
+  - component: {fileID: 6934491698152011273}
+  - component: {fileID: 6486202258097252239}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -191,7 +193,7 @@ MonoBehaviour:
     m_ActionName: Player2/Item[/Keyboard/rightCtrl]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: Player1
+  m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!114 &5556957149856731237
@@ -206,8 +208,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8784c6e7ce85a1f409b17ce3624efaa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mAcceleration: 0
-  mState: 0
+  _playerState: 0
+  _playerInfo:
+    ID: 0
+    AreaColor: {r: 0, g: 0, b: 0, a: 0}
   silkCountSprites:
   - {fileID: 1261572293, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: -939105449, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
@@ -306,3 +310,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 7, y: 0.9, z: 7}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6934491698152011273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8858506136169357921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42510de846776b449aa8429fbcbaad39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+--- !u!114 &6486202258097252239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8858506136169357921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e3bff3471988b5449ed5f97a2eda18e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0

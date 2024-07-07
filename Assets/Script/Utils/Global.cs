@@ -8,12 +8,12 @@ public static class Global
         public float SpeedUp;
         public float RotateUp;
     }
-    public static readonly Vector3[] PLAYER_START_POSITIONS =
-    {
-        new(-85.0f, 0.64f, 0.0f),
+    // public static readonly Vector3[] PLAYER_START_POSITIONS =
+    // {
+    //     new(-85.0f, 0.64f, 0.0f),
 
-        new(85.0f, 0.64f, 0.0f)
-    };
+    //     new(85.0f, 0.64f, 0.0f)
+    // };
 
     public static readonly Vector3[] PLAYER_DEFAULT_FORWARD =
     {
