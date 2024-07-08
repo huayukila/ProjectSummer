@@ -8,12 +8,12 @@ public interface ITimerExecutor
 }
 public class TimerExecutor : MonoBehaviour,ITimerExecutor
 {
-    private Stack<ITimer> m_PrepareUpdateTimers;
+    private List<ITimer> m_PrepareUpdateTimers;
     private List<ITimer> m_UpdatingTimers;
     // Start is called before the first frame update
     void Awake()
     {
-        m_PrepareUpdateTimers = new Stack<ITimer>();
+        m_PrepareUpdateTimers = new List<ITimer>();
         m_UpdatingTimers = new List<ITimer>();
     }
     // Update is called once per frame
@@ -28,8 +28,9 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
     {
         while (m_PrepareUpdateTimers.Count > 0)
         {
-            var timer = m_PrepareUpdateTimers.Pop();
+            var timer = m_PrepareUpdateTimers[0];
             m_UpdatingTimers.Add(timer);
+            m_PrepareUpdateTimers.RemoveAt(0);
         }
     }
     private void UpdateTimers()
@@ -38,7 +39,7 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
             return;
         foreach (var timer in m_UpdatingTimers)
         {
-            timer.onUpdate(Time.deltaTime);
+            timer.OnTimerUpdate(Time.deltaTime);
         }
     }
 
@@ -51,10 +52,10 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
         {
             if (m_UpdatingTimers[cnt].IsFinished())
             {
-                if (m_UpdatingTimers[cnt].IsWaitForRepeat())
+                if (m_UpdatingTimers[cnt].IsRepeatable())
                 {
-                    m_UpdatingTimers[cnt].onReset();
-                    m_UpdatingTimers[cnt].onStart();
+                    m_UpdatingTimers[cnt].OnTimerReset();
+                    m_UpdatingTimers[cnt].OnTimerStart();
                 }
                 else
                 {
@@ -69,7 +70,7 @@ public class TimerExecutor : MonoBehaviour,ITimerExecutor
     }
     public void AddTimer(ITimer timer)
     {
-        m_PrepareUpdateTimers.Push(timer);
+        m_PrepareUpdateTimers.Add(timer);
     }
 
     private void OnDestroy()
