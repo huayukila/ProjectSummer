@@ -51,6 +51,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
 
         _itemSystem.RegisterManager(this);
 
+        
     }
     void Start()
     {
