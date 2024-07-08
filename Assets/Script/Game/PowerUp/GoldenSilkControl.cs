@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Mirror;
 
 namespace Gaming.PowerUp
 {
     public interface IGoldenSilk
     {
         void StartSpawn(Vector3 position);
-        void SetInactive();
         void StartDrop(Vector3 startPos,Vector3 endPos);
         
         void SetActiveCallBack(Action<GameObject> callback); 
     }
 
-    public class GoldenSilkControl : MonoBehaviour, IGoldenSilk
+    public class GoldenSilkControl : NetworkBehaviour, IGoldenSilk
     {
         private enum State
         {       
@@ -62,6 +62,7 @@ namespace Gaming.PowerUp
         /// <summary>
         /// 落下アニメーションを更新する関数
         /// </summary>
+        
         private void UpdateSpawnAnimation()
         {
             transform.Translate(0, 0, -300.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
@@ -75,7 +76,7 @@ namespace Gaming.PowerUp
         private void InitSpawnAnimation()
         {
             transform.localScale = Vector3.one * 1.9f;
-            AudioManager.Instance.PlayFX("FallFX", 0.7f);
+            //AudioManager.Instance.PlayFX("FallFX", 0.7f);
             Timer spawnTimer = new Timer(Time.time,Global.SILK_SPAWN_TIME / 2.0f,
                 () =>
                 {

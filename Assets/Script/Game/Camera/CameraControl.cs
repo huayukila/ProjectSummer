@@ -22,10 +22,14 @@ namespace Gaming
         private CamState mState = CamState.None;
         private Timer _playerRespawnLockOnTimer;
 
+        private float _aspectAdjust;
+
         // Start is called before the first frame update
         void Start()
         {
             m_Smoothness = 2.5f;
+
+            _aspectAdjust = 1f - (float)Screen.height / (float)Screen.width;
         }
 
         // Update is called once per frame
@@ -44,7 +48,16 @@ namespace Gaming
                 case CamState.OnTarget:
                 {
                     Vector3 camPos = m_Target.transform.position + Vector3.up * 36;
-                    transform.position = Vector3.Lerp(transform.position, camPos, m_Smoothness * Time.fixedDeltaTime);
+                    Vector3 newPosition = Vector3.Lerp(transform.position, camPos, m_Smoothness * Time.fixedDeltaTime);
+
+                    // ÉJÉÅÉâÇÃècï˚å¸ÇÃà⁄ìÆÇí≤êÆ(Zé≤)
+                    {
+
+                        float moveAdjust = (newPosition - m_Target.transform.position).z * _aspectAdjust;
+                        newPosition.z -= moveAdjust;
+                    }
+
+                    transform.position = newPosition;
                     break;
                 }
 

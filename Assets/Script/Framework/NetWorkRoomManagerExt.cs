@@ -5,6 +5,11 @@ using Mirror.Discovery;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using Character;
+using Unity.VisualScripting;
+using Gaming;
+using JetBrains.Annotations;
+
 // ルーム管理のインターフェース
 interface IRoomManager
 {
@@ -22,10 +27,22 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 {
     private EasyFramework _framework;
 
+    
+    private struct SpiderPlayer
+    {
+        public int ID;
+        public GameObject player;
+        public ICameraController cameraCtrl;
+        public PlayerInterfaceContainer playerInterface;
+    }
+    private SpiderPlayer _spiderPlayer;
+
+
     void RegisterAllSystem() // すべてのシステムを登録する
     {
         _framework.RegisterSystem<IPaintSystem>(new PaintSystem());
         _framework.RegisterSystem<ITestSystem>(new TestSystem());
+        _framework.RegisterSystem<IItemSystem>(new ItemSystem());
     }
 
     public EasyFramework GetFramework()
@@ -50,6 +67,10 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 
         RegisterAllSystem();
         _framework.FrameworkInit();
+
+        _spiderPlayer = new SpiderPlayer();
+
+
     }
 
     public override void Start() // 開始時
@@ -58,6 +79,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         networkDiscovery.OnServerFound.AddListener(OnDiscoverServer);
         RegisterNetPrefabs();
         SceneManager.LoadScene("Title");
+
     }
 
     public void HostGame() // ゲームホスティング
@@ -109,12 +131,32 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         Transform startPos = GetStartPosition();
         var table = Resources.Load<NetWorkPrefabsTable>("NetworkPrefabsTable");
         var gamePlayer = startPos != null
-            ? Instantiate(table.PlayerPrefabs[index],
+            ? Instantiate(table.PlayerPrefabs[0],
                 startPos.position, startPos.rotation)
-            : Instantiate(table.PlayerPrefabs[index],
+            : Instantiate(table.PlayerPrefabs[0],
                 Vector3.zero, Quaternion.identity);
 
-        gamePlayer.GetComponent<GamePlayer>().playerIndex = index;
+        // プレイヤー情報を初期化
+        {
+            Camera mainCam = Camera.main;
+            mainCam.orthographicSize = 35f;
+            _spiderPlayer.ID = index + 1;
+            _spiderPlayer.player = gamePlayer;
+            _spiderPlayer.cameraCtrl = mainCam.AddComponent<CameraControl>();
+            _spiderPlayer.cameraCtrl.LockOnTarget(_spiderPlayer.player);
+
+            _spiderPlayer.playerInterface = gamePlayer.GetComponent<IPlayerInterfaceContainer>().GetContainer();
+            _spiderPlayer.playerInterface.GetInterface<IPlayerInfo>().SetInfo(index + 1,Global.PLAYER_TRACE_COLORS[index]);
+
+            SpriteRenderer playerImage = _spiderPlayer.player.GetComponentInChildren<SpriteRenderer>();
+            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + (index + 1).ToString());
+
+        }
+
+        //TODO need refactoring
+        gamePlayer.GetComponent<GamePlayer>().playerIndex = index + 1;
+        gamePlayer.GetComponent<GamePlayer>().SetPlayerInterface(_spiderPlayer.playerInterface);
+
         Resources.UnloadAsset(table);
         return gamePlayer;
     }
@@ -162,4 +204,27 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
     #endregion
 
     #endregion
+
+    #region Interface
+    /// <summary>
+    /// プレイヤーの座標を取得する関数
+    /// </summary>
+    /// <param name="ID">プレイヤーのID</param>
+    /// <returns>プレイヤーが存在したらワールド座標を返し、存在しない場合は常にVector3.zeroを返す</returns>
+    public Vector3 GetPlayerPos()
+    {
+        if(_spiderPlayer.player == null)
+            return Vector3.zero;
+        return _spiderPlayer.player.transform.position;
+    }
+
+    // TODO this method sucks
+    public bool IsPlayerDead()
+    {
+        if(_spiderPlayer.player == null)
+            return false;
+
+        return _spiderPlayer.playerInterface.GetInterface<IPlayerState>().IsDead;
+    }
+    #endregion // Interface
 }
