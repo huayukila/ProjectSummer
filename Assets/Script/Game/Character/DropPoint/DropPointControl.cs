@@ -136,7 +136,7 @@ namespace Character
         {
             if(_dropPointTimer.IsFinished())
             {
-                _dropPointTimer.onReset();
+                _dropPointTimer.OnTimerReset();
                 _dropPointTimer.StartTimer(this);
             }
         }
