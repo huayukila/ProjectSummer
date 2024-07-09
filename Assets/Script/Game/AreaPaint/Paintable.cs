@@ -40,6 +40,7 @@ public class Paintable : MonoBehaviour
 
         areaCopyTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         areaCopyTexture.filterMode = FilterMode.Bilinear;
+        copyTexture.enableRandomWrite = true;
         areaCopyTexture.Create();
 
         rend = GetComponent<Renderer>();

@@ -20,7 +20,7 @@ public class PolygonPaintManager : View
     Material paintMaterial;
     Material areaMaterial;
     RenderTexture copyRT;
-
+    int[] result=new int[2];
     
     //shader変数
     int kernelHandle;
@@ -31,6 +31,7 @@ public class PolygonPaintManager : View
     private int worldPointID = Shader.PropertyToID("_worldPosList");
     int textureSizeID=Shader.PropertyToID("_TextureSize");
 
+    
     protected void Awake()
     {
         mapPaintable.Init();
@@ -55,6 +56,7 @@ public class PolygonPaintManager : View
         command.name = "CommmandBuffer - " + gameObject.name;
 
         computeShader.SetBuffer(kernelHandle, "CountBuffer", countBuffer);
+        computeShader.SetTexture(kernelHandle, "Result", mapPaintable.GetCopy());
         computeShader.SetVector("TargetColorA", Global.PLAYER_TRACE_COLORS[0]);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TRACE_COLORS[1]);
         GetSystem<IPaintSystem>().RegisterManager(this);
