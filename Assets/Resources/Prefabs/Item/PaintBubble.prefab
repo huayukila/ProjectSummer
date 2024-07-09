@@ -123,6 +123,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  _explodeRadius: 10
 --- !u!114 &1420112153047769690
 MonoBehaviour:
   m_ObjectHideFlags: 0

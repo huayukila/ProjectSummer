@@ -409,7 +409,7 @@ namespace Character
                             PlayerID = _playerInfo.ID,
                             PlayerAreaColor = _playerInfo.AreaColor
                         };
-                        TypeEventSystem.Instance.Send(paintEvent);
+                        //TypeEventSystem.Instance.Send(paintEvent);
                         
                         TryCaptureObject(verts.ToArray());
                         // ‘S‚Ä‚ÌDropPoint‚ğÁ‚·

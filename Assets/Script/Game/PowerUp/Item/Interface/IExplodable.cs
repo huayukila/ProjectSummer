@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface IExplodable
 {
-    public void SetExplodeProperty(int owner, float radius, Color color);
+    public void SetupExplode(int owner, Color color);
 }

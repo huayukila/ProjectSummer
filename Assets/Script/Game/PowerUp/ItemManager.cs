@@ -82,7 +82,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         {
             if(e.dropCount > 0)
             {
-                CmdDestroySilk(_capturedSilks[0]);
+                RpcDestroyItem(_capturedSilks[0]);
                 _capturedSilks.RemoveAt(0);
                 --e.dropCount;
                 while (e.dropCount > 0)
@@ -286,8 +286,8 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
                 _onFieldSilks.Add(obj);
             });
     }
-    [Command]
-    private void CmdDestroySilk(GameObject obj)
+    [ClientRpc]
+    public void RpcDestroyItem(GameObject obj)
     {
         NetworkServer.Destroy(obj);
     }

@@ -39,6 +39,8 @@ public class MissileController : NetworkBehaviour,IExplodable
 
     private MeshRenderer _meshRenderer;
 
+    public float ExplodeRadius => _explodeRadius;
+
     private void Awake()
     {
         _meshRenderer = GetComponent<MeshRenderer>();
@@ -128,10 +130,9 @@ public class MissileController : NetworkBehaviour,IExplodable
         
     }
     // Update is called once per frame
-    public void SetExplodeProperty(int owner, float radius, Color color)
+    public void SetupExplode(int owner, Color color)
     {
         _ownerPlayerID = owner;
-        _explodeRadius = radius;
         _explodeColor = color;
 
         LockOnNearestTarget();
