@@ -403,18 +403,13 @@ namespace Character
                         // ï`âÊÇ∑ÇÈ
                         // PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
 
-                        #region Waiting For Paint Bug Fix
-                            #if false
-                                PaintAreaEvent paintEvent = new PaintAreaEvent
-                                {
-                                    Verts = verts.ToArray(),
-                                    PlayerID = _playerInfo.ID,
-                                    PlayerAreaColor = _playerInfo.AreaColor
-                                };
-                                TypeEventSystem.Instance.Send(paintEvent);
-                            #endif
-                        #endregion 
-                        // wait for paint bug fix
+                        PaintAreaEvent paintEvent = new PaintAreaEvent
+                        {
+                            Verts = verts.ToArray(),
+                            PlayerID = _playerInfo.ID,
+                            PlayerAreaColor = _playerInfo.AreaColor
+                        };
+                        TypeEventSystem.Instance.Send(paintEvent);
                         
                         TryCaptureObject(verts.ToArray());
                         // ëSÇƒÇÃDropPointÇè¡Ç∑
