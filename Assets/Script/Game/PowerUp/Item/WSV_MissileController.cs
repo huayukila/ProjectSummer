@@ -19,9 +19,13 @@ public class MissileController : NetworkBehaviour,IExplodable
     [SerializeField]
     private float _speed;
     [SerializeField]
+    private float _stopSearchInterval;
+    [SerializeField]
     private float _searchRadius;
 
     private float _sqrSearchRadius;
+
+    private float _targetLostTimeCnt;
 
     private float _explodeRadius = 0f;
     private int _ownerPlayerID = -1;
@@ -41,6 +45,7 @@ public class MissileController : NetworkBehaviour,IExplodable
         _canHoming = false;
         _homingMode = EHomingMode.None;
         _sqrSearchRadius = Mathf.Pow(_searchRadius,2f);
+        _targetLostTimeCnt = 0f;
     }
     private void Start()
     {
@@ -51,6 +56,7 @@ public class MissileController : NetworkBehaviour,IExplodable
 
     private void Update()
     {
+        // 追尾しない場合終了
         if(_homingMode == EHomingMode.None)
             return;
 
@@ -61,9 +67,35 @@ public class MissileController : NetworkBehaviour,IExplodable
         if(distance == float.PositiveInfinity)
             return;
         
-        if(distance <= _sqrSearchRadius)
+        switch(_homingMode)
+        {
+            case EHomingMode.StrongHoming:
+            {
+                if(distance <= _sqrSearchRadius)
+                    _homingMode = EHomingMode.WeakHoming;
+                break;
+            }
+            case EHomingMode.WeakHoming:
+            {
+                break;
+            }
+        }
+        // 第一形態かつターゲットヘの距離が検索範囲内、第二形態へ変更
+        if(_homingMode == EHomingMode.StrongHoming && distance <= _sqrSearchRadius)
         {
             _homingMode = EHomingMode.WeakHoming;
+        }
+
+        // 第二形態かつ検索範囲から離れる、追尾停止カウンターを加算する
+        if(_homingMode == EHomingMode.WeakHoming && distance > _sqrSearchRadius)
+        {
+            _targetLostTimeCnt += Time.deltaTime;
+
+            // 一定時間がたったら追尾停止
+            if(_targetLostTimeCnt >= _stopSearchInterval)
+            {
+                _homingMode = EHomingMode.None;
+            }
         }
     }
 
@@ -75,20 +107,19 @@ public class MissileController : NetworkBehaviour,IExplodable
 
         switch(_homingMode)
         {
-            // 第一段階
+            // 第一形態
             // ターゲットの元に移動
             case EHomingMode.StrongHoming:
             {
                 break;
             }
-            // 第二段階
+            // 第二形態
             // ターゲットに近づけたら補間追尾
             case EHomingMode.WeakHoming:
             {
                 break;
             }
-            // 第三段階
-            // ターゲットを失ったら
+            // ターゲットを失ったら追尾しない
             case EHomingMode.None:
             {
                 break;
