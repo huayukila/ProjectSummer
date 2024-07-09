@@ -17,6 +17,18 @@ public class Missile : ThrowItem
             GameObject missile = Instantiate(ThrowObj, throwObjDropPos, player.transform.rotation);
             NetworkServer.Spawn(missile);
             //player.GetComponent<GamePlayer>().CmdOnItemSpawn(bananaPeel);
+
+
+            if(missile.TryGetComponent<IExplodable>(out IExplodable explodable))
+            {
+                // TODO player‚ðŽg‚í‚È‚¢
+                PlayerInterfaceContainer container = player.GetContainer();
+                IPlayerInfo playerInfo = container.GetInterface<IPlayerInfo>();
+                if(playerInfo != null)
+                {
+                    explodable.SetupExplode(playerInfo.ID,playerInfo.AreaColor);
+                }
+            }
         }
 
     }

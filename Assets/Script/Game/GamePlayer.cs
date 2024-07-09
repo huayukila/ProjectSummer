@@ -132,4 +132,10 @@ public class GamePlayer : View
     {
         GetSystem<IItemSystem>().InitItemSystem();
     }
+
+    [Command]
+    public void CmdDropSilkEvent(DropSilkEvent dropSilkEvent)
+    {
+        TypeEventSystem.Instance.Send(dropSilkEvent);
+    }
 }

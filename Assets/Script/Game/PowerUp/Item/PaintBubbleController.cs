@@ -11,6 +11,7 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
 
     private float _waitForExplodeTime = Global.BUBBLE_EXPLODE_TIME;
 
+    [SerializeField]
     private float _explodeRadius = 0f;
 
     private int _ownerPlayerID = -1;
@@ -21,8 +22,7 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
 
     private void Awake()
     {
-        Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,ExplodeBubble);
-        explodeTimer.StartTimer(this);
+
         _meshRenderer = GetComponent<MeshRenderer>();
     }
     private void Start()
@@ -32,11 +32,13 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
         _meshRenderer.sharedMaterial = _material;
     }
     // Update is called once per frame
-    public void SetExplodeProperty(int owner, float radius, Color color)
+    public void SetupExplode(int owner, Color color)
     {
         _ownerPlayerID = owner;
-        _explodeRadius = radius;
         _bubbleColor = color;
+
+        Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,ExplodeBubble);
+        explodeTimer.StartTimer(this);
     }
 
     private void OnDestroy()
@@ -76,7 +78,7 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
             PlayerID = _ownerPlayerID,
             PlayerAreaColor = _bubbleColor
         };
-        TypeEventSystem.Instance.Send(paintEvent);
+        //TypeEventSystem.Instance.Send(paintEvent);
     }
 
     private void JamEnemyPlayerScreen()
