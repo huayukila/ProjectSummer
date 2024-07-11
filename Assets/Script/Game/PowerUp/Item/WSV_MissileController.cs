@@ -4,8 +4,9 @@ using System.Timers;
 using Character;
 using Mirror;
 using UnityEngine;
+using UnityEngine.Analytics;
 
-
+[RequireComponent(typeof(Rigidbody))]
 public class MissileController : NetworkBehaviour,IExplodable
 {
     private enum EHomingMode
@@ -23,8 +24,15 @@ public class MissileController : NetworkBehaviour,IExplodable
     [SerializeField]
     private float _searchRadius;
 
-    private float _sqrSearchRadius;
+    [SerializeField]
+    private float _chaseRadius;
 
+    [SerializeField]
+    [Range(0,1f)]
+    private float _chaseRotationRate;
+    private float _sqrChaseRadius;
+    private float _sqrSearchRadius;
+    private bool _isChasing;
     private float _targetLostTimeCnt;
 
     private float _explodeRadius = 0f;
@@ -33,10 +41,9 @@ public class MissileController : NetworkBehaviour,IExplodable
     private bool _canHoming;
 
     private EHomingMode _homingMode;
-
     private Transform _target;
     private Material _material;
-
+    private Rigidbody _rigidbody;
     private MeshRenderer _meshRenderer;
 
     public float ExplodeRadius => _explodeRadius;
@@ -47,7 +54,10 @@ public class MissileController : NetworkBehaviour,IExplodable
         _canHoming = false;
         _homingMode = EHomingMode.None;
         _sqrSearchRadius = Mathf.Pow(_searchRadius,2f);
+        _sqrChaseRadius = Mathf.Pow(_chaseRadius,2f);
         _targetLostTimeCnt = 0f;
+        _rigidbody = GetComponent<Rigidbody>();
+        _isChasing = false;
     }
     private void Start()
     {
@@ -88,47 +98,30 @@ public class MissileController : NetworkBehaviour,IExplodable
             _homingMode = EHomingMode.WeakHoming;
         }
 
+        if(_homingMode == EHomingMode.WeakHoming && distance <= _sqrChaseRadius)
+        {
+            if(!_isChasing)
+            {
+                _isChasing = true;
+            }       
+        }
         // 第二形態かつ検索範囲から離れる、追尾停止カウンターを加算する
-        if(_homingMode == EHomingMode.WeakHoming && distance > _sqrSearchRadius)
+        if(_homingMode == EHomingMode.WeakHoming && distance > _sqrChaseRadius)
         {
-            _targetLostTimeCnt += Time.deltaTime;
-
-            // 一定時間がたったら追尾停止
-            if(_targetLostTimeCnt >= _stopSearchInterval)
+            if(_isChasing)
             {
-                _homingMode = EHomingMode.None;
+                _targetLostTimeCnt += Time.deltaTime;
+
+                // 一定時間がたったら追尾停止
+                if(_targetLostTimeCnt >= _stopSearchInterval)
+                {
+                    _homingMode = EHomingMode.None;
+                    _isChasing = false;
+                }
             }
         }
     }
 
-    private void FixedUpdate()
-    {
-        // 追尾できない場合更新しない
-        if(!_canHoming)
-            return;
-
-        switch(_homingMode)
-        {
-            // 第一形態
-            // ターゲットの元に移動
-            case EHomingMode.StrongHoming:
-            {
-                break;
-            }
-            // 第二形態
-            // ターゲットに近づけたら補間追尾
-            case EHomingMode.WeakHoming:
-            {
-                break;
-            }
-            // ターゲットを失ったら追尾しない
-            case EHomingMode.None:
-            {
-                break;
-            }
-        }
-        
-    }
     // Update is called once per frame
     public void SetupExplode(int owner, Color color)
     {
@@ -219,6 +212,21 @@ public class MissileController : NetworkBehaviour,IExplodable
             return float.PositiveInfinity;
 
         return (_target.position - transform.position).sqrMagnitude;
+    }
+
+    private void ChaseTarget()
+    {
+        if(_target == null)
+            return;
+
+        Vector3 nextMoveDirection = _target.position - transform.position;
+        
+        Quaternion rotation = Quaternion.LookRotation(nextMoveDirection, Vector3.up);
+
+        #region Chase Rotation
+        // TODO Need good implementation
+        _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, _chaseRotationRate);
+        #endregion
     }
 
 }

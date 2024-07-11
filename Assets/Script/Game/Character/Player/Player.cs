@@ -250,6 +250,8 @@ namespace Character
                 { EItemEffect.Slip, OnSlip }
             };
         }
+
+        #region Player Move
         /// <summary>
         /// プレイヤーの移動を制御する
         /// </summary>
@@ -263,7 +265,10 @@ namespace Character
             Vector3 moveDirection = transform.forward * _currentMoveSpeed * _moveSpeedCoefficient * mBoostCoefficient;
             _rigidbody.velocity = moveDirection;
         }
+        #endregion
 
+
+        #region Player Rotate
         /// <summary>
         /// プレイヤーの回転を制御する
         /// </summary>
@@ -279,6 +284,7 @@ namespace Character
                 _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, _status.RotationSpeed * Time.fixedDeltaTime);
             }
         }
+        #endregion
 
         /// <summary>
         /// キャラクターの画像を反転する関数
