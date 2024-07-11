@@ -14,6 +14,7 @@ public interface IItemSystem : ISystem
     Vector3[] GetOnFieldItemBoxPos();
     Vector3[] GetOnFieldSilkPos();
     void InitItemSystem();
+    void DestroyItem(GameObject obj);
 }
 
 
@@ -106,6 +107,11 @@ public class ItemSystem : AbstractSystem, IItemSystem
     public void InitItemSystem()
     {
         _itemManager.RpcInitItemBox();
+    }
+
+    public void DestroyItem(GameObject obj)
+    {
+        _itemManager.RpcDestroyItem(obj);
     }
 
     #endregion

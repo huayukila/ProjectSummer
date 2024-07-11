@@ -136,7 +136,7 @@ namespace Character
         {
             if(_dropPointTimer.IsFinished())
             {
-                _dropPointTimer.onReset();
+                _dropPointTimer.OnTimerReset();
                 _dropPointTimer.StartTimer(this);
             }
         }
@@ -211,12 +211,8 @@ namespace Character
         private void CmdRemovePoint(GameObject dropPoint)
         {
             if(!_playerDropPoints.playerPoints.Contains(dropPoint))
-            {
-                foreach(var pt in _playerDropPoints.playerPoints)
-                {
-                    Debug.Log(pt.GetInstanceID());
-                }
-            }
+                return;
+
 
             _playerDropPoints.playerPoints.Remove(dropPoint);
             NetworkServer.Destroy(dropPoint);
@@ -232,7 +228,7 @@ namespace Character
             // ëSÇƒÇÃDropPoint(GameObject)Çîjä¸Ç∑ÇÈ
             foreach (GameObject dropPoint in _playerDropPoints.playerPoints)
             {
-                Destroy(dropPoint);
+                NetworkServer.Destroy(dropPoint);
             }
             // ListÇ…Ç†ÇÈï®ÇëSïîè¡Ç∑
             _playerDropPoints.playerPoints.Clear();
@@ -252,7 +248,16 @@ namespace Character
         /// </summary>
         private void OnDestroy()
         {
-            CmdClearDropPoints();
+            if(NetworkServer.active)
+            {
+                CmdClearDropPoints();
+            }
+            else
+            {
+                _playerDropPoints.playerPoints.Clear();
+                Destroy(_playerDropPoints.pointGroup);
+            }
+            
         }
     }
 }
