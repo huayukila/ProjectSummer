@@ -72,13 +72,15 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
             explodeAreaVertexes.Add(vert.normalized * _explodeRadius + transform.position);
         }
 
+        #region Paint Area
         PaintAreaEvent paintEvent = new PaintAreaEvent
         {
             Verts = explodeAreaVertexes.ToArray(),
             PlayerID = _ownerPlayerID,
             PlayerAreaColor = _bubbleColor
         };
-        //TypeEventSystem.Instance.Send(paintEvent);
+        TypeEventSystem.Instance.Send(paintEvent);
+        #endregion
     }
 
     private void JamEnemyPlayerScreen()

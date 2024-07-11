@@ -23,7 +23,7 @@ public struct PlayerItemContainer
 namespace Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player : Character, IPlayer2ItemSystem, IItemAffectable, IPlayerCommand, IPlayerInfo, IPlayerState, IPlayerInterfaceContainer
+    public class Player : Character, IPlayer2ItemSystem, IItemAffectable, IPlayerCommand, IPlayerInfo, IPlayerState, IPlayerInterfaceContainer,IPlayerBoost
     {
         // プレイヤーの状態
         private enum State
@@ -64,7 +64,7 @@ namespace Character
         private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
         private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
         private Vector3 _rotateDirection;                   // プレイヤーの回転方向
-        private bool _canBoost = false;                     // ブーストできるかのフラグ
+        private bool _isBoosting = false;                   // ブーストしているかのフラグ
         private SpriteRenderer _imageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
         private PlayerAnim _playerAnim;
         private DropPointControl _dropPointCtrl;            // プレイヤーのDropPointControl
@@ -86,6 +86,10 @@ namespace Character
         private IItemSystem _itemSystem;
 
         private GamePlayer _gamePlayer;
+
+        private float _boostChargeTimeCnt;
+
+        
         private void Awake()
         {
             _playerInterface = new PlayerInterfaceContainer(this);
@@ -93,6 +97,10 @@ namespace Character
             Init();
             // Item affectable actions init
             InitItemAffect();
+
+            {
+                _boostChargeTimeCnt = 0f;
+            }
         }
         private void Start()
         {
@@ -188,6 +196,11 @@ namespace Character
             CheckGroundColor();
             // 領域を描画してみる
             TryPaintArea();
+
+            if(_isBoosting)
+            {
+                _boostChargeTimeCnt += Time.deltaTime;
+            }
 
         }
 
@@ -324,7 +337,7 @@ namespace Character
 
             _currentMoveSpeed = 0.0f;
 
-            _canBoost = false;
+            _isBoosting = false;
 
             _silkData.SilkCount = 0;
 
@@ -401,16 +414,17 @@ namespace Character
                         }
                         verts.Add(crossPoint);
                         // 描画する
-                        // PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
 
+                        #region Paint Area
                         PaintAreaEvent paintEvent = new PaintAreaEvent
                         {
                             Verts = verts.ToArray(),
                             PlayerID = _playerInfo.ID,
                             PlayerAreaColor = _playerInfo.AreaColor
                         };
-                        //TypeEventSystem.Instance.Send(paintEvent);
-                        
+                        TypeEventSystem.Instance.Send(paintEvent);
+                        #endregion
+
                         TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
                         _dropPointCtrl.CmdClearDropPoints();
@@ -585,11 +599,11 @@ namespace Character
         {
             if (context.performed)
             {
-                if (_playerState == State.Fine && _canBoost == false)
+                if (_playerState == State.Fine && _isBoosting == false)
                 {
                     mBoostCoefficient = 1.5f;
                     _currentMoveSpeed = _status.MaxMoveSpeed;
-                    _canBoost = true;
+                    _isBoosting = true;
                     TypeEventSystem.Instance.Send(new BoostStart 
                     { 
                         Number = _playerInfo.ID
@@ -603,7 +617,8 @@ namespace Character
                     Timer boostCoolDownTimer = new Timer(Time.time,Global.BOOST_COOLDOWN_TIME,
                         () =>
                         {
-                            _canBoost = false;
+                            _isBoosting = false;
+                            _boostChargeTimeCnt = Global.BOOST_COOLDOWN_TIME;
                         }
                         );
                     stopBoostTimer.StartTimer(this);
@@ -719,6 +734,9 @@ namespace Character
             }
         }
         public float ItemPlaceOffset => _itemPlaceOffset;
+
+        //
+        public float ChargeBarPercentage => Mathf.Clamp(_boostChargeTimeCnt / Global.BOOST_COOLDOWN_TIME, 0f, 1f);
         #endregion // Interface
 
         #region Obsolete Code

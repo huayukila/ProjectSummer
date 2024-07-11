@@ -26,6 +26,7 @@ public interface IPlayerInfo : IPlayerControl
     void SetInfo(int ID,Color color);
 }
 
+
 public interface IPlayerState : IPlayerControl
 {
 
@@ -35,6 +36,13 @@ public interface IPlayerState : IPlayerControl
     bool IsUncontrollable { get; }
     bool IsStuning { get; }
 
+}
+
+
+public interface IPlayerBoost
+{
+    // Get percentage of Charge Bar
+    float ChargeBarPercentage { get; }
 }
 
 public interface IPlayerInterfaceContainer
