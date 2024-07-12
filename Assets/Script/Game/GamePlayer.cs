@@ -1,10 +1,12 @@
 using Character;
 using Mirror;
-using Mirror.Examples.MultipleMatch;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
+public struct SendInitializedPlayerEvent
+{
+    public Player Player;
+}
 public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
@@ -30,6 +32,13 @@ public class GamePlayer : View
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
         CmdInitItemSystem();
+
+        SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
+                                                {
+                                                    Player = GetComponent<Player>()
+                                                };
+
+        TypeEventSystem.Instance.Send(playerEvent);
     }
 
     private void Update()

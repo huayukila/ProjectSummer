@@ -349,7 +349,9 @@ namespace Character
 
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
 
-            _dropPointCtrl.CmdClearDropPoints();
+            #region need fix
+            //_dropPointCtrl.CmdClearDropPoints();
+            #endregion
 
             _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
@@ -433,7 +435,10 @@ namespace Character
 
                         TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
-                        _dropPointCtrl.CmdClearDropPoints();
+                        #region need fix 
+                        
+                        //_dropPointCtrl.CmdClearDropPoints();
+                        #endregion
                         // 尻尾のTrailRendererの状態をリセットする
                         _dropPointCtrl.ResetTrail();
                         break;

@@ -9,6 +9,8 @@ using Character;
 using Unity.VisualScripting;
 using Gaming;
 using JetBrains.Annotations;
+using UnityEngine.InputSystem;
+
 
 // ルーム管理のインターフェース
 interface IRoomManager
@@ -20,6 +22,58 @@ interface IRoomManager
     void ExitToOffline();
 
     Transform GetRespawnPosition(int index);
+}
+
+public static class TempFunc
+{
+    public static void DetectDevice()
+    {
+        InputSystem.onDeviceChange += (device, change) =>
+        {
+            switch (change)
+            {
+                case InputDeviceChange.Added:
+                    if (device is Keyboard)
+                    {
+
+                    }
+                    else if (device is Gamepad)
+                    {
+                        for (int i = 0; i < PlayerInput.all.Count; ++i)
+                        {
+                            if (PlayerInput.all[i].GetDevice<InputDevice>() is not Gamepad)
+                            {
+                                PlayerInput.all[i].SwitchCurrentControlScheme(
+                                "Gamepad",
+                                device as Gamepad);
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case InputDeviceChange.Disconnected:
+                    InputSystem.FlushDisconnectedDevices();
+                    break;
+                case InputDeviceChange.Removed:
+                    if (device is Gamepad)
+                    {
+                        for (int i = 0; i < PlayerInput.all.Count; ++i)
+                        {
+                            if (PlayerInput.all[i].GetDevice<InputDevice>() == device && Keyboard.current != null)
+                            {
+                                PlayerInput.all[i].SwitchCurrentControlScheme(
+                                "Keyboard&Mouse",
+                                Keyboard.current);
+                                break;
+                            }
+                        }
+                    }
+                    InputSystem.RemoveDevice(device);
+                    break;
+            }
+        };
+
+    }
 }
 
 // ネットワークルームマネージャ拡張クラス
@@ -70,6 +124,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 
         _spiderPlayer = new SpiderPlayer();
 
+        TempFunc.DetectDevice();
 
     }
 
@@ -79,7 +134,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         networkDiscovery.OnServerFound.AddListener(OnDiscoverServer);
         RegisterNetPrefabs();
         SceneManager.LoadScene("Title");
-
+        
     }
 
     public void HostGame() // ゲームホスティング

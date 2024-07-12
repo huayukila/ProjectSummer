@@ -61,8 +61,11 @@ public class MissileController : NetworkBehaviour,IExplodable
     }
     private void Start()
     {
-        _material = new Material(_meshRenderer.sharedMaterial) { hideFlags = HideFlags.DontSave};
-        _material.color = _explodeColor;
+        _material = new Material(_meshRenderer.sharedMaterial)
+        {
+            hideFlags = HideFlags.DontSave,
+            color = _explodeColor
+        };
         _meshRenderer.sharedMaterial = _material;
     }
 
@@ -127,6 +130,8 @@ public class MissileController : NetworkBehaviour,IExplodable
     {
         _ownerPlayerID = owner;
         _explodeColor = color;
+        
+        _meshRenderer.sharedMaterial.color = _explodeColor;
 
         LockOnNearestTarget();
     }
