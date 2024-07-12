@@ -106,7 +106,7 @@ namespace Character
         {
             GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, transform.rotation);
             pt.tag = _dropPointTag;
-            pt.GetComponent<DropPoint>().SetDestroyCallback(CmdRemovePoint);
+            pt.GetComponent<DropPoint>().SetDestroyCallback(RpcRemovePoint);
             // TODO 
             AddPoint(pt);
             NetworkServer.Spawn(pt);
@@ -207,8 +207,8 @@ namespace Character
         /// 消えたDropPoint(GameObject)をListから消す関数
         /// </summary>
         /// <param name="dropPoint">消えたDropPoint(GameObject)</param>
-        [Command]
-        private void CmdRemovePoint(GameObject dropPoint)
+        [ClientRpc]
+        private void RpcRemovePoint(GameObject dropPoint)
         {
             if(!_playerDropPoints.playerPoints.Contains(dropPoint))
                 return;
@@ -222,8 +222,8 @@ namespace Character
         /// プレイヤーの全てのDropPoint(GameObject)を消す関数
         /// </summary>
         /// <param name="ID">プレイヤーのID</param>
-        [Command]
-        public void CmdClearDropPoints()
+        [Client]
+        public void RpcClearDropPoints()
         {
             // 全てのDropPoint(GameObject)を破棄する
             foreach (GameObject dropPoint in _playerDropPoints.playerPoints)
@@ -250,7 +250,7 @@ namespace Character
         {
             if(NetworkServer.active)
             {
-                CmdClearDropPoints();
+                RpcClearDropPoints();
             }
             else
             {
