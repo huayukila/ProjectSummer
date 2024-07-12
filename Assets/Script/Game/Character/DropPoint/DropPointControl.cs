@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using Org.BouncyCastle.Security;
 
 namespace Character
 {
@@ -34,9 +35,13 @@ namespace Character
         private Color _areaColor;
 
         private Player _player;
+        private GamePlayer _networkPlayer;
+        public GameObject DropPointPrefab => _pointPrefab;
 
         private void Awake()
         {
+            _networkPlayer = GetComponent<GamePlayer>();
+
             _pointPrefab = GameResourceSystem.Instance.GetPrefabResource("DropPoint");
             _tailFadeOutTimer = 0.0f;
             trailOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
@@ -60,8 +65,9 @@ namespace Character
             _dropPointTimer = new Timer(Time.time, Global.DROP_POINT_INTERVAL,
                 () =>
                 {
+                    Vector3 spawnPos = transform.position - transform.forward * trailOffset;
                     // タイマーが終わったらDropPointを置く
-                    CmdInstantiateDropPoint();
+                    _networkPlayer.CmdOnInstantiateDropPoint(spawnPos);
                 }
                 );
             _dropPointTimer.StartTimer(this);
@@ -101,15 +107,14 @@ namespace Character
         /// <summary>
         /// DropPointをインスタンス化する
         /// </summary>
-        [Command]
-        private void CmdInstantiateDropPoint()
+        [ClientRpc]
+        public void RpcAddDropPoint(GameObject pt)
         {
-            GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, transform.rotation);
+            //GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, Quaternion.identity);
             pt.tag = _dropPointTag;
-            pt.GetComponent<DropPoint>().SetDestroyCallback(RpcRemovePoint);
+            pt.GetComponent<DropPoint>().SetDestroyCallback(_networkPlayer.CmdOnDestroyDropPoint);
             // TODO 
             AddPoint(pt);
-            NetworkServer.Spawn(pt);
 
         }
 
@@ -121,6 +126,9 @@ namespace Character
             _playerID = _player.ID;
             _dropPointTag = "DropPoint" + _playerID.ToString();
             _areaColor = _player.AreaColor;
+            
+            Debug.Log(_playerID);
+            
             _tailTrailRenderer.material = new Material(Shader.Find("Sprites/Default")) { hideFlags = HideFlags.DontSave};
             _tailTrailRenderer.startColor = Global.PLAYER_TRACE_COLORS[_playerID - 1];
             _tailTrailRenderer.endColor = Global.PLAYER_TRACE_COLORS[_playerID - 1];
@@ -207,28 +215,29 @@ namespace Character
         /// 消えたDropPoint(GameObject)をListから消す関数
         /// </summary>
         /// <param name="dropPoint">消えたDropPoint(GameObject)</param>
-        [ClientRpc]
-        private void RpcRemovePoint(GameObject dropPoint)
+        public void RemovePoint(GameObject dropPoint)
         {
             if(!_playerDropPoints.playerPoints.Contains(dropPoint))
+            {
+                Debug.Log("Why Mirror");
                 return;
-
+            }
 
             _playerDropPoints.playerPoints.Remove(dropPoint);
-            NetworkServer.Destroy(dropPoint);
         }
 
         /// <summary>
         /// プレイヤーの全てのDropPoint(GameObject)を消す関数
         /// </summary>
         /// <param name="ID">プレイヤーのID</param>
-        [Client]
+        [ClientRpc]
         public void RpcClearDropPoints()
         {
             // 全てのDropPoint(GameObject)を破棄する
             foreach (GameObject dropPoint in _playerDropPoints.playerPoints)
             {
-                NetworkServer.Destroy(dropPoint);
+                if(_networkPlayer != null)
+                    _networkPlayer.CmdOnDestroyDropPoint(dropPoint);
             }
             // Listにある物を全部消す
             _playerDropPoints.playerPoints.Clear();
@@ -250,13 +259,14 @@ namespace Character
         {
             if(NetworkServer.active)
             {
-                RpcClearDropPoints();
+                _networkPlayer.CmdOnClearAllDropPoints();
             }
             else
             {
                 _playerDropPoints.playerPoints.Clear();
-                Destroy(_playerDropPoints.pointGroup);
             }
+
+            Destroy(_playerDropPoints.pointGroup);
             
         }
     }

@@ -200,9 +200,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
             _spiderPlayer.cameraCtrl = mainCam.AddComponent<CameraControl>();
             _spiderPlayer.cameraCtrl.LockOnTarget(_spiderPlayer.player);
 
-            _spiderPlayer.playerInterface = gamePlayer.GetComponent<IPlayerInterfaceContainer>().GetContainer();
-            _spiderPlayer.playerInterface.GetInterface<IPlayerInfo>().SetInfo(index + 1,Global.PLAYER_TRACE_COLORS[index]);
-
+            
             SpriteRenderer playerImage = _spiderPlayer.player.GetComponentInChildren<SpriteRenderer>();
             playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + (index + 1).ToString());
 

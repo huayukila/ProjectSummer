@@ -40,13 +40,24 @@ public class PlayerAnim : CharacterAnim
         mPlayer = GetComponent<Player>();
         _respawnAnimationTimer = Global.RESPAWN_TIME;
 
+        #region fuck mirror
+        TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>
+            (
+                eve =>
+                {
+                    PlayerInterfaceContainer playerInterfaces = GetComponent<IPlayerInterfaceContainer>().GetContainer();
+                    int id = playerInterfaces.GetInterface<IPlayerInfo>().ID;
+                    _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(id - 1).position;
+                }
+            );
+            
+        #endregion
+
     }
     // Start is called before the first frame update
     void Start()
     {
-        PlayerInterfaceContainer playerInterfaces = GetComponent<IPlayerInterfaceContainer>().GetContainer();
-        int id = playerInterfaces.GetInterface<IPlayerInfo>().ID;
-        _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(id - 1).position;
+     
     }
 
     // Update is called once per frame

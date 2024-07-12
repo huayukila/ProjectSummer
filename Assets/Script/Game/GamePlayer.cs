@@ -11,6 +11,7 @@ public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
     private PlayerInterfaceContainer _playerInterfaceContainer;
+    private DropPointControl _dropPointControl;
 
     public override void OnStartLocalPlayer()
     {
@@ -33,12 +34,28 @@ public class GamePlayer : View
 
         CmdInitItemSystem();
 
-        SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
-                                                {
-                                                    Player = GetComponent<Player>()
-                                                };
 
-        TypeEventSystem.Instance.Send(playerEvent);
+        // dropPointController
+        {
+            _dropPointControl = GetComponent<DropPointControl>();
+        }
+
+        // Input Device
+        {
+            DeviceSetting.Init();
+        }
+
+        _playerInterfaceContainer.GetInterface<IPlayerInfo>().SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
+        {
+            
+            SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
+                                                    {
+                                                        Player = GetComponent<Player>()
+                                                    };
+
+            TypeEventSystem.Instance.Send(playerEvent);
+        }
+
     }
 
     private void Update()
@@ -137,6 +154,12 @@ public class GamePlayer : View
     }
 
     [Command]
+    public void CmdOnNetworkObjectDestroy(GameObject obj)
+    {
+        NetworkServer.Destroy(obj);
+    }
+
+    [Command]
     public void CmdInitItemSystem()
     {
         GetSystem<IItemSystem>().InitItemSystem();
@@ -146,5 +169,35 @@ public class GamePlayer : View
     public void CmdDropSilkEvent(DropSilkEvent dropSilkEvent)
     {
         TypeEventSystem.Instance.Send(dropSilkEvent);
+    }
+
+    [Command]
+    public void CmdOnInstantiateDropPoint(Vector3 pos)
+    {
+        GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab,pos,Quaternion.identity);
+        SpawnNetworkObj(dropPoint);
+        _dropPointControl.RpcAddDropPoint(dropPoint);
+    }
+
+    [Command]
+    public void CmdOnDestroyDropPoint(GameObject abandonDropPoint)
+    {
+        _dropPointControl.RemovePoint(abandonDropPoint);
+        OnDestroyNetworkObj(abandonDropPoint);
+    }
+
+    [Command]
+    public void CmdOnClearAllDropPoints()
+    {
+        _dropPointControl.RpcClearDropPoints();
+    }
+    private void OnDestroyNetworkObj(GameObject abandonedObj)
+    {
+        NetworkServer.Destroy(abandonedObj);
+    }
+
+    private void SpawnNetworkObj(GameObject obj)
+    {
+        NetworkServer.Spawn(obj);
     }
 }
