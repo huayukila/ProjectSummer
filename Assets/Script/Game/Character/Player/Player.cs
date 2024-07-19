@@ -316,14 +316,15 @@ namespace Character
         /// </summary>
         private void StartDead()
         {
-            _playerAnim.RpcStartExplosionAnim();
+            _playerAnim.StartExplosionAnim();
+
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
             {
                 dropCount = _silkData.SilkCount,
                 pos = transform.position
             };
             TypeEventSystem.Instance.Send(dropSilkEvent);
-            TypeEventSystem.Instance.Send(new PlayerRespawnEvent());
+            TypeEventSystem.Instance.Send(new PlayerRespawnEvent(){ Player = gameObject});
 
             // プレイヤーの状態をリセットする
             ResetStatus();
@@ -334,7 +335,6 @@ namespace Character
             GetComponentInChildren<TrailRenderer>().enabled = false;
             GetComponent<Collider>().enabled = false;
             // プレイヤー復活イベントを喚起する
-            _playerAnim.RpcStartRespawnAnim();
             _particleSystemCtrl.Stop();
             SetPowerUpLevel();
         }
