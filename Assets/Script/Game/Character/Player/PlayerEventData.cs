@@ -23,6 +23,7 @@ public struct DropSilkEvent
 
 public struct PlayerRespawnEvent
 {
+    public GameObject Player;
 }
 
 public struct PlayerDeadEvent
