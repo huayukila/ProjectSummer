@@ -12,7 +12,7 @@ public class DropPoint : NetworkBehaviour
         _lifeTimeTimer = new Timer(Time.time,Global.DROP_POINT_ALIVE_TIME,
             () =>
             {
-                _destroyCallback.Invoke(gameObject);
+                _destroyCallback?.Invoke(gameObject);
 
             });
         _lifeTimeTimer.StartTimer(this);

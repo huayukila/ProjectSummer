@@ -64,7 +64,7 @@ namespace Character
         private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
         private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
         private Vector3 _rotateDirection;                   // プレイヤーの回転方向
-        private bool _isBoosting = false;                   // ブーストしているかのフラグ
+        private bool _isBoostCooldown = false;              // ブーストクールダウンしているかのフラグ
         private SpriteRenderer _imageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
         private PlayerAnim _playerAnim;
         private DropPointControl _dropPointCtrl;            // プレイヤーのDropPointControl
@@ -92,6 +92,18 @@ namespace Character
         
         private void Awake()
         {
+            #region fuck mirror
+            TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>
+            (
+                eve =>
+                {
+                    _dropPointCtrl.Init();
+                    transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
+                    _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(_playerInfo.ID - 1).position;
+                }
+            );
+            #endregion
+
             _playerInterface = new PlayerInterfaceContainer(this);
             // 初期化処理
             Init();
@@ -99,31 +111,29 @@ namespace Character
             InitItemAffect();
 
             {
-                _boostChargeTimeCnt = 0f;
+                _boostChargeTimeCnt = Global.BOOST_COOLDOWN_TIME;
             }
         }
         private void Start()
         {
             _currentMoveSpeed = 0.0f;
 
-            _dropPointCtrl?.Init();
-            transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
+
             _particleSystemCtrl.Play();
-            _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(_playerInfo.ID - 1).position;
 
             {
-                IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
-                if(paintSystem != null)
-                {
-                    TypeEventSystem.Instance.Register<PaintAreaEvent>
-                    (
-                        e =>
+                TypeEventSystem.Instance.Register<PaintAreaEvent>
+                (
+                    e =>
+                    {
+                        IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
+                        if(paintSystem != null)
                         {
                             paintSystem.Paint(e.Verts,e.PlayerID,e.PlayerAreaColor);
                         }
-                    ).UnregisterWhenGameObjectDestroyed(gameObject);
+                    }
+                ).UnregisterWhenGameObjectDestroyed(gameObject);
 
-                }
             }
 
             {
@@ -197,7 +207,7 @@ namespace Character
             // 領域を描画してみる
             TryPaintArea();
 
-            if(_isBoosting)
+            if(_isBoostCooldown)
             {
                 _boostChargeTimeCnt += Time.deltaTime;
             }
@@ -306,14 +316,15 @@ namespace Character
         /// </summary>
         private void StartDead()
         {
-            _playerAnim.RpcStartExplosionAnim();
+            _playerAnim.StartExplosionAnim();
+
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
             {
                 dropCount = _silkData.SilkCount,
                 pos = transform.position
             };
             TypeEventSystem.Instance.Send(dropSilkEvent);
-            TypeEventSystem.Instance.Send(new PlayerRespawnEvent());
+            TypeEventSystem.Instance.Send(new PlayerRespawnEvent(){ Player = gameObject});
 
             // プレイヤーの状態をリセットする
             ResetStatus();
@@ -324,7 +335,6 @@ namespace Character
             GetComponentInChildren<TrailRenderer>().enabled = false;
             GetComponent<Collider>().enabled = false;
             // プレイヤー復活イベントを喚起する
-            _playerAnim.RpcStartRespawnAnim();
             _particleSystemCtrl.Stop();
             SetPowerUpLevel();
         }
@@ -343,15 +353,13 @@ namespace Character
 
             _currentMoveSpeed = 0.0f;
 
-            _isBoosting = false;
+            _isBoostCooldown = false;
 
             _silkData.SilkCount = 0;
 
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
 
-            #region need fix
-            //_dropPointCtrl.CmdClearDropPoints();
-            #endregion
+            _gamePlayer.CmdOnClearAllDropPoints();
 
             _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
@@ -435,10 +443,8 @@ namespace Character
 
                         TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
-                        #region need fix 
+                        _gamePlayer.CmdOnClearAllDropPoints();
                         
-                        //_dropPointCtrl.CmdClearDropPoints();
-                        #endregion
                         // 尻尾のTrailRendererの状態をリセットする
                         _dropPointCtrl.ResetTrail();
                         break;
@@ -605,16 +611,19 @@ namespace Character
             _boostAction.performed -= OnBoost;
             _itemAction.performed -= OnUseItem;
         }
+
+        #region Boost Method
         // ブースト
         private void OnBoost(InputAction.CallbackContext context)
         {
             if (context.performed)
             {
-                if (_playerState == State.Fine && _isBoosting == false)
+                if (_playerState == State.Fine && _isBoostCooldown == false)
                 {
+                    _boostChargeTimeCnt = 0f;
                     mBoostCoefficient = 1.5f;
                     _currentMoveSpeed = _status.MaxMoveSpeed;
-                    _isBoosting = true;
+                    _isBoostCooldown = true;
                     TypeEventSystem.Instance.Send(new BoostStart 
                     { 
                         Number = _playerInfo.ID
@@ -628,7 +637,7 @@ namespace Character
                     Timer boostCoolDownTimer = new Timer(Time.time,Global.BOOST_COOLDOWN_TIME,
                         () =>
                         {
-                            _isBoosting = false;
+                            _isBoostCooldown = false;
                             _boostChargeTimeCnt = Global.BOOST_COOLDOWN_TIME;
                         }
                         );
@@ -638,6 +647,7 @@ namespace Character
 
             }
         }
+        #endregion
 
         #endregion // InternalLogic
 
@@ -665,7 +675,6 @@ namespace Character
         public Color AreaColor => _playerInfo.AreaColor;
         public void SetInfo(int ID, Color color)
         {
-
             if (_playerInfo.ID != 0)
                 return;
             

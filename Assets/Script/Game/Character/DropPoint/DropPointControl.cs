@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using Org.BouncyCastle.Security;
 
 namespace Character
 {
@@ -12,19 +13,19 @@ namespace Character
         [Serializable]
         private struct PlayerDropPoints
         {
-            // DropPoint‚ª•Û‘¶‚³‚ê‚éList
+            // DropPointãŒä¿å­˜ã•ã‚Œã‚‹List
             public List<GameObject> playerPoints;
-            // DropPoint‚ğŠÇ—‚·‚ée
+            // DropPointã‚’ç®¡ç†ã™ã‚‹è¦ª
             public GameObject pointGroup;
         }
 
         [SerializeField]
         private PlayerDropPoints _playerDropPoints;
 
-        private TrailRenderer _tailTrailRenderer;      // DropPoint‚ªŒq‚ª‚Á‚Ä‚¢‚é‚±‚Æ‚ğ•\‚·TrailRenderer
-        private GameObject _pointPrefab;             // DropPoint‚ÌƒvƒŒƒnƒu
+        private TrailRenderer _tailTrailRenderer;      // DropPointãŒç¹‹ãŒã£ã¦ã„ã‚‹ã“ã¨ã‚’è¡¨ã™TrailRenderer
+        private GameObject _pointPrefab;             // DropPointã®ãƒ—ãƒ¬ãƒãƒ–
         private float _tailFadeOutTimer;
-        private Timer _dropPointTimer;           // DropPoint‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‰»‚·‚é‚±‚Æ‚ğŠÇ—‚·‚éƒ^ƒCƒ}[
+        private Timer _dropPointTimer;           // DropPointã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã™ã‚‹ã“ã¨ã‚’ç®¡ç†ã™ã‚‹ã‚¿ã‚¤ãƒãƒ¼
 
         private float trailOffset;
 
@@ -34,9 +35,13 @@ namespace Character
         private Color _areaColor;
 
         private Player _player;
+        private GamePlayer _networkPlayer;
+        public GameObject DropPointPrefab => _pointPrefab;
 
         private void Awake()
         {
+            _networkPlayer = GetComponent<GamePlayer>();
+
             _pointPrefab = GameResourceSystem.Instance.GetPrefabResource("DropPoint");
             _tailFadeOutTimer = 0.0f;
             trailOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
@@ -45,23 +50,24 @@ namespace Character
             _playerID = -1;
             _areaColor = Color.clear;
 
-            // K”ö‚ğ•`‰æ‚·‚éGameObject‚ğì‚é
+            // å°»å°¾ã‚’æç”»ã™ã‚‹GameObjectã‚’ä½œã‚‹
             GameObject trail = new GameObject(name + "Trail");
-            // ƒvƒŒƒCƒ„[‚ğe‚É‚·‚é
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’è¦ªã«ã™ã‚‹
             trail.transform.parent = transform;
             //todo take note
-            // ƒ[ƒ‹ƒhÀ•W‚ğƒ[ƒJƒ‹À•W‚É•ÏŠ·‚·‚é
+            // ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ã«å¤‰æ›ã™ã‚‹
             Vector3 localForward = transform.worldToLocalMatrix.MultiplyVector(transform.forward);
             trail.transform.localPosition = Vector3.down * 0.5f - localForward * trailOffset;
             trail.transform.localScale = Vector3.one;
-            // TrailRenderer‚ğƒAƒ^ƒbƒ`‚·‚é
+            // TrailRendererã‚’ã‚¢ã‚¿ãƒƒãƒã™ã‚‹
             _tailTrailRenderer = trail.gameObject.AddComponent<TrailRenderer>();
 
             _dropPointTimer = new Timer(Time.time, Global.DROP_POINT_INTERVAL,
                 () =>
                 {
-                    // ƒ^ƒCƒ}[‚ªI‚í‚Á‚½‚çDropPoint‚ğ’u‚­
-                    CmdInstantiateDropPoint();
+                    Vector3 spawnPos = transform.position - transform.forward * trailOffset;
+                    // ã‚¿ã‚¤ãƒãƒ¼ãŒçµ‚ã‚ã£ãŸã‚‰DropPointã‚’ç½®ã
+                    _networkPlayer.CmdOnInstantiateDropPoint(spawnPos);
                 }
                 );
             _dropPointTimer.StartTimer(this);
@@ -79,12 +85,12 @@ namespace Character
         {
             
             _tailFadeOutTimer += Time.deltaTime;
-            // ƒvƒŒƒCƒ„[‚ªê‚Éˆê’èŠÔ‚ğˆÚ“®‚µ‘±‚¯‚½‚çiDropPoint‚Ì¶‘¶ŠÔ‚Ì”¼•ªj
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒå ´ã«ä¸€å®šæ™‚é–“ã‚’ç§»å‹•ã—ç¶šã‘ãŸã‚‰ï¼ˆDropPointã®ç”Ÿå­˜æ™‚é–“ã®åŠåˆ†ï¼‰
             if (_tailFadeOutTimer >= Global.DROP_POINT_ALIVE_TIME / 2.0f && _tailFadeOutTimer < Global.DROP_POINT_ALIVE_TIME)
             {
-                // •s“§–¾“x‚ğŒvZ‚·‚é@¦@y = -1.9x + 1.95;
+                // ä¸é€æ˜åº¦ã‚’è¨ˆç®—ã™ã‚‹ã€€â€»ã€€y = -1.9x + 1.95;
                 float alpha = (-1.9f / Global.DROP_POINT_ALIVE_TIME) * _tailFadeOutTimer + 1.95f;
-                // •s“§–¾“x‚ÌÅ¬’l‚ğ0.05‚Éİ’è‚·‚é
+                // ä¸é€æ˜åº¦ã®æœ€å°å€¤ã‚’0.05ã«è¨­å®šã™ã‚‹
                 if (alpha < 0.05f)
                 {
                     alpha = 0.05f;
@@ -99,28 +105,28 @@ namespace Character
             DropNewPoint();
         }
         /// <summary>
-        /// DropPoint‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»‚·‚é
+        /// DropPointã‚’ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã™ã‚‹
         /// </summary>
-        [Command]
-        private void CmdInstantiateDropPoint()
+        [ClientRpc]
+        public void RpcAddDropPoint(GameObject pt)
         {
-            GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, transform.rotation);
+            //GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, Quaternion.identity);
             pt.tag = _dropPointTag;
-            pt.GetComponent<DropPoint>().SetDestroyCallback(RpcRemovePoint);
+            pt.GetComponent<DropPoint>().SetDestroyCallback(_networkPlayer.CmdOnDestroyDropPoint);
             // TODO 
             AddPoint(pt);
-            NetworkServer.Spawn(pt);
 
         }
 
         /// <summary>
-        /// TrailRenderer‚Ì‰Šúİ’ès‚¤
+        /// TrailRendererã®åˆæœŸè¨­å®šè¡Œã†
         /// </summary>
         public void Init()
         {
             _playerID = _player.ID;
             _dropPointTag = "DropPoint" + _playerID.ToString();
             _areaColor = _player.AreaColor;
+
             _tailTrailRenderer.material = new Material(Shader.Find("Sprites/Default")) { hideFlags = HideFlags.DontSave};
             _tailTrailRenderer.startColor = Global.PLAYER_TRACE_COLORS[_playerID - 1];
             _tailTrailRenderer.endColor = Global.PLAYER_TRACE_COLORS[_playerID - 1];
@@ -130,7 +136,7 @@ namespace Character
         }
 
         /// <summary>
-        /// DropPoint‚ğ’u‚­
+        /// DropPointã‚’ç½®ã
         /// </summary>    
         private void DropNewPoint()
         {
@@ -142,7 +148,7 @@ namespace Character
         }
 
         /// <summary>
-        /// TrailRenderer‚Ìó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+        /// TrailRendererã®çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
         /// </summary>
         public void ResetTrail()
         {
@@ -152,9 +158,9 @@ namespace Character
         }
 
         /// <summary>
-        /// TrailRenderer‚ÌƒOƒ‰ƒfƒBƒGƒ“ƒg‚ğİ’è‚·‚é
+        /// TrailRendererã®ã‚°ãƒ©ãƒ‡ã‚£ã‚¨ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹
         /// </summary>
-        /// <param name="alpha">ˆê”ÔŒã‚ë‚Ì•s“§–¾“x</param>
+        /// <param name="alpha">ä¸€ç•ªå¾Œã‚ã®ä¸é€æ˜åº¦</param>
         private void SetTrailGradient(float alpha)
         {
             Gradient gradient = new Gradient();
@@ -167,17 +173,17 @@ namespace Character
 
 
         /// <summary>
-        /// List‚É‚ ‚é‘S‚Ä‚ÌDropPoint(GameObject)‚Ìƒ[ƒ‹ƒhÀ•W‚ğ•Ô‚·
+        /// Listã«ã‚ã‚‹å…¨ã¦ã®DropPoint(GameObject)ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’è¿”ã™
         /// </summary>
-        /// <returns>List‚Ì‘S‚Ä‚ÌGameObject‚Ìƒ[ƒ‹ƒhÀ•W(Vector3Œ^)</returns>
+        /// <returns>Listã®å…¨ã¦ã®GameObjectã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™(Vector3å‹)</returns>
         private Vector3[] DropPointsGameObjectToVector3()
         {
-            // List‚ÌƒRƒs[‚ğì‚é
+            // Listã®ã‚³ãƒ”ãƒ¼ã‚’ä½œã‚‹
             //List<GameObject> retList = new List<GameObject>(list);
-            // –ß‚è’l—p”z—ñ‚ğì‚é
+            // æˆ»ã‚Šå€¤ç”¨é…åˆ—ã‚’ä½œã‚‹
             Vector3[] retPos = new Vector3[_playerDropPoints.playerPoints.Count];
             int index = 0;
-            // List‚Ì‘S‚Ä‚ÌGameObject‚Ìƒ[ƒ‹ƒhÀ•W‚ğ–ß‚è’l—p”z—ñ‚É“ü‚ê‚é
+            // Listã®å…¨ã¦ã®GameObjectã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’æˆ»ã‚Šå€¤ç”¨é…åˆ—ã«å…¥ã‚Œã‚‹
             foreach (GameObject ob in _playerDropPoints.playerPoints)
             {
                 if(ob == null)
@@ -191,72 +197,73 @@ namespace Character
         }
 
         /// <summary>
-        /// “Á’è‚ÌƒvƒŒƒCƒ„[‚ÌDropPoint(GameObject)‚ğŠÇ—‚·‚éList‚ÉDropPoint(GameObject)‚ğ“ü‚ê‚éŠÖ”
+        /// ç‰¹å®šã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®DropPoint(GameObject)ã‚’ç®¡ç†ã™ã‚‹Listã«DropPoint(GameObject)ã‚’å…¥ã‚Œã‚‹é–¢æ•°
         /// </summary>
-        /// <param name="ID">ƒvƒŒƒCƒ„[ID</param>
-        /// <param name="dropPoint">List‚É“ü‚ê‚éDropPoint</param>
+        /// <param name="ID">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ID</param>
+        /// <param name="dropPoint">Listã«å…¥ã‚Œã‚‹DropPoint</param>
         private void AddPoint(GameObject dropPoint)
         {
-            // dropPoint‚Ìe‚ğİ’è‚µ‚ÄAList‚É“ü‚ê‚é
+            // dropPointã®è¦ªã‚’è¨­å®šã—ã¦ã€Listã«å…¥ã‚Œã‚‹
             dropPoint.transform.parent = _playerDropPoints.pointGroup.transform;
             _playerDropPoints.playerPoints.Add(dropPoint);
-            // ‘¶İ‚µ‚È‚¢ê‡‚ÍƒGƒ‰[ƒƒbƒZ[ƒW‚ğo—Í
+            // å­˜åœ¨ã—ãªã„å ´åˆã¯ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å‡ºåŠ›
         }
 
         /// <summary>
-        /// Á‚¦‚½DropPoint(GameObject)‚ğList‚©‚çÁ‚·ŠÖ”
+        /// æ¶ˆãˆãŸDropPoint(GameObject)ã‚’Listã‹ã‚‰æ¶ˆã™é–¢æ•°
         /// </summary>
-        /// <param name="dropPoint">Á‚¦‚½DropPoint(GameObject)</param>
-        [ClientRpc]
-        private void RpcRemovePoint(GameObject dropPoint)
+        /// <param name="dropPoint">æ¶ˆãˆãŸDropPoint(GameObject)</param>
+        public void RemovePoint(GameObject dropPoint)
         {
             if(!_playerDropPoints.playerPoints.Contains(dropPoint))
+            {
                 return;
-
+            }
 
             _playerDropPoints.playerPoints.Remove(dropPoint);
-            NetworkServer.Destroy(dropPoint);
         }
 
         /// <summary>
-        /// ƒvƒŒƒCƒ„[‚Ì‘S‚Ä‚ÌDropPoint(GameObject)‚ğÁ‚·ŠÖ”
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å…¨ã¦ã®DropPoint(GameObject)ã‚’æ¶ˆã™é–¢æ•°
         /// </summary>
-        /// <param name="ID">ƒvƒŒƒCƒ„[‚ÌID</param>
-        [Client]
+        /// <param name="ID">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ID</param>
+        [ClientRpc]
         public void RpcClearDropPoints()
         {
-            // ‘S‚Ä‚ÌDropPoint(GameObject)‚ğ”jŠü‚·‚é
+            // å…¨ã¦ã®DropPoint(GameObject)ã‚’ç ´æ£„ã™ã‚‹
             foreach (GameObject dropPoint in _playerDropPoints.playerPoints)
             {
-                NetworkServer.Destroy(dropPoint);
+                if(_networkPlayer != null)
+                    _networkPlayer.CmdOnDestroyDropPoint(dropPoint);
             }
-            // List‚É‚ ‚é•¨‚ğ‘S•”Á‚·
+            // Listã«ã‚ã‚‹ç‰©ã‚’å…¨éƒ¨æ¶ˆã™
             _playerDropPoints.playerPoints.Clear();
         }
 
         /// <summary>
-        /// ƒvƒŒƒCƒ„[‚Ì‘S‚Ä‚ÌDropPoint‚Ìƒ[ƒ‹ƒhÀ•W‚ğ–ß‚·ŠÖ”
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å…¨ã¦ã®DropPointã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’æˆ»ã™é–¢æ•°
         /// </summary>
-        /// <param name="ID">ƒvƒŒƒCƒ„[‚ÌID</param>
-        /// <returns>‘S‚Ä‚ÌDropPoint(GameObject)‚Ìƒ[ƒ‹ƒhÀ•WiVector3Œ^jAƒvƒŒƒCƒ„[‚ª‘¶İ‚µ‚È‚¢ê‡‚Í‹ó‚Ì”z—ñ‚ğ•Ô‚·</returns>
+        /// <param name="ID">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ID</param>
+        /// <returns>å…¨ã¦ã®DropPoint(GameObject)ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ï¼ˆVector3å‹ï¼‰ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒå­˜åœ¨ã—ãªã„å ´åˆã¯ç©ºã®é…åˆ—ã‚’è¿”ã™</returns>
         public Vector3[] GetPlayerDropPoints()
         {
             return DropPointsGameObjectToVector3();
         }
         /// <summary>
-        /// DropPointSystem‚ğƒfƒCƒjƒVƒƒƒ‰ƒCƒ[[ƒVƒ‡ƒ“‚·‚éŠÖ”
+        /// DropPointSystemã‚’ãƒ‡ã‚¤ãƒ‹ã‚·ãƒ£ãƒ©ã‚¤ã‚¼ãƒ¼ã‚·ãƒ§ãƒ³ã™ã‚‹é–¢æ•°
         /// </summary>
         private void OnDestroy()
         {
             if(NetworkServer.active)
             {
-                RpcClearDropPoints();
+                _networkPlayer.CmdOnClearAllDropPoints();
             }
             else
             {
                 _playerDropPoints.playerPoints.Clear();
-                Destroy(_playerDropPoints.pointGroup);
             }
+
+            Destroy(_playerDropPoints.pointGroup);
             
         }
     }

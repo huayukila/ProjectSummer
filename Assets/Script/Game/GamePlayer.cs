@@ -1,7 +1,9 @@
 using Character;
 using Mirror;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 public struct SendInitializedPlayerEvent
 {
@@ -11,6 +13,9 @@ public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
     private PlayerInterfaceContainer _playerInterfaceContainer;
+
+    private INetworkAnimationProcess _networkAnimationProcess;
+    private DropPointControl _dropPointControl;
 
     public override void OnStartLocalPlayer()
     {
@@ -27,33 +32,60 @@ public class GamePlayer : View
         }
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
-            RpcRespawnPlayer();
+            e.Player.GetComponent<GamePlayer>().RespawnPlayer();
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
         CmdInitItemSystem();
 
-        SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
-                                                {
-                                                    Player = GetComponent<Player>()
-                                                };
 
-        TypeEventSystem.Instance.Send(playerEvent);
+        // dropPointController
+        {
+            _dropPointControl = GetComponent<DropPointControl>();
+        }
+
+        // Input Device
+        {
+            DeviceSetting.Init();
+        }
+
+        _playerInterfaceContainer.GetInterface<IPlayerInfo>().SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
+        {
+            
+            SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
+                                                    {
+                                                        Player = GetComponent<Player>()
+                                                    };
+
+            TypeEventSystem.Instance.Send(playerEvent);
+        }
+
+        _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
+
     }
 
     private void Update()
     {
-        if (!isLocalPlayer) return;
-        if (Input.GetKeyDown(KeyCode.C))
+        if (!isLocalPlayer) 
+            return;
+
+        if(_networkAnimationProcess != null)
         {
-            (NetWorkRoomManagerExt.singleton as IRoomManager).ExitToOffline();
+            if(!_networkAnimationProcess.IsStopped)
+            {
+                _networkAnimationProcess.RpcUpdateAnimation();
+            }
+                
         }
+
     }
 
     private void FixedUpdate()
     {
         if (!isLocalPlayer)
             return;
+
+
     }
     
     
@@ -83,6 +115,7 @@ public class GamePlayer : View
         }
         // è’ìÀÇµÇΩÇÁéÄñSèÛë‘Ç…ê›íËÇ∑ÇÈ
         _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
+        Debug.Log(transform.position);
     }
 
     [ServerCallback]
@@ -108,8 +141,7 @@ public class GamePlayer : View
         }
     }
 
-    [ClientRpc]
-    private void RpcRespawnPlayer()
+    private void RespawnPlayer()
     {
         Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
             () =>
@@ -136,6 +168,7 @@ public class GamePlayer : View
         //NetworkServer.Spawn(obj);
     }
 
+
     [Command]
     public void CmdInitItemSystem()
     {
@@ -147,4 +180,50 @@ public class GamePlayer : View
     {
         TypeEventSystem.Instance.Send(dropSilkEvent);
     }
+
+    [Command]
+    public void CmdOnInstantiateDropPoint(Vector3 pos)
+    {
+        GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab,pos,Quaternion.identity);
+        SpawnNetworkObj(dropPoint);
+        _dropPointControl.RpcAddDropPoint(dropPoint);
+    }
+
+    [Command]
+    public void CmdOnDestroyDropPoint(GameObject abandonDropPoint)
+    {
+        _dropPointControl.RemovePoint(abandonDropPoint);
+        OnDestroyNetworkObj(abandonDropPoint);
+    }
+
+    [Command]
+    public void CmdOnClearAllDropPoints()
+    {
+        _dropPointControl.RpcClearDropPoints();
+    }
+
+    [Command]
+    public void CmdSpawnDeadAnimation(Vector3 pos)
+    {
+        GameObject explosion = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Explosion"), pos, Quaternion.identity);
+        explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        
+        if(_networkAnimationProcess != null)
+        {
+            _networkAnimationProcess.RpcSetAnimationType(AnimType.Respawn);
+        }
+    }
+    private void OnDestroyNetworkObj(GameObject abandonedObj)
+    {
+        if(abandonedObj == null)
+            return;
+
+        NetworkServer.Destroy(abandonedObj);
+    }
+
+    private void SpawnNetworkObj(GameObject obj)
+    {
+        NetworkServer.Spawn(obj);
+    }
+
 }
