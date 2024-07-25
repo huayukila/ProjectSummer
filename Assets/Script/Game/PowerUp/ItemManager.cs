@@ -34,23 +34,20 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
 
     private GameObject _silkPrefab;
 
-    private bool _initialized;
-
     // Start is called before the first frame update
     private void Awake()
     {
+
         _onFieldSilks = new List<GameObject>();
         _capturedSilks = new List<GameObject>();
         _onFieldItemBoxes = new List<GameObject>();
         _unactivedItemBoxes = new List<GameObject>();
 
         _silkPrefab = GameResourceSystem.Instance.GetPrefabResource("GoldenSilk");
-        _initialized = false;
        
         _itemSystem = GetSystem<IItemSystem>() as ItemSystem;
 
         _itemSystem.RegisterManager(this);
-
         
     }
     void Start()
@@ -83,7 +80,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         {
             if(e.dropCount > 0)
             {
-                RpcDestroyItem(_capturedSilks[0]);
+                DestroyItem(_capturedSilks[0]);
                 _capturedSilks.RemoveAt(0);
                 --e.dropCount;
                 while (e.dropCount > 0)
@@ -103,7 +100,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         TypeEventSystem.Instance.Register<GameOver>
             (e => 
             {
-                CmdDeinitItemManager();
+                DeinitItemManager();
             }
             ).UnregisterWhenGameObjectDestroyed(gameObject);
 
@@ -136,6 +133,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
 
         #endregion //Event Register
 
+        InitItemBox();
 
     }
 
@@ -145,7 +143,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         switch(_spawnMode)
         {
             case SpawnMode.Normal:
-                RpcSpawnNewSilk();
+                SpawnNewSilk();
                 break;
             case SpawnMode.ItemFestival:
                 break;
@@ -156,8 +154,8 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         }
     }
 
-    [ClientRpc]
-    public void RpcSpawnNewSilk()
+    [Server]
+    public void SpawnNewSilk()
     {
         if (_onFieldSilks.Count >= Global.MAX_SILK_COUNT)
             return;
@@ -170,19 +168,16 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
             () =>
             {
                 _canSpawnNewSilk = true;
-                RpcDropNewSilk();
+                DropNewSilk();
 
             });
         dropSilkTimer.StartTimer(this);
     }
 
-    [ClientRpc]
-    public void RpcInitItemBox()
+    [Server]
+    public void InitItemBox()
     {
-        if(_initialized)
-            return;
 
-        _initialized = true;
         for (int i = 0; i < MAX_ITEM_BOX_COUNT ; ++i)
         {
             GameObject itemBox = _itemSystem.SpawnItem(Global.ITEM_BOX_POS);
@@ -242,13 +237,11 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         return ret;
     }
 
-    [Command]
-    private void CmdDeinitItemManager()
+    private void DeinitItemManager()
     {
         ClearAllServerItems();
     }
 
-    [Server]
     private void ClearAllServerItems()
     {
         ClearServerItems(_onFieldItemBoxes);
@@ -267,8 +260,8 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         items.Clear();
     }
 
-    [ClientRpc]
-    private void RpcDropNewSilk()
+    [Server]
+    private void DropNewSilk()
     {
         if(_onFieldSilks.Count + _capturedSilks.Count >= Global.MAX_SILK_COUNT)
             return;
@@ -287,8 +280,8 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
                 _onFieldSilks.Add(obj);
             });
     }
-    [ClientRpc]
-    public void RpcDestroyItem(GameObject obj)
+    [Server]
+    public void DestroyItem(GameObject obj)
     {
         NetworkServer.Destroy(obj);
     }

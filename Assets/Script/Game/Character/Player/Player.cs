@@ -20,10 +20,24 @@ public struct PlayerItemContainer
     public Player Player;
 }
 
+public interface IPlayerMainLogic
+{
+    void Tick();
+    void FixedTick();
+}
+
 namespace Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player : Character, IPlayer2ItemSystem, IItemAffectable, IPlayerCommand, IPlayerInfo, IPlayerState, IPlayerInterfaceContainer,IPlayerBoost
+    public class Player : Character, 
+                        IPlayer2ItemSystem, 
+                        IItemAffectable, 
+                        IPlayerCommand, 
+                        IPlayerInfo, 
+                        IPlayerState, 
+                        IPlayerInterfaceContainer,
+                        IPlayerBoost,
+                        IPlayerMainLogic
     {
         // プレイヤーの状態
         private enum State
@@ -77,7 +91,7 @@ namespace Character
         //TODO テスト用
         public Sprite[] silkCountSprites;
         private Dictionary<EItemEffect, Action> _itemAffectActions;
-        private PlayerInterfaceContainer _playerInterface;
+        private PlayerInterfaceContainer _playerInterface ;
 
         private Vector3 _spawnPos;
 
@@ -100,6 +114,7 @@ namespace Character
                 _spawnPos = value;
             }
         }
+        
         private void Awake()
         {
             #region fuck mirror
@@ -110,7 +125,7 @@ namespace Character
                     IPlayerInfo info = eve.Player.GetComponent<IPlayerInfo>();
                     if(info != null)
                     {
-                        eve.Player.GetComponent<DropPointControl>().Init();
+                        eve.Player.GetComponent<DropPointControl>().RpcDropPointInit();
                         eve.Player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[info.ID - 1];
                         eve.Player.SpawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(info.ID - 1).position;
                     }
@@ -132,8 +147,7 @@ namespace Character
         private void Start()
         {
             _currentMoveSpeed = 0.0f;
-
-
+            //TODO Need Change To Network Code
             _particleSystemCtrl.Play();
 
             {
@@ -155,7 +169,59 @@ namespace Character
                 _itemSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IItemSystem>();
             }
         }
-        private void Update()
+        private void LateUpdate()
+        {
+            switch(_playerState)
+            {
+                case State.Fine:
+                    return;
+                case State.Uncontrollable:
+                // TODO need add to playerAnim
+                    //PlaySlipAnimation();
+                    return;
+            }
+            
+        }        
+        #region Item Effect
+        private void OnSlip()
+        {
+            _playerState = State.Uncontrollable;
+            _returnToFineTimer = Global.ON_SLIP_TIME;
+        }
+
+        private void OnStun()
+        {
+            _playerState = State.Stun;
+            _currentMoveSpeed = 0f;
+            _rigidbody.velocity = Vector3.zero;
+            _returnToFineTimer = Global.ON_STUN_TIME;
+        }
+
+        #endregion 
+        //Item Effect
+
+        #region Interface
+        public int ID => _playerInfo.ID;
+        public int SilkCount => _silkData.SilkCount;
+        public Color AreaColor => _playerInfo.AreaColor;
+        public void SetInfo(int ID, Color color)
+        {
+            if (_playerInfo.ID != 0)
+                return;
+            
+            {
+                _playerInfo.ID = ID;
+                _playerInfo.AreaColor = color;
+            }
+        }
+        public bool IsDead => _playerState == State.Dead;
+        public bool IsFine => _playerState == State.Fine;
+        public bool IsInvincible => _playerState == State.Invincible;
+        public bool IsUncontrollable => _playerState == State.Uncontrollable;
+        public bool IsStuning => _playerState == State.Stun;
+
+
+        public void Tick()
         {
             if (_playerState == State.Dead)
                 return;
@@ -167,10 +233,8 @@ namespace Character
                 return;
             }
             UpdateFine();
-
         }
-
-        private void FixedUpdate()
+        public void FixedTick()
         {
             switch(_playerState)
             {
@@ -188,24 +252,52 @@ namespace Character
                     _currentMoveSpeed = 0f;
                     break;
             }
-
         }
-
-        private void LateUpdate()
+        public PlayerInterfaceContainer GetContainer()
         {
-            switch(_playerState)
-            {
-                case State.Fine:
-                    return;
-                case State.Uncontrollable:
-                    PlaySlipAnimation();
-                    return;
-            }
-            
+            return _playerInterface;
         }
+
+        public void CallPlayerCommand(EPlayerCommand cmd)
+        {
+            Debug.Log("Command:" + cmd.ToString() + " get called");
+            switch(cmd)
+            {
+                case EPlayerCommand.Respawn:
+                    StartRespawn();
+                    break;
+                case EPlayerCommand.Dead:
+                    StartDead();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        
+        public void OnEffect(string effectName)
+        {
+            effectName.ToTitleCast();
+
+            object receivedEffect;
+
+            if(Enum.TryParse(typeof(EItemEffect), effectName,out receivedEffect))
+            {
+                _itemAffectActions[(EItemEffect)receivedEffect].Invoke();
+            }
+            else
+            {
+                Debug.LogWarning("Can't find action of " + effectName + " effect." + "(In class " + GetType().Name + " )");
+            }
+        }
+        public float ItemPlaceOffset => _itemPlaceOffset;
+
+        //
+        public float ChargeBarPercentage => Mathf.Clamp(_boostChargeTimeCnt / Global.BOOST_COOLDOWN_TIME, 0f, 1f);
+        #endregion 
+        // Interface
 
         #region InternalLogic
-
         private void UpdateFine()
         {
             // プレイヤー画像をずっと同じ方向に向くことにする
@@ -664,68 +756,6 @@ namespace Character
         }
         #endregion
 
-        #endregion // InternalLogic
-
-        #region Item Effect
-
-        private void OnSlip()
-        {
-            _playerState = State.Uncontrollable;
-            _returnToFineTimer = Global.ON_SLIP_TIME;
-        }
-
-        private void OnStun()
-        {
-            _playerState = State.Stun;
-            _currentMoveSpeed = 0f;
-            _rigidbody.velocity = Vector3.zero;
-            _returnToFineTimer = Global.ON_STUN_TIME;
-        }
-
-        #endregion //Item Effect
-
-        #region Interface
-        public int ID => _playerInfo.ID;
-        public int SilkCount => _silkData.SilkCount;
-        public Color AreaColor => _playerInfo.AreaColor;
-        public void SetInfo(int ID, Color color)
-        {
-            if (_playerInfo.ID != 0)
-                return;
-            
-            {
-                _playerInfo.ID = ID;
-                _playerInfo.AreaColor = color;
-                name = "Player" + _playerInfo.ID.ToString();
-            }
-        }
-        public bool IsDead => _playerState == State.Dead;
-        public bool IsFine => _playerState == State.Fine;
-        public bool IsInvincible => _playerState == State.Invincible;
-        public bool IsUncontrollable => _playerState == State.Uncontrollable;
-        public bool IsStuning => _playerState == State.Stun;
-
-        public PlayerInterfaceContainer GetContainer()
-        {
-            return _playerInterface;
-        }
-
-        public void CallPlayerCommand(EPlayerCommand cmd)
-        {
-            Debug.Log("Command:" + cmd.ToString() + " get called");
-            switch(cmd)
-            {
-                case EPlayerCommand.Respawn:
-                    StartRespawn();
-                    break;
-                case EPlayerCommand.Dead:
-                    StartDead();
-                    break;
-                default:
-                    break;
-            }
-        }
-
         private void StartRespawn()
         {
             // 死亡以外は再生処理しない
@@ -752,76 +782,8 @@ namespace Character
             }
 
         }
-
-        public void OnEffect(string effectName)
-        {
-            effectName.ToTitleCast();
-
-            object receivedEffect;
-
-            if(Enum.TryParse(typeof(EItemEffect), effectName,out receivedEffect))
-            {
-                _itemAffectActions[(EItemEffect)receivedEffect].Invoke();
-            }
-            else
-            {
-                Debug.LogWarning("Can't find action of " + effectName + " effect." + "(In class " + GetType().Name + " )");
-            }
-        }
-        public float ItemPlaceOffset => _itemPlaceOffset;
-
-        //
-        public float ChargeBarPercentage => Mathf.Clamp(_boostChargeTimeCnt / Global.BOOST_COOLDOWN_TIME, 0f, 1f);
-        #endregion // Interface
-
-        #region Obsolete Code
-            /*
-            /// <summary>
-            /// 衝突があったとき処理する
-            /// </summary>
-            /// <param name="collision"></param>
-            private void OnCollisionEnter(Collision collision)
-            {
-                // 死亡したプレイヤーは金の網を持っていたら
-                if (_silkData.SilkCount > 0)
-                {
-                    DropSilkEvent dropSilkEvent = new DropSilkEvent()
-                    {
-                        pos = transform.position,
-                    };
-                    // 金の糸のドロップ場所を設定する
-                    //HACK EventSystem temporary invalid
-                    //TypeEventSystem.Instance.Send(dropSilkEvent);
-                }
-                // 衝突したら死亡状態に設定する
-                StartDead();
-            }
-
-            private void OnTriggerEnter(Collider other)
-            {
-
-                if (other.gameObject.tag.Contains("DropPoint"))
-                {
-                    // 自分のDropPoint以外のDropPointに当たったら
-                    if (other.gameObject.tag.Contains(_playerInfo.ID.ToString()) == false)
-                    {
-                        if (_silkData.SilkCount > 0)
-                        {
-                            DropSilkEvent dropSilkEvent = new DropSilkEvent()
-                            {
-                                pos = transform.position,
-                            };
-                            TypeEventSystem.Instance.Send(dropSilkEvent);
-                        }
-                        // 死亡状態に設定する
-                        StartDead();
-                    }
-                }
-            }
-
-                    */
-        #endregion //Obsolete Code
-
+        #endregion 
+        // InternalLogic
     }
-
+    
 }
