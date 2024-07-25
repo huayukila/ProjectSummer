@@ -37,7 +37,6 @@ public class PlayerAnim : CharacterAnim
 
         _respawnAnimationTimer = Global.RESPAWN_TIME;
 
-        #region fuck mirror
         TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>
             (
                 eve =>
@@ -47,8 +46,6 @@ public class PlayerAnim : CharacterAnim
                     eve.Player.GetComponent<PlayerAnim>()._spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(id - 1).position;
                 }
             );
-            
-        #endregion
 
         _networkPlayer = GetComponent<GamePlayer>();
 
@@ -118,7 +115,7 @@ public class PlayerAnim : CharacterAnim
     /// </summary>
     //TODO カメラを二つにする時に変更する予定
     [ClientRpc]
-    private void RpcUpdateRespawnAnimation()
+    public void RpcUpdateRespawnAnimation()
     {
         // アニメーションが終わったら初期状態に戻す
         if(_respawnAnimationTimer <= 0)

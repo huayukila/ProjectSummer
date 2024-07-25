@@ -36,7 +36,6 @@ namespace Character
             Stun,
         }
         // プレイヤーの情報
-        [Serializable]
         private struct PlayerInfo
         {
             public int ID;          //プレイヤーのID
@@ -89,7 +88,18 @@ namespace Character
 
         private float _boostChargeTimeCnt;
 
-        
+        public Vector3 SpawnPos
+        {
+            get
+            {
+                return _spawnPos;
+            }
+            
+            set
+            {
+                _spawnPos = value;
+            }
+        }
         private void Awake()
         {
             #region fuck mirror
@@ -97,9 +107,14 @@ namespace Character
             (
                 eve =>
                 {
-                    _dropPointCtrl.Init();
-                    transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
-                    _spawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(_playerInfo.ID - 1).position;
+                    IPlayerInfo info = eve.Player.GetComponent<IPlayerInfo>();
+                    if(info != null)
+                    {
+                        eve.Player.GetComponent<DropPointControl>().Init();
+                        eve.Player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[info.ID - 1];
+                        eve.Player.SpawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(info.ID - 1).position;
+                    }
+                    
                 }
             );
             #endregion

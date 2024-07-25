@@ -49,6 +49,18 @@ public class GamePlayer : View
             DeviceSetting.Init();
         }
 
+        // ƒvƒŒƒCƒ„[î•ñ‚ğ‰Šú‰»
+        {
+            Camera mainCam = Camera.main;
+            mainCam.orthographicSize = 35f;
+            CameraControl cameraCtrl = mainCam.AddComponent<CameraControl>();
+            cameraCtrl.LockOnTarget(gameObject);
+            
+            SpriteRenderer playerImage = GetComponentInChildren<SpriteRenderer>();
+            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + playerIndex.ToString());
+
+        }
+
         _playerInterfaceContainer.GetInterface<IPlayerInfo>().SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
         {
             
