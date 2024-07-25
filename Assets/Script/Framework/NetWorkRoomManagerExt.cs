@@ -107,6 +107,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 
         RegisterAllSystem();
         _framework.FrameworkInit();
+        
 
         TempFunc.DetectDevice();
 
@@ -181,11 +182,6 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
         {
             networkPlayer.playerIndex = index + 1;
 
-            // IPlayerInterfaceContainerÇ™ë∂ç›Ç∑ÇÍÇŒ
-            if(gamePlayer.TryGetComponent<IPlayerInterfaceContainer>(out IPlayerInterfaceContainer playerInterfaceContainer))
-            {
-                networkPlayer.SetPlayerInterface(playerInterfaceContainer.GetContainer());
-            }
         }
 
         Resources.UnloadAsset(table);

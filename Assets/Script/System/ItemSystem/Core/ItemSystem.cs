@@ -106,12 +106,12 @@ public class ItemSystem : AbstractSystem, IItemSystem
 
     public void InitItemSystem()
     {
-        _itemManager.RpcInitItemBox();
+        _itemManager.InitItemBox();
     }
 
     public void DestroyItem(GameObject obj)
     {
-        _itemManager.RpcDestroyItem(obj);
+        _itemManager.DestroyItem(obj);
     }
 
     #endregion

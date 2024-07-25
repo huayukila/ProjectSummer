@@ -39,6 +39,9 @@ public class CameraControl : MonoBehaviour, ICameraController
 
     private void FixedUpdate()
     {
+        if(m_Target == null)
+            return;
+            
         switch(mState)
         {
             case CamState.None:

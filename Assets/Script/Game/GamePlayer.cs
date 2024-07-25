@@ -5,21 +5,27 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Analytics;
 
-public struct SendInitializedPlayerEvent
+public class SendInitializedPlayerEvent
 {
     public Player Player;
 }
 public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
+
+    [SyncVar(hook = nameof(OnNameChanged))]
+    private string _playerName;
+
     private PlayerInterfaceContainer _playerInterfaceContainer;
 
     private INetworkAnimationProcess _networkAnimationProcess;
     private DropPointControl _dropPointControl;
 
+    private IPlayerMainLogic _playerMainLogic;
+
     public override void OnStartLocalPlayer()
     {
-        Debug.Log("Start");
+
         {
             if(TryGetComponent(out IPlayerInterfaceContainer container))
             {
@@ -30,18 +36,23 @@ public class GamePlayer : View
                 Debug.LogError("Can't Get Player Interface Container:(" + name + ")");
             }
         }
+
+        _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
+
+        _playerName = "Player" + playerIndex.ToString();
+        IPlayerInfo playerInfo = _playerInterfaceContainer.GetInterface<IPlayerInfo>();
+        playerInfo?.SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
+
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
             e.Player.GetComponent<GamePlayer>().RespawnPlayer();
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
-        CmdInitItemSystem();
-
-
         // dropPointController
         {
             _dropPointControl = GetComponent<DropPointControl>();
+            _dropPointControl.SetInfo(playerIndex);
         }
 
         // Input Device
@@ -61,9 +72,9 @@ public class GamePlayer : View
 
         }
 
-        _playerInterfaceContainer.GetInterface<IPlayerInfo>().SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
-        {
-            
+        _playerMainLogic = GetComponent<IPlayerMainLogic>();
+
+        { 
             SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
                                                     {
                                                         Player = GetComponent<Player>()
@@ -71,9 +82,6 @@ public class GamePlayer : View
 
             TypeEventSystem.Instance.Send(playerEvent);
         }
-
-        _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
-
     }
 
     private void Update()
@@ -81,14 +89,7 @@ public class GamePlayer : View
         if (!isLocalPlayer) 
             return;
 
-        if(_networkAnimationProcess != null)
-        {
-            if(!_networkAnimationProcess.IsStopped)
-            {
-                _networkAnimationProcess.RpcUpdateAnimation();
-            }
-                
-        }
+        _playerMainLogic.Tick();
 
     }
 
@@ -97,7 +98,7 @@ public class GamePlayer : View
         if (!isLocalPlayer)
             return;
 
-
+        _playerMainLogic.FixedTick();
     }
     
     
@@ -105,6 +106,14 @@ public class GamePlayer : View
     {
         if (!isLocalPlayer)
             return;
+
+        if(_networkAnimationProcess != null)
+        {
+            if(!_networkAnimationProcess.IsStopped)
+            {
+                CmdUpdatePlayerAnimation();
+            }               
+        }
     }
 
     /// <summary>
@@ -163,15 +172,19 @@ public class GamePlayer : View
         spawnTimer.StartTimer(this);
         Camera.main.GetComponent<ICameraController>()?.StopLockOn();
     }
-    public void SetPlayerInterface(PlayerInterfaceContainer container)
+
+    private void OnNameChanged(string _Old, string _New)
     {
-        _playerInterfaceContainer = container;
+        name = _playerName;
     }
 
 
     [Command]
     public void CmdOnItemSpawn(GameObject player)
     {
+        if (!isLocalPlayer)
+            return;
+
         IPlayer2ItemSystem player2ItemSystem;
         if(player.TryGetComponent<IPlayer2ItemSystem>(out player2ItemSystem))
         {
@@ -182,20 +195,19 @@ public class GamePlayer : View
 
 
     [Command]
-    public void CmdInitItemSystem()
-    {
-        GetSystem<IItemSystem>().InitItemSystem();
-    }
-
-    [Command]
     public void CmdDropSilkEvent(DropSilkEvent dropSilkEvent)
     {
+        if (!isLocalPlayer)
+            return;
+
         TypeEventSystem.Instance.Send(dropSilkEvent);
     }
 
     [Command]
     public void CmdOnInstantiateDropPoint(Vector3 pos)
     {
+        if (!isLocalPlayer)
+            return;
         GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab,pos,Quaternion.identity);
         SpawnNetworkObj(dropPoint);
         _dropPointControl.RpcAddDropPoint(dropPoint);
@@ -204,6 +216,8 @@ public class GamePlayer : View
     [Command]
     public void CmdOnDestroyDropPoint(GameObject abandonDropPoint)
     {
+        if (!isLocalPlayer)
+            return;
         _dropPointControl.RemovePoint(abandonDropPoint);
         OnDestroyNetworkObj(abandonDropPoint);
     }
@@ -211,12 +225,16 @@ public class GamePlayer : View
     [Command]
     public void CmdOnClearAllDropPoints()
     {
+        if (!isLocalPlayer)
+            return;
         _dropPointControl.RpcClearDropPoints();
     }
 
     [Command]
     public void CmdSpawnDeadAnimation(Vector3 pos)
     {
+        if (!isLocalPlayer)
+            return;
         GameObject explosion = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Explosion"), pos, Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         
@@ -225,8 +243,18 @@ public class GamePlayer : View
             _networkAnimationProcess.RpcSetAnimationType(AnimType.Respawn);
         }
     }
+
+    [Command]
+    private void CmdUpdatePlayerAnimation()
+    {
+        _networkAnimationProcess.RpcUpdateAnimation();
+    }
+
+    [ServerCallback]
     private void OnDestroyNetworkObj(GameObject abandonedObj)
     {
+        if (!isLocalPlayer)
+            return;
         if(abandonedObj == null)
             return;
 
@@ -235,6 +263,8 @@ public class GamePlayer : View
 
     private void SpawnNetworkObj(GameObject obj)
     {
+        if (!isLocalPlayer)
+            return;
         NetworkServer.Spawn(obj);
     }
 

@@ -4,7 +4,12 @@ using Mirror;
 using NaughtyAttributes.Test;
 using UnityEngine;
 
-
+public enum AnimType
+{
+    None = 0,
+    Respawn,
+    Dead,
+}
 public interface INetworkAnimationProcess
 {
     void RpcUpdateAnimation();
@@ -14,11 +19,7 @@ public interface INetworkAnimationProcess
 public abstract class CharacterAnim : NetworkBehaviour, INetworkAnimationProcess
 {
 
-    protected enum AnimType
-    {
-        None = 0,
-        Respawn
-    }
+
     protected AnimType _animationType = AnimType.None;
     protected bool _bIsAnimationStopping = true;
     public bool IsStopped => _bIsAnimationStopping;

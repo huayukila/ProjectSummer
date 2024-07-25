@@ -50,7 +50,7 @@ public interface IPlayerInterfaceContainer
     PlayerInterfaceContainer GetContainer();
 }
 
-public struct PlayerInterfaceContainer
+public class PlayerInterfaceContainer
 {
     private IPlayerControl _playerControl;
     public PlayerInterfaceContainer(IPlayerControl playerControl)
