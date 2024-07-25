@@ -126,7 +126,6 @@ namespace Character
             _playerID = _player.ID;
             _dropPointTag = "DropPoint" + _playerID.ToString();
             _areaColor = _player.AreaColor;
-
             _tailTrailRenderer.material = new Material(Shader.Find("Sprites/Default")) { hideFlags = HideFlags.DontSave};
             _tailTrailRenderer.startColor = Global.PLAYER_TRACE_COLORS[_playerID - 1];
             _tailTrailRenderer.endColor = Global.PLAYER_TRACE_COLORS[_playerID - 1];
