@@ -120,7 +120,7 @@ public class PlayerAnim : CharacterAnim
         // アニメーションが終わったら初期状態に戻す
         if(_respawnAnimationTimer <= 0)
         {
-            RpcSetAnimationType(AnimType.None);   
+            SetAnimationType(AnimType.None);   
             return;
         }
 
@@ -152,7 +152,7 @@ public class PlayerAnim : CharacterAnim
     {
         _networkPlayer.CmdSpawnDeadAnimation(transform.position);
 
-        RpcSetAnimationType(AnimType.Respawn);
+        SetAnimationType(AnimType.Respawn);
         // 爆発の効果音を流す
         //AudioManager.Instance.PlayFX("BoomFX", 0.7f);
     }

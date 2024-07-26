@@ -183,8 +183,6 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
             networkPlayer.playerIndex = index + 1;
         }
 
-        gamePlayer.name = "Player" + (index + 1).ToString();
-
         Resources.UnloadAsset(table);
         return gamePlayer;
     }
