@@ -13,7 +13,7 @@ public enum AnimType
 public interface INetworkAnimationProcess
 {
     void RpcUpdateAnimation();
-    void RpcSetAnimationType(AnimType type);
+    void SetAnimationType(AnimType type);
     public bool IsStopped { get; }
 }
 public abstract class CharacterAnim : NetworkBehaviour, INetworkAnimationProcess
@@ -24,14 +24,11 @@ public abstract class CharacterAnim : NetworkBehaviour, INetworkAnimationProcess
     protected bool _bIsAnimationStopping = true;
     public bool IsStopped => _bIsAnimationStopping;
 
-    [ClientRpc]
     public virtual void RpcUpdateAnimation() {}
 
-    [ClientRpc]
     protected virtual void RpcResetAnimation() {}
 
-    [ClientRpc]
-    public virtual void RpcSetAnimationType(AnimType type)
+    public virtual void SetAnimationType(AnimType type)
     {
         if(_animationType == type)
             return;
