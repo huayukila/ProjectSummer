@@ -24,6 +24,7 @@ public interface IPlayerInfo : IPlayerControl
     Color AreaColor { get; }
 
     void SetInfo(int ID,Color color);
+
 }
 
 
@@ -50,7 +51,7 @@ public interface IPlayerInterfaceContainer
     PlayerInterfaceContainer GetContainer();
 }
 
-public struct PlayerInterfaceContainer
+public class PlayerInterfaceContainer
 {
     private IPlayerControl _playerControl;
     public PlayerInterfaceContainer(IPlayerControl playerControl)

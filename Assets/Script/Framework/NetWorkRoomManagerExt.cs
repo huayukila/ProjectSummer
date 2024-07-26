@@ -5,10 +5,7 @@ using Mirror.Discovery;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-using Character;
 using Unity.VisualScripting;
-using Gaming;
-using JetBrains.Annotations;
 using UnityEngine.InputSystem;
 
 
@@ -81,17 +78,6 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 {
     private EasyFramework _framework;
 
-    
-    private struct SpiderPlayer
-    {
-        public int ID;
-        public GameObject player;
-        public ICameraController cameraCtrl;
-        public PlayerInterfaceContainer playerInterface;
-    }
-    private SpiderPlayer _spiderPlayer;
-
-
     void RegisterAllSystem() // すべてのシステムを登録する
     {
         _framework.RegisterSystem<IPaintSystem>(new PaintSystem());
@@ -121,8 +107,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
 
         RegisterAllSystem();
         _framework.FrameworkInit();
-
-        _spiderPlayer = new SpiderPlayer();
+        
 
         TempFunc.DetectDevice();
 
@@ -191,24 +176,12 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
             : Instantiate(table.PlayerPrefabs[0],
                 Vector3.zero, Quaternion.identity);
 
-        // プレイヤー情報を初期化
+        // GamePlayerを初期化
+        GamePlayer networkPlayer = gamePlayer.GetComponent<GamePlayer>();
+        if(networkPlayer != null)
         {
-            Camera mainCam = Camera.main;
-            mainCam.orthographicSize = 35f;
-            _spiderPlayer.ID = index + 1;
-            _spiderPlayer.player = gamePlayer;
-            _spiderPlayer.cameraCtrl = mainCam.AddComponent<CameraControl>();
-            _spiderPlayer.cameraCtrl.LockOnTarget(_spiderPlayer.player);
-
-            
-            SpriteRenderer playerImage = _spiderPlayer.player.GetComponentInChildren<SpriteRenderer>();
-            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + (index + 1).ToString());
-
+            networkPlayer.playerIndex = index + 1;
         }
-
-        //TODO need refactoring
-        gamePlayer.GetComponent<GamePlayer>().playerIndex = index + 1;
-        gamePlayer.GetComponent<GamePlayer>().SetPlayerInterface(_spiderPlayer.playerInterface);
 
         Resources.UnloadAsset(table);
         return gamePlayer;
@@ -255,29 +228,10 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
     }
 
     #endregion
+    // 内部用
 
     #endregion
+    // Network
 
-    #region Interface
-    /// <summary>
-    /// プレイヤーの座標を取得する関数
-    /// </summary>
-    /// <param name="ID">プレイヤーのID</param>
-    /// <returns>プレイヤーが存在したらワールド座標を返し、存在しない場合は常にVector3.zeroを返す</returns>
-    public Vector3 GetPlayerPos()
-    {
-        if(_spiderPlayer.player == null)
-            return Vector3.zero;
-        return _spiderPlayer.player.transform.position;
-    }
-
-    // TODO this method sucks
-    public bool IsPlayerDead()
-    {
-        if(_spiderPlayer.player == null)
-            return false;
-
-        return _spiderPlayer.playerInterface.GetInterface<IPlayerState>().IsDead;
-    }
-    #endregion // Interface
+   
 }

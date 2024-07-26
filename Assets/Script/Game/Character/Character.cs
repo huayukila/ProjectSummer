@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Windows.Speech;
 
 namespace Character
 {
-    public abstract class Character : MonoBehaviour
+    public abstract class Character : NetworkBehaviour
     {
         protected struct CharaStatus
         {
