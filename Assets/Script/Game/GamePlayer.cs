@@ -41,7 +41,7 @@ public class GamePlayer : View
 
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
-            e.Player.GetComponent<GamePlayer>().RespawnPlayer();
+            e.Player.GetComponent<GamePlayer>().CmdRespawnPlayer();
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
@@ -165,7 +165,8 @@ public class GamePlayer : View
         }
     }
 
-    private void RespawnPlayer()
+    [Command]
+    private void CmdRespawnPlayer()
     {
         Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
             () =>
@@ -191,9 +192,6 @@ public class GamePlayer : View
     [Command]
     public void CmdOnItemSpawn(GameObject player)
     {
-        if (!isLocalPlayer)
-            return;
-
         IPlayer2ItemSystem player2ItemSystem;
         if(player.TryGetComponent<IPlayer2ItemSystem>(out player2ItemSystem))
         {
@@ -206,8 +204,6 @@ public class GamePlayer : View
     [Command]
     public void CmdDropSilkEvent(DropSilkEvent dropSilkEvent)
     {
-        if (!isLocalPlayer)
-            return;
 
         TypeEventSystem.Instance.Send(dropSilkEvent);
     }
@@ -220,8 +216,7 @@ public class GamePlayer : View
     [Command]
     public void CmdOnInstantiateDropPoint(Vector3 pos)
     {
-        if (!isLocalPlayer)
-            return;
+
         GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab,pos,Quaternion.identity);
         SpawnNetworkObj(dropPoint);
         _dropPointControl.RpcAddDropPoint(dropPoint);
@@ -230,8 +225,7 @@ public class GamePlayer : View
     [Command]
     public void CmdOnDestroyDropPoint(GameObject abandonDropPoint)
     {
-        if (!isLocalPlayer)
-            return;
+
         _dropPointControl.RemovePoint(abandonDropPoint);
         OnDestroyNetworkObj(abandonDropPoint);
     }
@@ -239,16 +233,14 @@ public class GamePlayer : View
     [Command]
     public void CmdOnClearAllDropPoints()
     {
-        if (!isLocalPlayer)
-            return;
+
         _dropPointControl.RpcClearDropPoints();
     }
 
     [Command]
     public void CmdSpawnDeadAnimation(Vector3 pos)
     {
-        if (!isLocalPlayer)
-            return;
+
         GameObject explosion = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Explosion"), pos, Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
         
@@ -267,8 +259,7 @@ public class GamePlayer : View
     [ServerCallback]
     private void OnDestroyNetworkObj(GameObject abandonedObj)
     {
-        if (!isLocalPlayer)
-            return;
+
         if(abandonedObj == null)
             return;
 
@@ -277,9 +268,7 @@ public class GamePlayer : View
 
     private void SpawnNetworkObj(GameObject obj)
     {
-        if (!isLocalPlayer)
-            return;
-        NetworkServer.Spawn(obj);
+        NetworkServer.Spawn(obj,gameObject);
     }
 
     [ClientRpc]
