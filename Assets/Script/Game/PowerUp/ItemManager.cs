@@ -133,13 +133,17 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
 
         #endregion //Event Register
 
-        InitItemBox();
+        if(isServer)         
+            InitItemBox();
 
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(!isServer)
+            return;
+
         switch(_spawnMode)
         {
             case SpawnMode.Normal:

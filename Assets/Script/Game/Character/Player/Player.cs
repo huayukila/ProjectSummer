@@ -7,17 +7,12 @@ using Math;
 using Mirror;
 using Character;
 
+// 色を塗るイベントで必要な情報
 public struct PaintAreaEvent
 {
     public Vector3[] Verts;
     public int PlayerID;
     public Color32 PlayerAreaColor;
-}
-
-public struct PlayerItemContainer
-{
-    public IPlayer2ItemSystem Player2ItemSystem;
-    public Player Player;
 }
 
 public interface IPlayerMainLogic
@@ -117,23 +112,6 @@ namespace Character
         
         private void Awake()
         {
-            #region fuck mirror
-            TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>
-            (
-                eve =>
-                {
-                    IPlayerInfo info = eve.Player.GetComponent<IPlayerInfo>();
-                    if(info != null)
-                    {
-                        eve.Player.GetComponent<DropPointControl>().RpcDropPointInit();
-                        eve.Player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[info.ID - 1];
-                        eve.Player.SpawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(info.ID - 1).position;
-                    }
-                    
-                }
-            );
-            #endregion
-
             _playerInterface = new PlayerInterfaceContainer(this);
             // 初期化処理
             Init();
@@ -214,6 +192,7 @@ namespace Character
                 _playerInfo.AreaColor = color;
             }
         }
+
         public bool IsDead => _playerState == State.Dead;
         public bool IsFine => _playerState == State.Fine;
         public bool IsInvincible => _playerState == State.Invincible;
