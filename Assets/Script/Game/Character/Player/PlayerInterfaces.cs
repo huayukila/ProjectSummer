@@ -24,6 +24,7 @@ public interface IPlayerInfo : IPlayerControl
     Color AreaColor { get; }
 
     void SetInfo(int ID,Color color);
+
 }
 
 

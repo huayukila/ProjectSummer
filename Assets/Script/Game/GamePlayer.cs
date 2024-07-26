@@ -1,5 +1,6 @@
 using Character;
 using Mirror;
+using Mirror.Examples.MultipleMatch;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -13,35 +14,35 @@ public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
 
-    [SyncVar(hook = nameof(OnNameChanged))]
+    [SyncVar(hook = nameof(OnNameChanged))] 
     private string _playerName;
 
-    private PlayerInterfaceContainer _playerInterfaceContainer;
+    private PlayerInterfaceContainer _playerInterfaceContainer;     // プレイヤーのインターフェースコンテナ
 
-    private INetworkAnimationProcess _networkAnimationProcess;
-    private DropPointControl _dropPointControl;
+    private INetworkAnimationProcess _networkAnimationProcess;      // アニメーション再生(ネットワーク専用)
 
-    private IPlayerMainLogic _playerMainLogic;
+    private DropPointControl _dropPointControl;                     // 尻尾の当たり判定用オブジェクトを管理するコントローラー
+
+    private IPlayerMainLogic _playerMainLogic;                      // プレイヤーのメインロジック(Update,FixedUpdate)
 
     public override void OnStartLocalPlayer()
     {
-
+        // インターフェースコンテナ取得
+        if(TryGetComponent(out IPlayerInterfaceContainer container))
         {
-            if(TryGetComponent(out IPlayerInterfaceContainer container))
-            {
-                _playerInterfaceContainer = container.GetContainer();
-            }
-            else
-            {
-                Debug.LogError("Can't Get Player Interface Container:(" + name + ")");
-            }
+            _playerInterfaceContainer = container.GetContainer();
+        }
+        else
+        {
+            Debug.LogError("Can't Get Player Interface Container:(" + name + ")");
         }
 
         _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
 
-        _playerName = "Player" + playerIndex.ToString();
+        // local名前を設定(バグだらけ)
+        // name = "Player" + playerIndex.ToString();
         IPlayerInfo playerInfo = _playerInterfaceContainer.GetInterface<IPlayerInfo>();
-        playerInfo?.SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
+        playerInfo.SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
 
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
@@ -52,7 +53,6 @@ public class GamePlayer : View
         // dropPointController
         {
             _dropPointControl = GetComponent<DropPointControl>();
-            _dropPointControl.SetInfo(playerIndex);
         }
 
         // Input Device
@@ -82,8 +82,13 @@ public class GamePlayer : View
 
             TypeEventSystem.Instance.Send(playerEvent);
         }
-    }
 
+    }
+    public override void OnStartAuthority()
+    {
+        CmdOnChangeName();
+        CmdOnInitDropPointCtrl();
+    }
     private void Update()
     {
         if (!isLocalPlayer) 
@@ -123,43 +128,17 @@ public class GamePlayer : View
     [ServerCallback]
     private void OnCollisionEnter(Collision collision)
     {
-        // 死亡したプレイヤーは金の網を持っていたら
-        if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
-        {
-            DropSilkEvent dropSilkEvent = new DropSilkEvent()
-            {
-                pos = transform.position,
-            };
-            // 金の糸のドロップ場所を設定する
-            //HACK EventSystem temporary invalid
-            //TypeEventSystem.Instance.Send(dropSilkEvent);
-        }
-        // 衝突したら死亡状態に設定する
-        _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
-        Debug.Log(transform.position);
+        if (!isLocalPlayer)
+            return;
+        RpcOnCollisionEnter();
     }
 
     [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
-
-        if (other.gameObject.tag.Contains("DropPoint"))
-        {
-            // 自分のDropPoint以外のDropPointに当たったら
-            if (other.gameObject.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) == false)
-            {
-                if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
-                {
-                    DropSilkEvent dropSilkEvent = new DropSilkEvent()
-                    {
-                        pos = transform.position,
-                    };
-                    TypeEventSystem.Instance.Send(dropSilkEvent);
-                }
-                // 死亡状態に設定する
-                _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
-            }
-        }
+        if (!isLocalPlayer)
+            return;
+        RpcOnTriggerEnter(other.gameObject);
     }
 
     private void RespawnPlayer()
@@ -173,11 +152,16 @@ public class GamePlayer : View
         Camera.main.GetComponent<ICameraController>()?.StopLockOn();
     }
 
-    private void OnNameChanged(string _Old, string _New)
+    private void OnNameChanged(string _Old,string _New)
     {
         name = _playerName;
     }
 
+    [Command]
+    public void CmdOnChangeName()
+    {
+        _playerName = "Player" + playerIndex.ToString();
+    }
 
     [Command]
     public void CmdOnItemSpawn(GameObject player)
@@ -201,6 +185,11 @@ public class GamePlayer : View
             return;
 
         TypeEventSystem.Instance.Send(dropSilkEvent);
+    }
+    [Command]
+    public void CmdOnInitDropPointCtrl()
+    {
+        GetComponent<DropPointControl>().RpcDropPointInit();
     }
 
     [Command]
@@ -247,6 +236,9 @@ public class GamePlayer : View
     [Command]
     private void CmdUpdatePlayerAnimation()
     {
+        if (!isLocalPlayer)
+            return;
+
         _networkAnimationProcess.RpcUpdateAnimation();
     }
 
@@ -266,6 +258,46 @@ public class GamePlayer : View
         if (!isLocalPlayer)
             return;
         NetworkServer.Spawn(obj);
+    }
+
+    [ClientRpc]
+    private void RpcOnCollisionEnter()
+    {
+        // 死亡したプレイヤーは金の網を持っていたら
+        if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
+        {
+            DropSilkEvent dropSilkEvent = new DropSilkEvent()
+            {
+                pos = transform.position,
+            };
+            // 金の糸のドロップ場所を設定する
+            //HACK EventSystem temporary invalid
+            //TypeEventSystem.Instance.Send(dropSilkEvent);
+        }
+        // 衝突したら死亡状態に設定する
+        _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
+        Debug.Log(transform.position);
+    }
+    [ClientRpc]
+    private void RpcOnTriggerEnter(GameObject collisionObj)
+    {
+        if(collisionObj.tag.Contains("DropPoint"))
+        {
+            // 自分のDropPoint以外のDropPointに当たったら
+            if (collisionObj.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) == false)
+            {
+                if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
+                {
+                    DropSilkEvent dropSilkEvent = new DropSilkEvent()
+                    {
+                        pos = transform.position,
+                    };
+                    TypeEventSystem.Instance.Send(dropSilkEvent);
+                }
+                // 死亡状態に設定する
+                _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
+            }
+        }
     }
 
 }
