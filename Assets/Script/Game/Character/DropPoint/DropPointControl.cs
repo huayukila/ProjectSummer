@@ -84,9 +84,7 @@ namespace Character
         // Update is called once per frame
         private void Update()
         {
-            if (!isLocalPlayer) 
-                return;
-
+            
             _tailFadeOutTimer += Time.deltaTime;
             // プレイヤーが場に一定時間を移動し続けたら（DropPointの生存時間の半分）
             if (_tailFadeOutTimer >= Global.DROP_POINT_ALIVE_TIME / 2.0f && _tailFadeOutTimer < Global.DROP_POINT_ALIVE_TIME)
@@ -105,8 +103,6 @@ namespace Character
 
         private void FixedUpdate()
         {
-            if (!isLocalPlayer) 
-                return;
             DropNewPoint();
         }
 
