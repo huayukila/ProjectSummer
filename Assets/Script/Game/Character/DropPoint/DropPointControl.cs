@@ -27,14 +27,13 @@ namespace Character
         private float _tailFadeOutTimer;
         private Timer _dropPointTimer;           // DropPointのインスタンス化することを管理するタイマー
 
-        private float trailOffset;
+        private float _trailOffset;
 
-        //TODO refactorying
+        //TODO refactoring
         private string _dropPointTag;
         private int _playerID;
         private Color _areaColor;
 
-        private Player _player;
         private GamePlayer _networkPlayer;
         public GameObject DropPointPrefab => _pointPrefab;
 
@@ -44,33 +43,10 @@ namespace Character
 
             _pointPrefab = GameResourceSystem.Instance.GetPrefabResource("DropPoint");
             _tailFadeOutTimer = 0.0f;
-            trailOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
-            _player = gameObject.GetOrAddComponent<Player>();
+            _trailOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             _dropPointTag = "DropPoint";
-            _playerID = -1;
+            _playerID = 0;
             _areaColor = Color.clear;
-
-            // 尻尾を描画するGameObjectを作る
-            GameObject trail = new GameObject(name + "Trail");
-            // プレイヤーを親にする
-            trail.transform.parent = transform;
-            //todo take note
-            // ワールド座標をローカル座標に変換する
-            Vector3 localForward = transform.worldToLocalMatrix.MultiplyVector(transform.forward);
-            trail.transform.localPosition = Vector3.down * 0.5f - localForward * trailOffset;
-            trail.transform.localScale = Vector3.one;
-            // TrailRendererをアタッチする
-            _tailTrailRenderer = trail.gameObject.AddComponent<TrailRenderer>();
-
-            _dropPointTimer = new Timer(Time.time, Global.DROP_POINT_INTERVAL,
-                () =>
-                {
-                    Vector3 spawnPos = transform.position - transform.forward * trailOffset;
-                    // タイマーが終わったらDropPointを置く
-                    _networkPlayer.CmdOnInstantiateDropPoint(spawnPos);
-                }
-                );
-            _dropPointTimer.StartTimer(this);
 
             _playerDropPoints = new PlayerDropPoints
             {
@@ -78,12 +54,39 @@ namespace Character
                 pointGroup = new GameObject("Player drop point group")
             };
 
+            _dropPointTimer = new Timer(Time.time, Global.DROP_POINT_INTERVAL,
+            () =>
+            {
+                Vector3 spawnPos = transform.position - transform.forward * _trailOffset;
+                // タイマーが終わったらDropPointを置く
+                _networkPlayer.CmdOnInstantiateDropPoint(spawnPos);
+            }
+            );
+            _dropPointTimer.StartTimer(this);
+
+            #region fuck mirror
+            TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>
+            (
+                eve =>
+                {
+                    IPlayerInfo info = eve.Player.GetComponent<IPlayerInfo>();
+                    if(info != null)
+                    {
+                        eve.Player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[info.ID - 1];
+                        eve.Player.SpawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(info.ID - 1).position;
+                    }
+                    
+                }
+            );
+            #endregion
 
         }
         // Update is called once per frame
         private void Update()
         {
-            
+            if (!isLocalPlayer) 
+                return;
+
             _tailFadeOutTimer += Time.deltaTime;
             // プレイヤーが場に一定時間を移動し続けたら（DropPointの生存時間の半分）
             if (_tailFadeOutTimer >= Global.DROP_POINT_ALIVE_TIME / 2.0f && _tailFadeOutTimer < Global.DROP_POINT_ALIVE_TIME)
@@ -102,8 +105,11 @@ namespace Character
 
         private void FixedUpdate()
         {
+            if (!isLocalPlayer) 
+                return;
             DropNewPoint();
         }
+
         /// <summary>
         /// DropPointをインスタンス化する
         /// </summary>
@@ -111,6 +117,7 @@ namespace Character
         public void RpcAddDropPoint(GameObject pt)
         {
             //GameObject pt = Instantiate(_pointPrefab, transform.position - transform.forward * trailOffset, Quaternion.identity);
+            pt.name = _dropPointTag;
             pt.tag = _dropPointTag;
             pt.GetComponent<DropPoint>().SetDestroyCallback(_networkPlayer.CmdOnDestroyDropPoint);
             // TODO 
@@ -121,11 +128,27 @@ namespace Character
         /// <summary>
         /// TrailRendererの初期設定行う
         /// </summary>
-        public void Init()
+        [ClientRpc]
+        public void RpcDropPointInit()
         {
-            _playerID = _player.ID;
-            _dropPointTag = "DropPoint" + _playerID.ToString();
-            _areaColor = _player.AreaColor;
+            IPlayerInfo playerInfo = GetComponent<IPlayerInfo>();
+            {
+                _playerID = playerInfo.ID;
+                _dropPointTag = "DropPoint" + _playerID.ToString();
+                _areaColor = playerInfo.AreaColor;
+            }
+
+            // 尻尾を描画するGameObjectを作る
+            GameObject trail = new GameObject(name + "Trail");
+            // プレイヤーを親にする
+            trail.transform.parent = transform;
+            //todo take note
+            // ワールド座標をローカル座標に変換する
+            Vector3 localForward = transform.worldToLocalMatrix.MultiplyVector(transform.forward);
+            trail.transform.localPosition = Vector3.down * 0.5f - localForward * _trailOffset;
+            trail.transform.localScale = Vector3.one;
+            // TrailRendererをアタッチする
+            _tailTrailRenderer = trail.gameObject.AddComponent<TrailRenderer>();
 
             _tailTrailRenderer.material = new Material(Shader.Find("Sprites/Default")) { hideFlags = HideFlags.DontSave};
             _tailTrailRenderer.startColor = Global.PLAYER_TRACE_COLORS[_playerID - 1];
@@ -243,7 +266,6 @@ namespace Character
         /// <summary>
         /// プレイヤーの全てのDropPointのワールド座標を戻す関数
         /// </summary>
-        /// <param name="ID">プレイヤーのID</param>
         /// <returns>全てのDropPoint(GameObject)のワールド座標（Vector3型）、プレイヤーが存在しない場合は空の配列を返す</returns>
         public Vector3[] GetPlayerDropPoints()
         {
