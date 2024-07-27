@@ -1,20 +1,24 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public partial class ChargeBarCtrl : ViewController
 {
-    [Range(0, 1)] public float testNums;
-
     public Animator fireAnimator;
+    private IPlayerBoost boost;
 
     // Start is called before the first frame update
     void Start()
     {
-        Mask.fillAmount = testNums;
+        TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>(e => { boost = e.Player as IPlayerBoost; });
+        Mask.fillAmount = 0.4f;
     }
 
     // Update is called once per frame
     void Update()
     {
-        Mask.fillAmount = testNums * 0.4f;
+        if (boost != null)
+        {
+            Mask.fillAmount = boost.ChargeBarPercentage * 0.4f;
+        }
     }
 }

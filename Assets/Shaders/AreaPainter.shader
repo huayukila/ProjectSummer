@@ -6,11 +6,10 @@ Shader "Paint/AreaPainter"
         Pass
         {
             CGPROGRAM
-            // Upgrade NOTE: excluded shader from DX11; has structs without semantics (struct v2f members modelPos)
             #pragma exclude_renderers d3d11
             #pragma vertex vert
             #pragma fragment frag
-            
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -22,7 +21,6 @@ Shader "Paint/AreaPainter"
                 float4 vertex : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float4 worldPos : TEXCOORD1;
-                // float3 modelPos : TEXCOORD2;
             };
 
             bool mask(int max, float4 worldPosArray[100], float4 center)
@@ -60,24 +58,23 @@ Shader "Paint/AreaPainter"
                 float4 uv = float4(0, 0, 0, 1);
                 uv.xy = float2(1, _ProjectionParams.x) * (v.uv.xy * 2 - 1);
                 o.vertex = uv;
-                // o.modelPos = v.vertex.xyz;
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                bool isMasked = mask(_MaxVertNum, _worldPosList, i.worldPos);
-                if (isMasked)
-                {
-                    // float UV_X = frac((i.modelPos.x + 5) / _TextureSize);
-                    // float UV_Y = frac((i.modelPos.z + 5) / _TextureSize);
-                    // float2 newUV = float2(UV_X, UV_Y);
-                    // fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, newUV);
-                    // return playerAreaTextColor;
-                    fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, i.uv);
-                    return playerAreaTextColor;
-                }
-                return tex2D(_MainTex, i.uv);
+                // bool isMasked = mask(_MaxVertNum, _worldPosList, i.worldPos);
+                // if (isMasked)
+                // {
+                //     float newUV_X = i.worldPos.x % 100;
+                //     float newUV_Y = i.worldPos.y % 100;
+                //     float2 newUV;
+                //     newUV.x = newUV_X;
+                //     newUV.y = newUV_Y;
+                //     fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, newUV);
+                //     return playerAreaTextColor;
+                // }
+                return tex2D(_PlayerAreaText, i.uv);
             }
             ENDCG
         }
