@@ -1,43 +1,49 @@
 using Character;
 using Mirror;
+using Mirror.Examples.MultipleMatch;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Analytics;
 
-public struct SendInitializedPlayerEvent
+public class SendInitializedPlayerEvent
 {
     public Player Player;
 }
-
 public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
-    private PlayerInterfaceContainer _playerInterfaceContainer;
 
-    private INetworkAnimationProcess _networkAnimationProcess;
-    private DropPointControl _dropPointControl;
+    private PlayerInterfaceContainer _playerInterfaceContainer;     // プレイヤーのインターフェースコンテナ
+
+    private INetworkAnimationProcess _networkAnimationProcess;      // アニメーション再生(ネットワーク専用)
+
+    private DropPointControl _dropPointControl;                     // 尻尾の当たり判定用オブジェクトを管理するコントローラー
+
+    private IPlayerMainLogic _playerMainLogic;                      // プレイヤーのメインロジック(Update,FixedUpdate)
 
     public override void OnStartLocalPlayer()
     {
-        Debug.Log("Start");
+        // インターフェースコンテナ取得
+        if(TryGetComponent(out IPlayerInterfaceContainer container))
         {
-            if (TryGetComponent(out IPlayerInterfaceContainer container))
-            {
-                _playerInterfaceContainer = container.GetContainer();
-            }
-            else
-            {
-                Debug.LogError("Can't Get Player Interface Container:(" + name + ")");
-            }
+            _playerInterfaceContainer = container.GetContainer();
         }
+        else
+        {
+            Debug.LogError("Can't Get Player Interface Container:(" + name + ")");
+        }
+
+        _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
+
+        IPlayerInfo playerInfo = _playerInterfaceContainer.GetInterface<IPlayerInfo>();
+        playerInfo.SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
+
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
-            e.Player.GetComponent<GamePlayer>().RespawnPlayer();
+            e.Player.GetComponent<GamePlayer>().CmdRespawnPlayer();
+
         }).UnregisterWhenGameObjectDestroyed(gameObject);
-
-        CmdInitItemSystem();
-
 
         // dropPointController
         {
@@ -49,31 +55,46 @@ public class GamePlayer : View
             DeviceSetting.Init();
         }
 
-        _playerInterfaceContainer.GetInterface<IPlayerInfo>()
-            .SetInfo(playerIndex, Global.PLAYER_TRACE_COLORS[playerIndex - 1]);
+        // プレイヤー情報を初期化
         {
+            Camera mainCam = Camera.main;
+            mainCam.orthographicSize = 35f;
+            CameraControl cameraCtrl = mainCam.AddComponent<CameraControl>();
+            cameraCtrl.LockOnTarget(gameObject);
+            
+            SpriteRenderer playerImage = GetComponentInChildren<SpriteRenderer>();
+            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + playerIndex.ToString());
+
+        }
+
+        _playerMainLogic = GetComponent<IPlayerMainLogic>();
+
+        #region not call on client 
+            CmdOnChangeName();
+            CmdOnInitDropPointCtrl();
+        #endregion
+
+        { 
             SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
-            {
-                Player = GetComponent<Player>()
-            };
+                                                    {
+                                                        Player = GetComponent<Player>()
+                                                    };
 
             TypeEventSystem.Instance.Send(playerEvent);
         }
 
-        _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
     }
 
     private void Update()
     {
-        if (!isLocalPlayer)
+        if (!isLocalPlayer) 
             return;
 
-        if (_networkAnimationProcess != null)
+        _playerMainLogic.Tick();
+
+        if(Input.GetKeyDown(KeyCode.C))
         {
-            if (!_networkAnimationProcess.IsStopped)
-            {
-                _networkAnimationProcess.RpcUpdateAnimation();
-            }
+            (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).ExitToOffline();
         }
     }
 
@@ -81,13 +102,23 @@ public class GamePlayer : View
     {
         if (!isLocalPlayer)
             return;
+
+        _playerMainLogic.FixedTick();
     }
-
-
+    
+    
     private void LateUpdate()
     {
         if (!isLocalPlayer)
             return;
+
+        if(_networkAnimationProcess != null)
+        {
+            if(!_networkAnimationProcess.IsStopped)
+            {
+                CmdUpdatePlayerAnimation();
+            }               
+        }
     }
 
     /// <summary>
@@ -97,7 +128,7 @@ public class GamePlayer : View
     [ServerCallback]
     private void OnCollisionEnter(Collision collision)
     {
-        // 死亡したプレイヤーは金の網を持っていたら
+         // 死亡したプレイヤーは金の網を持っていたら
         if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
         {
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
@@ -108,20 +139,17 @@ public class GamePlayer : View
             //HACK EventSystem temporary invalid
             //TypeEventSystem.Instance.Send(dropSilkEvent);
         }
-
         // 衝突したら死亡状態に設定する
         _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
-        Debug.Log(transform.position);
     }
 
     [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag.Contains("DropPoint"))
+        if(other.tag.Contains("DropPoint"))
         {
             // 自分のDropPoint以外のDropPointに当たったら
-            if (other.gameObject.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) ==
-                false)
+            if (other.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) == false)
             {
                 if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
                 {
@@ -131,16 +159,16 @@ public class GamePlayer : View
                     };
                     TypeEventSystem.Instance.Send(dropSilkEvent);
                 }
-
                 // 死亡状態に設定する
                 _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
             }
         }
     }
 
-    private void RespawnPlayer()
+    [Command]
+    private void CmdRespawnPlayer()
     {
-        Timer spawnTimer = new Timer(Time.time, Global.RESPAWN_TIME,
+        Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
             () =>
             {
                 _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
@@ -149,17 +177,23 @@ public class GamePlayer : View
         Camera.main.GetComponent<ICameraController>()?.StopLockOn();
     }
 
-    public void SetPlayerInterface(PlayerInterfaceContainer container)
+    [Command]
+    public void CmdOnChangeName()
     {
-        _playerInterfaceContainer = container;
+        RpcChangeName();
     }
 
+    [ClientRpc]
+    private void RpcChangeName()
+    {
+        name = "Player" + playerIndex.ToString();
+    }
 
     [Command]
     public void CmdOnItemSpawn(GameObject player)
     {
         IPlayer2ItemSystem player2ItemSystem;
-        if (player.TryGetComponent<IPlayer2ItemSystem>(out player2ItemSystem))
+        if(player.TryGetComponent<IPlayer2ItemSystem>(out player2ItemSystem))
         {
             player2ItemSystem.UseItem(player.GetComponent<Player>());
         }
@@ -168,21 +202,22 @@ public class GamePlayer : View
 
 
     [Command]
-    public void CmdInitItemSystem()
-    {
-        GetSystem<IItemSystem>().InitItemSystem();
-    }
-
-    [Command]
     public void CmdDropSilkEvent(DropSilkEvent dropSilkEvent)
     {
+
         TypeEventSystem.Instance.Send(dropSilkEvent);
+    }
+    [Command]
+    public void CmdOnInitDropPointCtrl()
+    {
+        _dropPointControl.RpcDropPointInit();
     }
 
     [Command]
     public void CmdOnInstantiateDropPoint(Vector3 pos)
     {
-        GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab, pos, Quaternion.identity);
+
+        GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab,pos,Quaternion.identity);
         SpawnNetworkObj(dropPoint);
         _dropPointControl.RpcAddDropPoint(dropPoint);
     }
@@ -190,6 +225,7 @@ public class GamePlayer : View
     [Command]
     public void CmdOnDestroyDropPoint(GameObject abandonDropPoint)
     {
+
         _dropPointControl.RemovePoint(abandonDropPoint);
         OnDestroyNetworkObj(abandonDropPoint);
     }
@@ -197,25 +233,34 @@ public class GamePlayer : View
     [Command]
     public void CmdOnClearAllDropPoints()
     {
+
         _dropPointControl.RpcClearDropPoints();
     }
 
     [Command]
     public void CmdSpawnDeadAnimation(Vector3 pos)
     {
-        GameObject explosion = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Explosion"), pos,
-            Quaternion.identity);
-        explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
-        if (_networkAnimationProcess != null)
+        GameObject explosion = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Explosion"), pos, Quaternion.identity);
+        explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+        
+        if(_networkAnimationProcess != null)
         {
-            _networkAnimationProcess.RpcSetAnimationType(AnimType.Respawn);
+            _networkAnimationProcess.SetAnimationType(AnimType.Respawn);
         }
     }
 
+    [Command]
+    private void CmdUpdatePlayerAnimation()
+    {
+        _networkAnimationProcess.RpcUpdateAnimation();
+    }
+
+    [ServerCallback]
     private void OnDestroyNetworkObj(GameObject abandonedObj)
     {
-        if (abandonedObj == null)
+
+        if(abandonedObj == null)
             return;
 
         NetworkServer.Destroy(abandonedObj);
@@ -223,6 +268,18 @@ public class GamePlayer : View
 
     private void SpawnNetworkObj(GameObject obj)
     {
-        NetworkServer.Spawn(obj);
+        NetworkServer.Spawn(obj,gameObject);
     }
+
+    [ClientRpc]
+    private void RpcOnCollisionEnter()
+    {
+       
+    }
+    [ClientRpc]
+    private void RpcOnTriggerEnter(GameObject collisionObj)
+    {
+        
+    }
+
 }

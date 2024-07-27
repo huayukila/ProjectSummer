@@ -24,10 +24,12 @@ public abstract class CharacterAnim : NetworkBehaviour, INetworkAnimationProcess
     protected bool _bIsAnimationStopping = true;
     public bool IsStopped => _bIsAnimationStopping;
 
+    [ClientRpc]
     public virtual void RpcUpdateAnimation() {}
 
+    [ClientRpc]
     protected virtual void RpcResetAnimation() {}
-
+    
     public virtual void SetAnimationType(AnimType type)
     {
         if(_animationType == type)
@@ -36,5 +38,4 @@ public abstract class CharacterAnim : NetworkBehaviour, INetworkAnimationProcess
         _animationType = type;
         RpcResetAnimation();
     }
-
 }
