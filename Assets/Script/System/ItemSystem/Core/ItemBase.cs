@@ -13,7 +13,7 @@ public class ItemBase : ScriptableObject, IItem
 {
     public string itemName;
     public int id;
-
+    public Sprite ItemImage;
     void IItem.Use(Player player)
     {
         OnUse(player);

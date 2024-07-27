@@ -9,6 +9,7 @@ public struct SendInitializedPlayerEvent
 {
     public Player Player;
 }
+
 public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
@@ -21,7 +22,7 @@ public class GamePlayer : View
     {
         Debug.Log("Start");
         {
-            if(TryGetComponent(out IPlayerInterfaceContainer container))
+            if (TryGetComponent(out IPlayerInterfaceContainer container))
             {
                 _playerInterfaceContainer = container.GetContainer();
             }
@@ -33,7 +34,6 @@ public class GamePlayer : View
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
             e.Player.GetComponent<GamePlayer>().RespawnPlayer();
-
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
         CmdInitItemSystem();
@@ -49,46 +49,41 @@ public class GamePlayer : View
             DeviceSetting.Init();
         }
 
-        _playerInterfaceContainer.GetInterface<IPlayerInfo>().SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
+        _playerInterfaceContainer.GetInterface<IPlayerInfo>()
+            .SetInfo(playerIndex, Global.PLAYER_TRACE_COLORS[playerIndex - 1]);
         {
-            
             SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
-                                                    {
-                                                        Player = GetComponent<Player>()
-                                                    };
+            {
+                Player = GetComponent<Player>()
+            };
 
             TypeEventSystem.Instance.Send(playerEvent);
         }
 
         _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
-
     }
 
     private void Update()
     {
-        if (!isLocalPlayer) 
+        if (!isLocalPlayer)
             return;
 
-        if(_networkAnimationProcess != null)
+        if (_networkAnimationProcess != null)
         {
-            if(!_networkAnimationProcess.IsStopped)
+            if (!_networkAnimationProcess.IsStopped)
             {
                 _networkAnimationProcess.RpcUpdateAnimation();
             }
-                
         }
-
     }
 
     private void FixedUpdate()
     {
         if (!isLocalPlayer)
             return;
-
-
     }
-    
-    
+
+
     private void LateUpdate()
     {
         if (!isLocalPlayer)
@@ -113,6 +108,7 @@ public class GamePlayer : View
             //HACK EventSystem temporary invalid
             //TypeEventSystem.Instance.Send(dropSilkEvent);
         }
+
         // è’ìÀÇµÇΩÇÁéÄñSèÛë‘Ç…ê›íËÇ∑ÇÈ
         _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
         Debug.Log(transform.position);
@@ -121,11 +117,11 @@ public class GamePlayer : View
     [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
-
         if (other.gameObject.tag.Contains("DropPoint"))
         {
             // é©ï™ÇÃDropPointà»äOÇÃDropPointÇ…ìñÇΩÇ¡ÇΩÇÁ
-            if (other.gameObject.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) == false)
+            if (other.gameObject.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) ==
+                false)
             {
                 if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
                 {
@@ -135,6 +131,7 @@ public class GamePlayer : View
                     };
                     TypeEventSystem.Instance.Send(dropSilkEvent);
                 }
+
                 // éÄñSèÛë‘Ç…ê›íËÇ∑ÇÈ
                 _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
             }
@@ -143,7 +140,7 @@ public class GamePlayer : View
 
     private void RespawnPlayer()
     {
-        Timer spawnTimer = new Timer(Time.time,Global.RESPAWN_TIME,
+        Timer spawnTimer = new Timer(Time.time, Global.RESPAWN_TIME,
             () =>
             {
                 _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Respawn);
@@ -151,6 +148,7 @@ public class GamePlayer : View
         spawnTimer.StartTimer(this);
         Camera.main.GetComponent<ICameraController>()?.StopLockOn();
     }
+
     public void SetPlayerInterface(PlayerInterfaceContainer container)
     {
         _playerInterfaceContainer = container;
@@ -161,7 +159,7 @@ public class GamePlayer : View
     public void CmdOnItemSpawn(GameObject player)
     {
         IPlayer2ItemSystem player2ItemSystem;
-        if(player.TryGetComponent<IPlayer2ItemSystem>(out player2ItemSystem))
+        if (player.TryGetComponent<IPlayer2ItemSystem>(out player2ItemSystem))
         {
             player2ItemSystem.UseItem(player.GetComponent<Player>());
         }
@@ -184,7 +182,7 @@ public class GamePlayer : View
     [Command]
     public void CmdOnInstantiateDropPoint(Vector3 pos)
     {
-        GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab,pos,Quaternion.identity);
+        GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab, pos, Quaternion.identity);
         SpawnNetworkObj(dropPoint);
         _dropPointControl.RpcAddDropPoint(dropPoint);
     }
@@ -205,17 +203,19 @@ public class GamePlayer : View
     [Command]
     public void CmdSpawnDeadAnimation(Vector3 pos)
     {
-        GameObject explosion = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Explosion"), pos, Quaternion.identity);
+        GameObject explosion = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Explosion"), pos,
+            Quaternion.identity);
         explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
-        
-        if(_networkAnimationProcess != null)
+
+        if (_networkAnimationProcess != null)
         {
             _networkAnimationProcess.RpcSetAnimationType(AnimType.Respawn);
         }
     }
+
     private void OnDestroyNetworkObj(GameObject abandonedObj)
     {
-        if(abandonedObj == null)
+        if (abandonedObj == null)
             return;
 
         NetworkServer.Destroy(abandonedObj);
@@ -225,5 +225,4 @@ public class GamePlayer : View
     {
         NetworkServer.Spawn(obj);
     }
-
 }
