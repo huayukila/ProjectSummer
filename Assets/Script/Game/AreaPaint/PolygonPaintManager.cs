@@ -20,8 +20,8 @@ public class PolygonPaintManager : View
     Material paintMaterial;
     Material areaMaterial;
     RenderTexture copyRT;
-    int[] result=new int[2];
-    
+    int[] result = new int[2];
+
     //shader変数
     int kernelHandle;
     int colorID = Shader.PropertyToID("_Color");
@@ -29,9 +29,9 @@ public class PolygonPaintManager : View
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
     int playerAreaTextureID = Shader.PropertyToID("_PlayerAreaText");
     private int worldPointID = Shader.PropertyToID("_worldPosList");
-    int textureSizeID=Shader.PropertyToID("_TextureSize");
+    int textureSizeID = Shader.PropertyToID("_TextureSize");
 
-    
+
     protected void Awake()
     {
         mapPaintable.Init();
@@ -44,6 +44,7 @@ public class PolygonPaintManager : View
             }
         }
 
+        copyRT = mapPaintable.GetCopy();
         CountResultList.Callback += OnsyncListChanged;
 
         paintMaterial = new Material(texturePaint);
@@ -143,7 +144,7 @@ public class PolygonPaintManager : View
         areaMaterial.SetInt(maxVertNum, worldPosList.Length);
         areaMaterial.SetVectorArray(worldPointID, posList);
         areaMaterial.SetTexture(textureID, areaCopy);
-        areaMaterial.SetInt(textureSizeID,AreaTextureSize);
+        areaMaterial.SetInt(textureSizeID, AreaTextureSize);
 
 
         switch (index)
