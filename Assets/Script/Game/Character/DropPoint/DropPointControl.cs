@@ -103,7 +103,9 @@ namespace Character
 
         private void FixedUpdate()
         {
-            DropNewPoint();
+            if (!isLocalPlayer) 
+                return;
+            //DropNewPoint();
         }
 
         /// <summary>
@@ -143,7 +145,7 @@ namespace Character
             Vector3 localForward = transform.worldToLocalMatrix.MultiplyVector(transform.forward);
             trail.transform.localPosition = Vector3.down * 0.5f - localForward * _trailOffset;
             trail.transform.localScale = Vector3.one;
-            // TrailRendererをアタッチする
+
             _tailTrailRenderer = trail.gameObject.AddComponent<TrailRenderer>();
 
             _tailTrailRenderer.material = new Material(Shader.Find("Sprites/Default")) { hideFlags = HideFlags.DontSave};
