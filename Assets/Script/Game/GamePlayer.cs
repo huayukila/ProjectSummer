@@ -13,6 +13,8 @@ public class SendInitializedPlayerEvent
 public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
+    [SyncVar(hook = nameof(OnNameChanged))]
+    public string _playerName;
 
     private PlayerInterfaceContainer _playerInterfaceContainer;     // プレイヤーのインターフェースコンテナ
 
@@ -177,10 +179,15 @@ public class GamePlayer : View
         Camera.main.GetComponent<ICameraController>()?.StopLockOn();
     }
 
+    private void OnNameChanged(string _Old,string _New)
+    {
+        
+    }
     [Command]
     public void CmdOnChangeName()
     {
         RpcChangeName();
+        Debug.Log(name);
     }
 
     [ClientRpc]
