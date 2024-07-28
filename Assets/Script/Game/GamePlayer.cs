@@ -126,11 +126,9 @@ public class GamePlayer : View
     /// 衝突があったとき処理する
     /// </summary>
     /// <param name="collision"></param>
-    [Client]
+    [ServerCallback]
     private void OnCollisionEnter(Collision collision)
     {
-        if(!isLocalPlayer)
-            return;
 
         Debug.Log($"Player{playerIndex} Collide {collision.gameObject.name}");
          // 死亡したプレイヤーは金の網を持っていたら
@@ -149,12 +147,9 @@ public class GamePlayer : View
 
     }
 
-    [Client]
+    [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
-        if(!isLocalPlayer)
-            return;
-
         if(other.tag.Contains("DropPoint"))
         {
             // 自分のDropPoint以外のDropPointに当たったら
@@ -241,24 +236,22 @@ public class GamePlayer : View
         GameObject dropPoint = Instantiate(GameResourceSystem.Instance.GetPrefabResource("DropPoint"),pos,Quaternion.identity);
         dropPoint.tag = dropPointTag;
         dropPoint.name = dropPointTag;
-        SpawnNetworkObj(dropPoint);
-        _dropPointControl.AddDropPoint(dropPoint);
+        NetworkServer.Spawn(dropPoint);
+        RpcAddDropPoint(dropPoint);
 
     }
 
-    [Command]
-    public void CmdOnDestroyDropPoint(GameObject abandonDropPoint)
+    [ClientRpc]
+    private void RpcAddDropPoint(GameObject dropPoint)
     {
-
-        _dropPointControl.RemovePoint(abandonDropPoint);
-        OnDestroyNetworkObj(abandonDropPoint);
+        _dropPointControl.RpcAddDropPoint(dropPoint);
     }
+
 
     [Command]
     public void CmdOnClearAllDropPoints()
     {
-
-        _dropPointControl.RpcClearDropPoints();
+        _dropPointControl.RpcClearAllDropPoints();
     }
 
     [Command]
@@ -286,18 +279,4 @@ public class GamePlayer : View
         _networkAnimationProcess.RpcUpdateAnimation();
     }
 
-    [ServerCallback]
-    private void OnDestroyNetworkObj(GameObject abandonedObj)
-    {
-
-        if(abandonedObj == null)
-            return;
-
-        NetworkServer.Destroy(abandonedObj);
-    }
-
-    private void SpawnNetworkObj(GameObject obj)
-    {
-        NetworkServer.Spawn(obj);
-    }
 }

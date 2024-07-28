@@ -93,7 +93,7 @@ namespace Character
         //TODO need refactorying(player should not know the existence of system)
         private IItemSystem _itemSystem;
 
-        private GamePlayer _gamePlayer;
+        private GamePlayer _networkPlayer;
 
         private float _boostChargeTimeCnt;
 
@@ -357,7 +357,7 @@ namespace Character
 
             SetPlayerInputProperties();
 
-            _gamePlayer = GetComponent<GamePlayer>();
+            _networkPlayer = GetComponent<GamePlayer>();
 
 
         }
@@ -471,7 +471,7 @@ namespace Character
 
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
 
-            _gamePlayer.CmdOnClearAllDropPoints();
+            _networkPlayer.CmdOnClearAllDropPoints();
 
             _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
@@ -555,7 +555,7 @@ namespace Character
 
                         TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
-                        _gamePlayer.CmdOnClearAllDropPoints();
+                        _networkPlayer.CmdOnClearAllDropPoints();
                         
                         // 尻尾のTrailRendererの状態をリセットする
                         _dropPointCtrl.ResetTrail();
@@ -670,9 +670,9 @@ namespace Character
         {
             if(_playerState == State.Fine && ctx.performed)
             {
-                if(_gamePlayer != null)
+                if(_networkPlayer != null)
                 {
-                    _gamePlayer.CmdOnItemSpawn(gameObject);
+                    _networkPlayer.CmdOnItemSpawn(gameObject);
                     //this.UseItem(this);
                 }
             }

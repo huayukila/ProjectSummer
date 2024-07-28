@@ -15,14 +15,14 @@ namespace Character
         {
             // DropPointが保存されるList
             public List<GameObject> playerPoints;
-            // DropPointを管�?する親
+            // DropPointを管?��?する親
             public GameObject pointGroup;
         }
 
         [SerializeField]
         private PlayerDropPoints _playerDropPoints;
 
-        private TrailRenderer _tailTrailRenderer;      // DropPointが繋がって�?ることを表すTrailRenderer
+        private TrailRenderer _tailTrailRenderer;      // DropPointが繋がって?��?ることを表すTrailRenderer
         private float _tailFadeOutTimer;
 
         private float  _dropPointTimerCnt;
@@ -68,12 +68,12 @@ namespace Character
                 return;
             
             _tailFadeOutTimer += Time.deltaTime;
-            // プレイヤーが�?�に一定時間を移動し続けたら?�?DropPointの生存時間�?�半�???�?
+            // プレイヤーが�??��に一定時間を移動し続けたら??��?DropPointの生存時間�??��半�????��?
             if (_tailFadeOutTimer >= Global.DROP_POINT_ALIVE_TIME / 2.0f && _tailFadeOutTimer < Global.DROP_POINT_ALIVE_TIME)
             {
-                // 不透�?�度を計算する　※　y = -1.9x + 1.95;
+                // 不透�??��度を計算する　※　y = -1.9x + 1.95;
                 float alpha = (-1.9f / Global.DROP_POINT_ALIVE_TIME) * _tailFadeOutTimer + 1.95f;
-                // 不透�?�度の最小値�?0.05に設定す�?
+                // 不透�??��度の最小値?��?0.05に設定す?��?
                 if (alpha < 0.05f)
                 {
                     alpha = 0.05f;
@@ -82,23 +82,26 @@ namespace Character
             }
 
         }
-        private void FixedUpdate()
+
+        void FixedUpdate()
         {
-            if (!isLocalPlayer) 
+            if(!isLocalPlayer)
                 return;
 
             DropNewPoint();
         }
 
-        /// <summary>
-        /// DropPoint�𐶐�����
-        /// </summary>
-        public void AddDropPoint(GameObject pt)
-        {
-            pt.GetComponent<DropPoint>().SetDestroyCallback(_networkPlayer.CmdOnDestroyDropPoint);
-            // TODO 
-            AddPoint(pt);
 
+        /// <summary>
+        /// DropPoint?��?���?��?��?��?��
+        /// </summary>
+        [ClientRpc]
+        public void RpcAddDropPoint(GameObject pt)
+        {
+            pt.GetComponent<DropPoint>().SetDestroyCallback(RpcRemovePoint);
+            // dropPointの親を設定して、Listに入れる
+            pt.transform.parent = _playerDropPoints.pointGroup.transform;
+            _playerDropPoints.playerPoints.Add(pt);
         }
 
         /// <summary>
@@ -131,7 +134,7 @@ namespace Character
         }
 
         /// <summary>
-        /// DropPointを置�?
+        /// DropPointを置?��?
         /// </summary>    
         public void DropNewPoint()
         {
@@ -147,7 +150,7 @@ namespace Character
         }
 
         /// <summary>
-        /// TrailRendererの状態をリセ�?トす�?
+        /// TrailRendererの状態をリセ?��?トす?��?
         /// </summary>
         public void ResetTrail()
         {
@@ -157,19 +160,14 @@ namespace Character
         }
 
         /// <summary>
-        /// TrailRendererのグラ�?ィエントを設定す�?
+        /// TrailRendererのグラ?��?ィエントを設定す?��?
         /// </summary>
-        /// <param name="alpha">一番後ろの不透�?�度</param>
+        /// <param name="alpha">一番後ろの不透�??��度</param>
         
         [ClientRpc]
         public void RpcSetTrailGradient(float alpha)
         {
-            Debug.Log("Hello");
-            if(_tailTrailRenderer == null)
-            {
-                Debug.Log("Why");
-                return;
-            }
+
             _tailTrailRenderer.colorGradient.SetKeys(
                 new GradientColorKey[] { new GradientColorKey(_areaColor, 0.0f), new GradientColorKey(_areaColor, 1.0f) },
                 new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(alpha, 1.0f) }
@@ -180,15 +178,15 @@ namespace Character
         /// <summary>
         /// Listにある全てのDropPoint(GameObject)のワールド座標を返す
         /// </summary>
-        /// <returns>Listの全てのGameObjectのワールド座�?(Vector3�?)</returns>
+        /// <returns>Listの全てのGameObjectのワールド座?��?(Vector3?��?)</returns>
         private Vector3[] DropPointsGameObjectToVector3()
         {
-            // Listのコピ�?�を作る
+            // Listのコピ�??��を作る
             //List<GameObject> retList = new List<GameObject>(list);
-            // 戻り値用配�?�を作る
+            // 戻り値用配�??��を作る
             Vector3[] retPos = new Vector3[_playerDropPoints.playerPoints.Count];
             int index = 0;
-            // Listの全てのGameObjectのワールド座標を戻り値用配�?�に入れる
+            // Listの全てのGameObjectのワールド座標を戻り値用配�??��に入れる
             foreach (GameObject ob in _playerDropPoints.playerPoints)
             {
                 if(ob == null)
@@ -202,28 +200,16 @@ namespace Character
         }
 
         /// <summary>
-        /// 特定�?�プレイヤーのDropPoint(GameObject)を管�?するListにDropPoint(GameObject)を�?�れる関数
-        /// </summary>
-        /// <param name="ID">プレイヤーID</param>
-        /// <param name="dropPoint">Listに入れるDropPoint</param>
-        private void AddPoint(GameObject dropPoint)
-        {
-            // dropPointの親を設定して、Listに入れる
-            dropPoint.transform.parent = _playerDropPoints.pointGroup.transform;
-            _playerDropPoints.playerPoints.Add(dropPoint);
-            // 存在しな�?場合�?�エラーメ�?セージを�?��?
-        }
-
-        /// <summary>
         /// 消えたDropPoint(GameObject)をListから消す関数
         /// </summary>
         /// <param name="dropPoint">消えたDropPoint(GameObject)</param>
-        public void RemovePoint(GameObject dropPoint)
+        
+        [ClientRpc]
+        private void RpcRemovePoint(GameObject dropPoint)
         {
+
             if(!_playerDropPoints.playerPoints.Contains(dropPoint))
-            {
                 return;
-            }
 
             _playerDropPoints.playerPoints.Remove(dropPoint);
         }
@@ -232,27 +218,30 @@ namespace Character
         /// プレイヤーの全てのDropPoint(GameObject)を消す関数
         /// </summary>
         /// <param name="ID">プレイヤーのID</param>
+
         [ClientRpc]
-        public void RpcClearDropPoints()
+        public void RpcClearAllDropPoints()
         {
-            // 全てのDropPoint(GameObject)を�?��?する
+            // 全てのDropPoint(GameObject)を�??��?��?する
             foreach (GameObject dropPoint in _playerDropPoints.playerPoints)
             {
-                if(_networkPlayer != null)
-                    _networkPlayer.CmdOnDestroyDropPoint(dropPoint);
+                if(dropPoint == null)
+                    continue;
+
+                dropPoint.GetComponent<DropPoint>().DestroySelf();
             }
-            // Listにある物を�?�部消す
             _playerDropPoints.playerPoints.Clear();
         }
 
         /// <summary>
         /// プレイヤーの全てのDropPointのワールド座標を戻す関数
         /// </summary>
-        /// <returns>全てのDropPoint(GameObject)のワールド座標�?Vector3型）、�?�レイヤーが存在しな�?場合�?�空の配�?�を返す</returns>
+        /// <returns>全てのDropPoint(GameObject)のワールド座標�?Vector3型）�??��??��レイヤーが存在しな?��?場合�??��空の配�??��を返す</returns>
         public Vector3[] GetPlayerDropPoints()
         {
             return DropPointsGameObjectToVector3();
         }
+
         /// <summary>
         /// DropPointSystemをデイニシャライゼーションする関数
         /// </summary>
@@ -269,6 +258,11 @@ namespace Character
 
             Destroy(_playerDropPoints.pointGroup);
             
+        }
+
+        private void OnDisable()
+        {
+            _networkPlayer.CmdOnClearAllDropPoints();
         }
     }
 }
