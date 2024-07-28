@@ -9,6 +9,7 @@ using Unity.VisualScripting;
 using UnityEngine.InputSystem;
 
 
+
 // ルーム管理のインターフェース
 interface IRoomManager
 {
@@ -168,7 +169,7 @@ public class NetWorkRoomManagerExt : CustomNetworkRoomManager, IRoomManager
     {
         //次の生成ポイントゲット
         int index = conn.identity.GetComponent<CustomNetworkRoomPlayer>().index;
-        Transform startPos = GetStartPosition();
+        Transform startPos = GetRespawnPosition(index);
         var table = Resources.Load<NetWorkPrefabsTable>("NetworkPrefabsTable");
         var gamePlayer = startPos != null
             ? Instantiate(table.PlayerPrefabs[0],

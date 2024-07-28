@@ -1,10 +1,8 @@
 using Character;
 using Mirror;
-using Mirror.Examples.MultipleMatch;
 using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Analytics;
+
 
 public class SendInitializedPlayerEvent
 {
@@ -14,7 +12,7 @@ public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
     [SyncVar(hook = nameof(OnNameChanged))]
-    public string _playerName;
+    public string _playerName = string.Empty;
 
     private PlayerInterfaceContainer _playerInterfaceContainer;     // プレイヤーのインターフェースコンテナ
 
@@ -71,19 +69,19 @@ public class GamePlayer : View
 
         _playerMainLogic = GetComponent<IPlayerMainLogic>();
 
-        #region not call on client 
-            CmdOnChangeName();
-            CmdOnInitDropPointCtrl();
-        #endregion
+        CmdChangeName("Player" + playerIndex.ToString());
+
+        _dropPointControl.InitDropPointCtrl(_playerInterfaceContainer.GetInterface<IPlayerInfo>());
 
         { 
             SendInitializedPlayerEvent playerEvent = new SendInitializedPlayerEvent
-                                                    {
-                                                        Player = GetComponent<Player>()
-                                                    };
+            {
+                Player = GetComponent<Player>()
+            };
 
             TypeEventSystem.Instance.Send(playerEvent);
         }
+
 
     }
 
@@ -98,6 +96,7 @@ public class GamePlayer : View
         {
             (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).ExitToOffline();
         }
+
     }
 
     private void FixedUpdate()
@@ -127,9 +126,13 @@ public class GamePlayer : View
     /// 衝突があったとき処理する
     /// </summary>
     /// <param name="collision"></param>
-    [ServerCallback]
+    [Client]
     private void OnCollisionEnter(Collision collision)
     {
+        if(!isLocalPlayer)
+            return;
+
+        Debug.Log($"Player{playerIndex} Collide {collision.gameObject.name}");
          // 死亡したプレイヤーは金の網を持っていたら
         if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
         {
@@ -142,12 +145,16 @@ public class GamePlayer : View
             //TypeEventSystem.Instance.Send(dropSilkEvent);
         }
         // 衝突したら死亡状態に設定する
-        _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
+        CmdCallPlayerCommand(EPlayerCommand.Dead);
+
     }
 
-    [ServerCallback]
+    [Client]
     private void OnTriggerEnter(Collider other)
     {
+        if(!isLocalPlayer)
+            return;
+
         if(other.tag.Contains("DropPoint"))
         {
             // 自分のDropPoint以外のDropPointに当たったら
@@ -162,9 +169,15 @@ public class GamePlayer : View
                     TypeEventSystem.Instance.Send(dropSilkEvent);
                 }
                 // 死亡状態に設定する
-                _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(EPlayerCommand.Dead);
+                CmdCallPlayerCommand(EPlayerCommand.Dead);
             }
         }
+    }
+
+    [Command]
+    private void CmdCallPlayerCommand(EPlayerCommand command)
+    {
+        _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(command);
     }
 
     [Command]
@@ -179,21 +192,21 @@ public class GamePlayer : View
         Camera.main.GetComponent<ICameraController>()?.StopLockOn();
     }
 
+    [Command]
+    private void CmdChangeName(string newName)
+    {
+        _playerName = newName;
+    }
+
     private void OnNameChanged(string _Old,string _New)
     {
-        
-    }
-    [Command]
-    public void CmdOnChangeName()
-    {
-        RpcChangeName();
-        Debug.Log(name);
+        name = _playerName;
     }
 
     [ClientRpc]
-    private void RpcChangeName()
+    private void RpcInitDropPointCtrl()
     {
-        name = "Player" + playerIndex.ToString();
+        //_dropPointControl.InitDropPointCtrl();
     }
 
     [Command]
@@ -214,19 +227,23 @@ public class GamePlayer : View
 
         TypeEventSystem.Instance.Send(dropSilkEvent);
     }
+
     [Command]
     public void CmdOnInitDropPointCtrl()
     {
-        _dropPointControl.RpcDropPointInit();
+        RpcInitDropPointCtrl();
     }
 
     [Command]
-    public void CmdOnInstantiateDropPoint(Vector3 pos)
+    public void CmdOnInstantiateDropPoint(Vector3 pos,string dropPointTag)
     {
 
-        GameObject dropPoint = Instantiate(_dropPointControl.DropPointPrefab,pos,Quaternion.identity);
+        GameObject dropPoint = Instantiate(GameResourceSystem.Instance.GetPrefabResource("DropPoint"),pos,Quaternion.identity);
+        dropPoint.tag = dropPointTag;
+        dropPoint.name = dropPointTag;
         SpawnNetworkObj(dropPoint);
-        _dropPointControl.RpcAddDropPoint(dropPoint);
+        _dropPointControl.AddDropPoint(dropPoint);
+
     }
 
     [Command]
@@ -258,6 +275,12 @@ public class GamePlayer : View
     }
 
     [Command]
+    public void CmdSetTrailGradient(float alpha)
+    {
+        _dropPointControl.RpcSetTrailGradient(alpha);
+    }
+
+    [Command]
     private void CmdUpdatePlayerAnimation()
     {
         _networkAnimationProcess.RpcUpdateAnimation();
@@ -275,18 +298,6 @@ public class GamePlayer : View
 
     private void SpawnNetworkObj(GameObject obj)
     {
-        NetworkServer.Spawn(obj,gameObject);
+        NetworkServer.Spawn(obj);
     }
-
-    [ClientRpc]
-    private void RpcOnCollisionEnter()
-    {
-       
-    }
-    [ClientRpc]
-    private void RpcOnTriggerEnter(GameObject collisionObj)
-    {
-        
-    }
-
 }

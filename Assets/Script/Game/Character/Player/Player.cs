@@ -112,7 +112,6 @@ namespace Character
         
         private void Awake()
         {
-            _playerInterface = new PlayerInterfaceContainer(this);
             // 初期化処理
             Init();
             // Item affectable actions init
@@ -121,12 +120,26 @@ namespace Character
             {
                 _boostChargeTimeCnt = Global.BOOST_COOLDOWN_TIME;
             }
+                   
+            TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>
+            (
+                eve =>
+                {
+                    IPlayerInfo info = eve.Player.GetComponent<IPlayerInfo>();
+                    if(info != null)
+                    {
+                        eve.Player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[info.ID - 1];
+                        eve.Player.SpawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(info.ID - 1).position;
+                    }
+                    
+                }
+            ).UnregisterWhenGameObjectDestroyed(gameObject);
         }
         private void Start()
         {
             _currentMoveSpeed = 0.0f;
             //TODO Need Change To Network Code
-            _particleSystemCtrl.Play();
+            //_particleSystemCtrl.Play();
 
             {
                 TypeEventSystem.Instance.Register<PaintAreaEvent>
@@ -146,20 +159,21 @@ namespace Character
             {
                 _itemSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IItemSystem>();
             }
+
+
         }
-        private void LateUpdate()
-        {
-            switch(_playerState)
-            {
-                case State.Fine:
-                    return;
-                case State.Uncontrollable:
-                // TODO need add to playerAnim
-                    //PlaySlipAnimation();
-                    return;
-            }
-            
-        }        
+        // private void LateUpdate()
+        // {
+        //     switch(_playerState)
+        //     {
+        //         case State.Fine:
+        //             return;
+        //         case State.Uncontrollable:
+        //         // TODO need add to playerAnim
+        //             //PlaySlipAnimation();
+        //             return;
+        //     }  
+        // }        
         #region Item Effect
         private void OnSlip()
         {
@@ -234,6 +248,9 @@ namespace Character
         }
         public PlayerInterfaceContainer GetContainer()
         {
+            if(_playerInterface == null)
+                _playerInterface = new PlayerInterfaceContainer(this);
+
             return _playerInterface;
         }
 
@@ -279,18 +296,18 @@ namespace Character
         #region InternalLogic
         private void UpdateFine()
         {
-            // プレイヤー画像をずっと同じ方向に向くことにする
-            //mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
-            // プレイヤー画像の向きを変える
+            // TODO プレイヤー画像の向きを変える
             FlipCharacterImage();
+
             // プレイヤーインプットを取得する
             Vector2 rotateInput = _rotateAction.ReadValue<Vector2>();
             // 回転方向を決める
             _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
             // プレイヤーがいるところの地面の色をチェックする
             CheckGroundColor();
-            // 領域を描画してみる
+            
+            // TODO 領域を描画してみる
             TryPaintArea();
 
             if(_isBoostCooldown)
@@ -307,11 +324,16 @@ namespace Character
         {
             _rigidbody = GetComponent<Rigidbody>();
             _colorCheck = GetComponent<ColorCheck>();
+
             // プレイヤー自分の画像のレンダラーを取得する
+
             _imageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
             _particleSystemCtrl = gameObject.GetComponent<PlayerParticleSystemControl>();
+
             // DropPointControlコンポネントを追加する
             _dropPointCtrl = gameObject.GetComponent<DropPointControl>();
+
             // PlayerAnimコンポネントを追加する
             _playerAnim = gameObject.GetComponent<PlayerAnim>();
 
@@ -322,11 +344,14 @@ namespace Character
             _status.RotationSpeed = Global.PLAYER_ROTATION_SPEED;
             _playerState = State.Fine;
             _itemPlaceOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+            
             // 表示順位を変換する
             _imageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
+
             _silkData.SilkCount = 0;
             _silkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
             _silkData.SilkRenderer.transform.parent = _imageSpriteRenderer.transform;
+
             _silkData.SilkRenderer.SetActive(false);
             mBoostCoefficient = 1f;
 
@@ -423,6 +448,7 @@ namespace Character
             // プレイヤー復活イベントを喚起する
             _particleSystemCtrl.Stop();
             SetPowerUpLevel();
+
         }
 
         /// <summary>

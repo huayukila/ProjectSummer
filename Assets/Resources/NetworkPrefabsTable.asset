@@ -22,3 +22,4 @@ MonoBehaviour:
   - {fileID: 8995836012972350364, guid: 4d58101f374745c47a31f23a1714e9c6, type: 3}
   PlayerPrefabs:
   - {fileID: 8858506136169357921, guid: 17b22499758c47c4ab366714e2167c85, type: 3}
+  - {fileID: 7318152787588809828, guid: 0aa8ceb73bf3cf644935fb792688f2e1, type: 3}

@@ -19,7 +19,6 @@ public interface INetworkAnimationProcess
 public abstract class CharacterAnim : NetworkBehaviour, INetworkAnimationProcess
 {
 
-
     protected AnimType _animationType = AnimType.None;
     protected bool _bIsAnimationStopping = true;
     public bool IsStopped => _bIsAnimationStopping;
