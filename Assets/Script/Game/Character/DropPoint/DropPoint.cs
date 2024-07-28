@@ -4,21 +4,22 @@ using UnityEngine;
 
 public class DropPoint : NetworkBehaviour
 {
-    private Timer _lifeTimeTimer;            // DropPointのタイマー
-    private Action<GameObject> _destroyCallback;
+    private event Action<GameObject> _destroyCallback;
 
-    void Awake()
+    public override void OnStartServer()
     {
-        _lifeTimeTimer = new Timer(Time.time,Global.DROP_POINT_ALIVE_TIME,
-            () =>
-            {
-                _destroyCallback?.Invoke(gameObject);
-
-            });
-        _lifeTimeTimer.StartTimer(this);
+        Invoke(nameof(DestroySelf),Global.DROP_POINT_ALIVE_TIME);
     }
     public void SetDestroyCallback(Action<GameObject> callback)
     {
         _destroyCallback = callback;
+    }
+
+    // 点を管理するリストから外して、サーバーから消す
+    [Server]
+    public void DestroySelf()
+    {
+        _destroyCallback?.Invoke(gameObject);
+        NetworkServer.Destroy(gameObject);
     }
 }
