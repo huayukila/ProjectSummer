@@ -1,3 +1,4 @@
+using System;
 using Character;
 using Mirror;
 using Unity.VisualScripting;
@@ -11,8 +12,14 @@ public class SendInitializedPlayerEvent
 public class GamePlayer : View
 {
     [SyncVar] public int playerIndex;
+
     [SyncVar(hook = nameof(OnNameChanged))]
     public string _playerName = string.Empty;
+  
+    private void OnNameChanged(string _Old,string _New)
+    {
+        name = _playerName;
+    }
 
     private PlayerInterfaceContainer _playerInterfaceContainer;     // プレイヤーのインターフェースコンテナ
 
@@ -69,7 +76,7 @@ public class GamePlayer : View
 
         _playerMainLogic = GetComponent<IPlayerMainLogic>();
 
-        CmdChangeName("Player" + playerIndex.ToString());
+        _playerName = "Player" + playerIndex.ToString();
 
         _dropPointControl.InitDropPointCtrl(_playerInterfaceContainer.GetInterface<IPlayerInfo>());
 
@@ -105,6 +112,9 @@ public class GamePlayer : View
             return;
 
         _playerMainLogic.FixedTick();
+
+        if(_dropPointControl.enabled)
+            _dropPointControl.DropNewPoint();
     }
     
     
@@ -129,7 +139,7 @@ public class GamePlayer : View
     [ServerCallback]
     private void OnCollisionEnter(Collision collision)
     {
-        RpcSendMessageToAllClient();
+        RpcSendMessageToAllClient($"{name} oncollision function called");
         // 衝突したら死亡状態に設定する
         CallPlayerCommand(EPlayerCommand.Dead);
 
@@ -138,29 +148,36 @@ public class GamePlayer : View
     [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
-        if(other.tag.Contains("DropPoint"))
-        {
-            // 自分のDropPoint以外のDropPointに当たったら
-            if (other.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) == false)
-            {
-                if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
-                {
-                    DropSilkEvent dropSilkEvent = new DropSilkEvent()
-                    {
-                        pos = transform.position,
-                    };
-                    TypeEventSystem.Instance.Send(dropSilkEvent);
-                }
-                // 死亡状態に設定する
-                CallPlayerCommand(EPlayerCommand.Dead);
-            }
-        }
+        RpcSendMessageToAllClient($"{name} ontrigger function called");
+        // if(other.tag.Contains("DropPoint"))
+        // {
+        //     // 自分のDropPoint以外のDropPointに当たったら
+        //     if (other.tag.Contains(_playerInterfaceContainer.GetInterface<IPlayerInfo>().ID.ToString()) == false)
+        //     {
+        //         if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
+        //         {
+        //             DropSilkEvent dropSilkEvent = new DropSilkEvent()
+        //             {
+        //                 pos = transform.position,
+        //             };
+        //             TypeEventSystem.Instance.Send(dropSilkEvent);
+        //         }
+        //         // 死亡状態に設定する
+        //         CallPlayerCommand(EPlayerCommand.Dead);
+        //     }
+        // }
+    }
+
+    [Command]
+    public void CmdSendMessage(string message)
+    {
+        RpcSendMessageToAllClient(message);
     }
 
     [ClientRpc]
-    private void RpcSendMessageToAllClient()
+    private void RpcSendMessageToAllClient(string message)
     {
-        Debug.Log($"{name} ontrigger/oncollision function called");
+        Debug.Log(message);
     }
 
 
@@ -180,24 +197,6 @@ public class GamePlayer : View
         spawnTimer.StartTimer(this);
         Camera.main.GetComponent<ICameraController>()?.StopLockOn();
     }
-
-    [Command]
-    private void CmdChangeName(string newName)
-    {
-        _playerName = newName;
-    }
-
-    private void OnNameChanged(string _Old,string _New)
-    {
-        name = _playerName;
-    }
-
-    [ClientRpc]
-    private void RpcInitDropPointCtrl()
-    {
-        //_dropPointControl.InitDropPointCtrl();
-    }
-
     [Command]
     public void CmdOnItemSpawn(GameObject player)
     {
@@ -210,15 +209,17 @@ public class GamePlayer : View
     }
 
     [Command]
-    public void CmdOnInstantiateDropPoint(Vector3 pos,string dropPointTag)
+    public void CmdInstantiateDropPoint(Vector3 pos,string dropPointTag)
     {
-
+        if(_dropPointControl == null)
+        {
+            _dropPointControl = GetComponent<DropPointControl>();
+        }
+        Console.WriteLine($"{name} DropNewPoint function called");
         GameObject dropPoint = Instantiate(GameResourceSystem.Instance.GetPrefabResource("DropPoint"),pos,Quaternion.identity);
         dropPoint.tag = dropPointTag;
         dropPoint.name = dropPointTag;
-        dropPoint.GetComponent<DropPoint>().SetDestroyCallback(_dropPointControl.RpcRemoveDropPoint);
         NetworkServer.Spawn(dropPoint);
-
          _dropPointControl.RpcAddDropPoint(dropPoint);
 
     }
@@ -226,8 +227,7 @@ public class GamePlayer : View
     [Command]
     public void CmdOnClearAllDropPoints()
     {
-        // TODO
-        //_dropPointControl.ClearAllDropPoints();
+        _dropPointControl.ClearAllDropPoints();
     }
 
     [Command]

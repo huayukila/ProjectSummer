@@ -21,5 +21,11 @@ public class DropPoint : NetworkBehaviour
     {
         _destroyCallback?.Invoke(gameObject);
         NetworkServer.Destroy(gameObject);
+        _destroyCallback = null;
+    }
+
+    private void OnDestroy()
+    {
+        _destroyCallback = null;
     }
 }
