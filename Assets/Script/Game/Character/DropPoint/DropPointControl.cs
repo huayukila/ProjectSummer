@@ -15,14 +15,14 @@ namespace Character
         {
             // DropPointãŒä¿å­˜ã•ã‚Œã‚‹List
             public List<GameObject> playerPoints;
-            // DropPointã‚’ç®¡?¿½?ã™ã‚‹è¦ª
+            // DropPointã‚’ç®¡??¿½?¿½?ã™ã‚‹è¦ª
             public GameObject pointGroup;
         }
 
         [SerializeField]
         private PlayerDropPoints _playerDropPoints;
 
-        private TrailRenderer _tailTrailRenderer;      // DropPointãŒç¹‹ãŒã£ã¦?¿½?ã‚‹ã“ã¨ã‚’è¡¨ã™TrailRenderer
+        private TrailRenderer _tailTrailRenderer;      // DropPointãŒç¹‹ãŒã£ã¦??¿½?¿½?ã‚‹ã“ã¨ã‚’è¡¨ã™TrailRenderer
         private float _tailFadeOutTimer;
 
         private float  _dropPointTimerCnt;
@@ -68,12 +68,12 @@ namespace Character
                 return;
             
             _tailFadeOutTimer += Time.deltaTime;
-            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒï¿½??¿½ã«ä¸€å®šæ™‚é–“ã‚’ç§»å‹•ã—ç¶šã‘ãŸã‚‰??¿½?DropPointã®ç”Ÿå­˜æ™‚é–“ï¿½??¿½åŠï¿½????¿½?
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒï¿½???¿½?¿½ã«ä¸€å®šæ™‚é–“ã‚’ç§»å‹•ã—ç¶šã‘ãŸã‚‰???¿½?¿½?DropPointã®ç”Ÿå­˜æ™‚é–“ï¿½???¿½?¿½åŠï¿½?????¿½?¿½?
             if (_tailFadeOutTimer >= Global.DROP_POINT_ALIVE_TIME / 2.0f && _tailFadeOutTimer < Global.DROP_POINT_ALIVE_TIME)
             {
-                // ä¸é€ï¿½??¿½åº¦ã‚’è¨ˆç®—ã™ã‚‹ã€€â€»ã€€y = -1.9x + 1.95;
+                // ä¸é€ï¿½???¿½?¿½åº¦ã‚’è¨ˆç®—ã™ã‚‹ã€€â€»ã€€y = -1.9x + 1.95;
                 float alpha = (-1.9f / Global.DROP_POINT_ALIVE_TIME) * _tailFadeOutTimer + 1.95f;
-                // ä¸é€ï¿½??¿½åº¦ã®æœ€å°å€¤?¿½?0.05ã«è¨­å®šã™?¿½?
+                // ä¸é€ï¿½???¿½?¿½åº¦ã®æœ€å°å€¤??¿½?¿½?0.05ã«è¨­å®šã™??¿½?¿½?
                 if (alpha < 0.05f)
                 {
                     alpha = 0.05f;
@@ -88,17 +88,16 @@ namespace Character
             if(!isLocalPlayer)
                 return;
 
-            DropNewPoint();
+            //DropNewPoint();
         }
 
 
         /// <summary>
-        /// DropPoint?¿½?¶ï¿½?¿½?¿½?¿½?¿½
+        /// DropPoint??¿½?¿½??¿½?¿½?¿½??¿½?¿½??¿½?¿½??¿½?¿½??¿½?¿½
         /// </summary>
         [ClientRpc]
         public void RpcAddDropPoint(GameObject pt)
         {
-            pt.GetComponent<DropPoint>().SetDestroyCallback(RpcRemovePoint);
             // dropPointã®è¦ªã‚’è¨­å®šã—ã¦ã€Listã«å…¥ã‚Œã‚‹
             pt.transform.parent = _playerDropPoints.pointGroup.transform;
             _playerDropPoints.playerPoints.Add(pt);
@@ -134,7 +133,7 @@ namespace Character
         }
 
         /// <summary>
-        /// DropPointã‚’ç½®?¿½?
+        /// DropPointã‚’ç½®??¿½?¿½?
         /// </summary>    
         public void DropNewPoint()
         {
@@ -150,7 +149,7 @@ namespace Character
         }
 
         /// <summary>
-        /// TrailRendererã®çŠ¶æ…‹ã‚’ãƒªã‚»?¿½?ãƒˆã™?¿½?
+        /// TrailRendererã®çŠ¶æ…‹ã‚’ãƒªã‚»??¿½?¿½?ãƒˆã™??¿½?¿½?
         /// </summary>
         public void ResetTrail()
         {
@@ -160,9 +159,9 @@ namespace Character
         }
 
         /// <summary>
-        /// TrailRendererã®ã‚°ãƒ©?¿½?ã‚£ã‚¨ãƒ³ãƒˆã‚’è¨­å®šã™?¿½?
+        /// TrailRendererã®ã‚°ãƒ©??¿½?¿½?ã‚£ã‚¨ãƒ³ãƒˆã‚’è¨­å®šã™??¿½?¿½?
         /// </summary>
-        /// <param name="alpha">ä¸€ç•ªå¾Œã‚ã®ä¸é€ï¿½??¿½åº¦</param>
+        /// <param name="alpha">ä¸€ç•ªå¾Œã‚ã®ä¸é€ï¿½???¿½?¿½åº¦</param>
         
         [ClientRpc]
         public void RpcSetTrailGradient(float alpha)
@@ -178,15 +177,15 @@ namespace Character
         /// <summary>
         /// Listã«ã‚ã‚‹å…¨ã¦ã®DropPoint(GameObject)ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’è¿”ã™
         /// </summary>
-        /// <returns>Listã®å…¨ã¦ã®GameObjectã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§?¿½?(Vector3?¿½?)</returns>
+        /// <returns>Listã®å…¨ã¦ã®GameObjectã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§??¿½?¿½?(Vector3??¿½?¿½?)</returns>
         private Vector3[] DropPointsGameObjectToVector3()
         {
-            // Listã®ã‚³ãƒ”ï¿½??¿½ã‚’ä½œã‚‹
+            // Listã®ã‚³ãƒ”ï¿½???¿½?¿½ã‚’ä½œã‚‹
             //List<GameObject> retList = new List<GameObject>(list);
-            // æˆ»ã‚Šå€¤ç”¨é…ï¿½??¿½ã‚’ä½œã‚‹
+            // æˆ»ã‚Šå€¤ç”¨é…ï¿½???¿½?¿½ã‚’ä½œã‚‹
             Vector3[] retPos = new Vector3[_playerDropPoints.playerPoints.Count];
             int index = 0;
-            // Listã®å…¨ã¦ã®GameObjectã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’æˆ»ã‚Šå€¤ç”¨é…ï¿½??¿½ã«å…¥ã‚Œã‚‹
+            // Listã®å…¨ã¦ã®GameObjectã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’æˆ»ã‚Šå€¤ç”¨é…ï¿½???¿½?¿½ã«å…¥ã‚Œã‚‹
             foreach (GameObject ob in _playerDropPoints.playerPoints)
             {
                 if(ob == null)
@@ -205,13 +204,15 @@ namespace Character
         /// <param name="dropPoint">æ¶ˆãˆãŸDropPoint(GameObject)</param>
         
         [ClientRpc]
-        private void RpcRemovePoint(GameObject dropPoint)
+        public void RpcRemoveDropPoint(GameObject obj)
         {
+            // if(_playerDropPoints.playerPoints.Contains(obj))
+            //     return;
 
-            if(!_playerDropPoints.playerPoints.Contains(dropPoint))
-                return;
-
-            _playerDropPoints.playerPoints.Remove(dropPoint);
+            // //TODO
+            // _playerDropPoints.playerPoints.Remove(obj);
+            if(_playerDropPoints.playerPoints.Count > 0)
+                _playerDropPoints.playerPoints.RemoveAt(0);
         }
 
         /// <summary>
@@ -219,32 +220,38 @@ namespace Character
         /// </summary>
         /// <param name="ID">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ID</param>
 
-        [ClientRpc]
-        public void RpcClearAllDropPoints()
+        public void ClearAllDropPoints()
         {
-            // å…¨ã¦ã®DropPoint(GameObject)ã‚’ï¿½??¿½?¿½?ã™ã‚‹
-            foreach (GameObject dropPoint in _playerDropPoints.playerPoints)
+            // å…¨ã¦ã®DropPoint(GameObject)ã‚’ï¿½???¿½?¿½??¿½?¿½?ã™ã‚‹
+            int index = 0;
+            while(index > _playerDropPoints.playerPoints.Count)
             {
+                GameObject dropPoint = _playerDropPoints.playerPoints[index];
                 if(dropPoint == null)
+                {
+                    ++index;
                     continue;
+                }
 
                 dropPoint.GetComponent<DropPoint>().DestroySelf();
             }
+            RpcClearAllDropPoints();
+        }
+
+        [ClientRpc]
+        private void RpcClearAllDropPoints()
+        {
             _playerDropPoints.playerPoints.Clear();
         }
 
         /// <summary>
-        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å…¨ã¦ã®DropPointã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã‚’æˆ»ã™é–¢æ•°
+        /// ƒvƒŒƒCƒ„[‚Ì‘S‚Ä‚ÌDropPoint‚ÌÀ•W‚ğæ“¾
         /// </summary>
-        /// <returns>å…¨ã¦ã®DropPoint(GameObject)ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ï¿½?Vector3å‹ï¼‰ã€??¿½??¿½ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒå­˜åœ¨ã—ãª?¿½?å ´åˆï¿½??¿½ç©ºã®é…ï¿½??¿½ã‚’è¿”ã™</returns>
-        public Vector3[] GetPlayerDropPoints()
+        public Vector3[] GetPlayerDropPointsPosition()
         {
             return DropPointsGameObjectToVector3();
         }
 
-        /// <summary>
-        /// DropPointSystemã‚’ãƒ‡ã‚¤ãƒ‹ã‚·ãƒ£ãƒ©ã‚¤ã‚¼ãƒ¼ã‚·ãƒ§ãƒ³ã™ã‚‹é–¢æ•°
-        /// </summary>
         private void OnDestroy()
         {
             if(NetworkServer.active)

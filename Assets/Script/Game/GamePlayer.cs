@@ -125,25 +125,13 @@ public class GamePlayer : View
     /// <summary>
     /// 衝突があったとき処理する
     /// </summary>
-    /// <param name="collision"></param>
+    /// <param name="collision"></param>  
     [ServerCallback]
     private void OnCollisionEnter(Collision collision)
     {
-
-        Debug.Log($"Player{playerIndex} Collide {collision.gameObject.name}");
-         // 死亡したプレイヤーは金の網を持っていたら
-        if (_playerInterfaceContainer.GetInterface<IPlayerInfo>().SilkCount > 0)
-        {
-            DropSilkEvent dropSilkEvent = new DropSilkEvent()
-            {
-                pos = transform.position,
-            };
-            // 金の糸のドロップ場所を設定する
-            //HACK EventSystem temporary invalid
-            //TypeEventSystem.Instance.Send(dropSilkEvent);
-        }
+        RpcSendMessageToAllClient();
         // 衝突したら死亡状態に設定する
-        CmdCallPlayerCommand(EPlayerCommand.Dead);
+        CallPlayerCommand(EPlayerCommand.Dead);
 
     }
 
@@ -164,13 +152,19 @@ public class GamePlayer : View
                     TypeEventSystem.Instance.Send(dropSilkEvent);
                 }
                 // 死亡状態に設定する
-                CmdCallPlayerCommand(EPlayerCommand.Dead);
+                CallPlayerCommand(EPlayerCommand.Dead);
             }
         }
     }
 
-    [Command]
-    private void CmdCallPlayerCommand(EPlayerCommand command)
+    [ClientRpc]
+    private void RpcSendMessageToAllClient()
+    {
+        Debug.Log($"{name} ontrigger/oncollision function called");
+    }
+
+
+    private void CallPlayerCommand(EPlayerCommand command)
     {
         _playerInterfaceContainer.GetInterface<IPlayerCommand>().CallPlayerCommand(command);
     }
@@ -215,20 +209,6 @@ public class GamePlayer : View
         //NetworkServer.Spawn(obj);
     }
 
-
-    [Command]
-    public void CmdDropSilkEvent(DropSilkEvent dropSilkEvent)
-    {
-
-        TypeEventSystem.Instance.Send(dropSilkEvent);
-    }
-
-    [Command]
-    public void CmdOnInitDropPointCtrl()
-    {
-        RpcInitDropPointCtrl();
-    }
-
     [Command]
     public void CmdOnInstantiateDropPoint(Vector3 pos,string dropPointTag)
     {
@@ -236,22 +216,18 @@ public class GamePlayer : View
         GameObject dropPoint = Instantiate(GameResourceSystem.Instance.GetPrefabResource("DropPoint"),pos,Quaternion.identity);
         dropPoint.tag = dropPointTag;
         dropPoint.name = dropPointTag;
+        dropPoint.GetComponent<DropPoint>().SetDestroyCallback(_dropPointControl.RpcRemoveDropPoint);
         NetworkServer.Spawn(dropPoint);
-        RpcAddDropPoint(dropPoint);
+
+         _dropPointControl.RpcAddDropPoint(dropPoint);
 
     }
-
-    [ClientRpc]
-    private void RpcAddDropPoint(GameObject dropPoint)
-    {
-        _dropPointControl.RpcAddDropPoint(dropPoint);
-    }
-
 
     [Command]
     public void CmdOnClearAllDropPoints()
     {
-        _dropPointControl.RpcClearAllDropPoints();
+        // TODO
+        //_dropPointControl.ClearAllDropPoints();
     }
 
     [Command]
@@ -265,12 +241,6 @@ public class GamePlayer : View
         {
             _networkAnimationProcess.SetAnimationType(AnimType.Respawn);
         }
-    }
-
-    [Command]
-    public void CmdSetTrailGradient(float alpha)
-    {
-        _dropPointControl.RpcSetTrailGradient(alpha);
     }
 
     [Command]

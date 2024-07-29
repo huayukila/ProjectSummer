@@ -508,7 +508,7 @@ namespace Character
         /// </summary>
         private void TryPaintArea()
         {
-            Vector3[] dropPoints = _dropPointCtrl.GetPlayerDropPoints();
+            Vector3[] dropPoints = _dropPointCtrl.GetPlayerDropPointsPosition();
             // DropPoint‚Í4ŒÂˆÈã‚ ‚ê‚Î•`‰æ‚Å‚«‚é
             if (dropPoints.Length >= 4)
             {
