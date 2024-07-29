@@ -51,7 +51,7 @@ public static class Global
     #endregion
 
     #region DropPoint
-    public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPointをインスタンス化する時間間隔
+    public static readonly float DROP_POINT_INTERVAL = 0.5f; // DropPointをインスタンス化する時間間隔
     public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPointの存在している時間
     #endregion
 
