@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using Character;
+using WSV.Character;
 
 public interface IItem
 {

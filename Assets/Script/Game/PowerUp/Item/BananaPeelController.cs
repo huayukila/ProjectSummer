@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Character;
+using WSV.Character;
 using Mirror;
 
 public class BananaPeelController : NetworkBehaviour

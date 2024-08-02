@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Timers;
-using Character;
+using WSV.Character;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Analytics;

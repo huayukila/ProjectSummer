@@ -1,4 +1,4 @@
-using Character;
+using WSV.Character;
 using Mirror;
 using Org.BouncyCastle.Asn1.Misc;
 using System.Collections;

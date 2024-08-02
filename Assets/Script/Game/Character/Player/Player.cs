@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
-using Mirror;
-using Character;
 
 // 色を塗るイベントで必要な情報
 public struct PaintAreaEvent
@@ -21,18 +19,18 @@ public interface IPlayerMainLogic
     void FixedTick();
 }
 
-namespace Character
+namespace WSV.Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player : Character, 
-                        IPlayer2ItemSystem, 
-                        IItemAffectable, 
-                        IPlayerCommand, 
-                        IPlayerInfo, 
-                        IPlayerState, 
-                        IPlayerInterfaceContainer,
-                        IPlayerBoost,
-                        IPlayerMainLogic
+    public class Player :   Character, 
+                            IPlayer2ItemSystem, 
+                            IItemAffectable, 
+                            IPlayerCommand, 
+                            IPlayerInfo, 
+                            IPlayerState, 
+                            IPlayerInterfaceContainer,
+                            IPlayerBoost,
+                            IPlayerMainLogic
     {
         // プレイヤーの状態
         private enum State
@@ -471,7 +469,7 @@ namespace Character
 
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
 
-            _networkPlayer.CmdOnClearAllDropPoints();
+            _dropPointCtrl.CmdOnClearAllDropPoints();
 
             _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
@@ -555,7 +553,7 @@ namespace Character
 
                         TryCaptureObject(verts.ToArray());
                         // 全てのDropPointを消す
-                        _networkPlayer.CmdOnClearAllDropPoints();
+                        _dropPointCtrl.CmdOnClearAllDropPoints();
                         
                         // 尻尾のTrailRendererの状態をリセットする
                         _dropPointCtrl.ResetTrail();

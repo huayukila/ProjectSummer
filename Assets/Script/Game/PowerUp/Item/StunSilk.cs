@@ -1,4 +1,4 @@
-using Character;
+using WSV.Character;
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;

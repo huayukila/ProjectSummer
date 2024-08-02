@@ -1,5 +1,5 @@
 using System;
-using Character;
+using WSV.Character;
 using Mirror;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -29,7 +29,7 @@ public class GamePlayer : View
 
     private IPlayerMainLogic _playerMainLogic;                      // プレイヤーのメインロジック(Update,FixedUpdate)
 
-    public override void OnStartLocalPlayer()
+    private void Awake()
     {
         // インターフェースコンテナ取得
         if(TryGetComponent(out IPlayerInterfaceContainer container))
@@ -43,8 +43,17 @@ public class GamePlayer : View
 
         _networkAnimationProcess = GetComponent<INetworkAnimationProcess>();
 
-        IPlayerInfo playerInfo = _playerInterfaceContainer.GetInterface<IPlayerInfo>();
-        playerInfo.SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
+        // dropPointController
+        {
+            _dropPointControl = GetComponent<DropPointControl>();
+        }
+
+        _playerMainLogic = GetComponent<IPlayerMainLogic>();
+
+        _playerName = "Player" + playerIndex.ToString();
+    }
+    public override void OnStartLocalPlayer()
+    {
 
         TypeEventSystem.Instance.Register<PlayerRespawnEvent>(e =>
         {
@@ -52,31 +61,25 @@ public class GamePlayer : View
 
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
-        // dropPointController
-        {
-            _dropPointControl = GetComponent<DropPointControl>();
-        }
+        IPlayerInfo playerInfo = _playerInterfaceContainer.GetInterface<IPlayerInfo>();
+        playerInfo.SetInfo(playerIndex,Global.PLAYER_TRACE_COLORS[playerIndex-1]);
 
-        // Input Device
-        {
-            DeviceSetting.Init();
-        }
-
-        // プレイヤー情報を初期化
+        
+        // カメラ情報を初期化
         {
             Camera mainCam = Camera.main;
             mainCam.orthographicSize = 35f;
             CameraControl cameraCtrl = mainCam.AddComponent<CameraControl>();
             cameraCtrl.LockOnTarget(gameObject);
             
-            SpriteRenderer playerImage = GetComponentInChildren<SpriteRenderer>();
-            playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + playerIndex.ToString());
-
         }
-
-        _playerMainLogic = GetComponent<IPlayerMainLogic>();
-
-        _playerName = "Player" + playerIndex.ToString();
+        
+        SpriteRenderer playerImage = GetComponentInChildren<SpriteRenderer>();
+        playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + playerIndex.ToString());
+        // Input Device
+        {
+            DeviceSetting.Init();
+        }
 
         _dropPointControl.InitDropPointCtrl(_playerInterfaceContainer.GetInterface<IPlayerInfo>());
 
@@ -222,12 +225,6 @@ public class GamePlayer : View
         NetworkServer.Spawn(dropPoint);
          _dropPointControl.RpcAddDropPoint(dropPoint);
 
-    }
-
-    [Command]
-    public void CmdOnClearAllDropPoints()
-    {
-        _dropPointControl.ClearAllDropPoints();
     }
 
     [Command]
