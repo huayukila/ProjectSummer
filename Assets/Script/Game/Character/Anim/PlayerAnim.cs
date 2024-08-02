@@ -1,5 +1,4 @@
 using UnityEngine;
-using Character;
 using Mirror;
 using UnityEngine.Assertions;
 
@@ -52,7 +51,7 @@ public class PlayerAnim : CharacterAnim
         _networkPlayer = GetComponent<GamePlayer>();
     }
 
-    [ClientRpc]
+    [ClientRpc(includeOwner = false)]
     public override void RpcUpdateAnimation()
     {
         if (_bIsAnimationStopping)

@@ -5,7 +5,7 @@ using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Windows.Speech;
 
-namespace Character
+namespace WSV.Character
 {
     public abstract class Character : NetworkBehaviour
     {
