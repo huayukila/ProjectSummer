@@ -179,6 +179,7 @@ public class MissileController : NetworkBehaviour,IExplodable
         }
     }
 
+    [Server]
     private void PaintExplodeArea()
     {
         if (_ownerPlayerID == -1)
@@ -194,13 +195,11 @@ public class MissileController : NetworkBehaviour,IExplodable
             explodeAreaVertexes.Add(vert.normalized * _explodeRadius + transform.position);
         }
 
-        PaintAreaEvent paintEvent = new PaintAreaEvent
+        IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
+        if(paintSystem != null)
         {
-            Verts = explodeAreaVertexes.ToArray(),
-            PlayerID = _ownerPlayerID,
-            PlayerAreaColor = _explodeColor
-        };
-        TypeEventSystem.Instance.Send(paintEvent);
+            paintSystem.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_explodeColor);
+        }
     }
 
     private void OnCollisionEnter(Collision other) 

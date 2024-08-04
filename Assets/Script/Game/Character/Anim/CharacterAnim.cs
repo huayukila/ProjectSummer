@@ -35,6 +35,6 @@ public abstract class CharacterAnim : NetworkBehaviour, INetworkAnimationProcess
             return;
 
         _animationType = type;
-        RpcResetAnimation();
+        //RpcResetAnimation();
     }
 }

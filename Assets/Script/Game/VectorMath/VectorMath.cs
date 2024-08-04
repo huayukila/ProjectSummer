@@ -46,17 +46,20 @@ namespace Math
         public static bool InPolygon(Vector3 point, Vector3[] Vertexs)
         {
             int vertCount = Vertexs.Length;
-            bool ret = false;
-            if (vertCount >= 3)
+            
+            // ポリゴンじゃない（頂点の数が３未満）
+            if(vertCount < 3)
+                return false;
+
+            bool result = false;
+            for (int i = 0, j = vertCount - 1; i < vertCount; j = i++)
             {
-                for (int i = 0, j = vertCount - 1; i < vertCount; j = i++)
-                {
-                    if (((Vertexs[i].z > point.z) != (Vertexs[j].z > point.z)) &&
-                        (point.x < (Vertexs[j].x - Vertexs[i].x) * (point.z - Vertexs[i].z) / (Vertexs[j].z - Vertexs[i].z) + Vertexs[i].x))
-                        ret = !ret;
-                }
+                if (((Vertexs[i].z > point.z) != (Vertexs[j].z > point.z)) &&
+                    (point.x < (Vertexs[j].x - Vertexs[i].x) * (point.z - Vertexs[i].z) / (Vertexs[j].z - Vertexs[i].z) + Vertexs[i].x))
+                    result = !result;
             }
-            return ret;
+
+            return result;
         }
     }
 
