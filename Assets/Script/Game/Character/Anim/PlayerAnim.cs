@@ -51,7 +51,7 @@ public class PlayerAnim : CharacterAnim
         _networkPlayer = GetComponent<GamePlayer>();
     }
 
-    [ClientRpc(includeOwner = false)]
+    [ClientRpc]
     public override void RpcUpdateAnimation()
     {
         if (_bIsAnimationStopping)
@@ -151,7 +151,7 @@ public class PlayerAnim : CharacterAnim
 
     public void StartExplosionAnim()
     {
-        _networkPlayer.CmdSpawnDeadAnimation(transform.position);
+        //_networkPlayer.CmdSpawnDeadAnimation(transform.position);
 
         SetAnimationType(AnimType.Respawn);
         // ”š”­‚ÌŒø‰Ê‰¹‚ð—¬‚·

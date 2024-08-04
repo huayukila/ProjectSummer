@@ -57,6 +57,7 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
         NetworkServer.Destroy(gameObject);
     }
 
+    [Server]
     private void PaintExplodeArea()
     {
         if (_ownerPlayerID == -1)
@@ -73,15 +74,15 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
         }
 
         #region Paint Area
-        PaintAreaEvent paintEvent = new PaintAreaEvent
+
+        IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
+        if(paintSystem != null)
         {
-            Verts = explodeAreaVertexes.ToArray(),
-            PlayerID = _ownerPlayerID,
-            PlayerAreaColor = _bubbleColor
-        };
-        TypeEventSystem.Instance.Send(paintEvent);
+            paintSystem.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_bubbleColor);
+        }
         #endregion
     }
+
 
     private void JamEnemyPlayerScreen()
     {

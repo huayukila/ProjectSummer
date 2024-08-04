@@ -6,6 +6,7 @@ using Gaming.PowerUp;
 using Math;
 
 // 色を塗るイベントで必要な情報
+[Serializable]
 public struct PaintAreaEvent
 {
     public Vector3[] Verts;
@@ -72,6 +73,8 @@ namespace WSV.Character
         private Vector3 _rotateDirection;                   // プレイヤーの回転方向
         private bool _isBoostCooldown = false;              // ブーストクールダウンしているかのフラグ
         private SpriteRenderer _imageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
+
+        [SerializeField]
         private PlayerAnim _playerAnim;
         private DropPointControl _dropPointCtrl;            // プレイヤーのDropPointControl
         private PlayerParticleSystemControl _particleSystemCtrl; // プレイヤー自身にくっつけているパーティクルシステムを管理するコントローラー
@@ -139,20 +142,20 @@ namespace WSV.Character
             //TODO Need Change To Network Code
             //_particleSystemCtrl.Play();
 
-            {
-                TypeEventSystem.Instance.Register<PaintAreaEvent>
-                (
-                    e =>
-                    {
-                        IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
-                        if(paintSystem != null)
-                        {
-                            paintSystem.Paint(e.Verts,e.PlayerID,e.PlayerAreaColor);
-                        }
-                    }
-                ).UnregisterWhenGameObjectDestroyed(gameObject);
+            // {
+            //     TypeEventSystem.Instance.Register<PaintAreaEvent>
+            //     (
+            //         e =>
+            //         {
+            //             IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
+            //             if(paintSystem != null)
+            //             {
+            //                 paintSystem.Paint(e.Verts,e.PlayerID,e.PlayerAreaColor);
+            //             }
+            //         }
+            //     ).UnregisterWhenGameObjectDestroyed(gameObject);
 
-            }
+            // }
 
             {
                 _itemSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IItemSystem>();
@@ -258,10 +261,10 @@ namespace WSV.Character
             switch(cmd)
             {
                 case EPlayerCommand.Respawn:
-                    StartRespawn();
+                    OnRespawn();
                     break;
                 case EPlayerCommand.Dead:
-                    StartDead();
+                    OnDead();
                     break;
                 default:
                     break;
@@ -298,10 +301,14 @@ namespace WSV.Character
             // TODO プレイヤー画像の向きを変える
             FlipCharacterImage();
 
-            // プレイヤーインプットを取得する
-            Vector2 rotateInput = _rotateAction.ReadValue<Vector2>();
-            // 回転方向を決める
-            _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+            if(Application.isFocused)
+            {
+                // 回転する入力処理
+                Vector2 rotateInput = _rotateAction.ReadValue<Vector2>();
+
+                _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+            }
+
             // プレイヤーがいるところの地面の色をチェックする
             CheckGroundColor();
             
@@ -393,6 +400,10 @@ namespace WSV.Character
         /// </summary>
         private void PlayerRotation()
         {
+            // ゲーム画面に注視していないと回転しない
+            if(!Application.isFocused)
+                return;
+
             // 方向入力がないと終了
             if (_rotateDirection == Vector3.zero)
                 return;
@@ -423,9 +434,10 @@ namespace WSV.Character
         /// <summary>
         /// プレイヤーの死亡状態を設定する
         /// </summary>
-        private void StartDead()
+        private void OnDead()
         {
-            _playerAnim.StartExplosionAnim();
+            if(_playerAnim != null)
+                _playerAnim.StartExplosionAnim();
 
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
             {
@@ -433,7 +445,8 @@ namespace WSV.Character
                 pos = transform.position
             };
             TypeEventSystem.Instance.Send(dropSilkEvent);
-            TypeEventSystem.Instance.Send(new PlayerRespawnEvent(){ Player = gameObject});
+
+            //_networkPlayer.CmdRespawnPlayer();
 
             // プレイヤーの状態をリセットする
             ResetStatus();
@@ -454,8 +467,8 @@ namespace WSV.Character
         /// </summary>
         private void ResetStatus()
         {
-            _rigidbody.velocity = Vector3.zero;
-            _rigidbody.angularVelocity = Vector3.zero;
+
+            //ResetRigidbody();     
 
             _playerState = State.Dead;
 
@@ -469,7 +482,7 @@ namespace WSV.Character
 
             transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
 
-            _dropPointCtrl.CmdOnClearAllDropPoints();
+            //_dropPointCtrl.CmdOnClearAllDropPoints();
 
             _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
@@ -478,6 +491,13 @@ namespace WSV.Character
             _silkData.SilkRenderer.SetActive(false);
 
             _returnToFineTimer = 0f;
+        }
+
+        public void ResetRigidbody()
+        {
+            _rigidbody.velocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+            Debug.Log("Reset Rigidbody");
         }
         /// <summary>
         /// 地面の色をチェックする
@@ -548,7 +568,8 @@ namespace WSV.Character
                             PlayerID = _playerInfo.ID,
                             PlayerAreaColor = _playerInfo.AreaColor
                         };
-                        TypeEventSystem.Instance.Send(paintEvent);
+                        //TypeEventSystem.Instance.Send(paintEvent);
+                        _networkPlayer.CmdPaintArea(paintEvent);
                         #endregion
 
                         TryCaptureObject(verts.ToArray());
@@ -759,7 +780,7 @@ namespace WSV.Character
         }
         #endregion
 
-        private void StartRespawn()
+        private void OnRespawn()
         {
             // 死亡以外は再生処理しない
             if (_playerState != State.Dead)
