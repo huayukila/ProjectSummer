@@ -1,31 +1,37 @@
-using Mirror;
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class TitlePanel : MonoBehaviour
 {
-    public Button createGameBtn;
-    public Button joinGameBtn;
+    public Button startBtn;
+    public Button creditBtn;
+    public Image blackImage;
 
-    private void Start()
+    void Start()
     {
-        createGameBtn.onClick.AddListener(ButtonHost);
-        joinGameBtn.onClick.AddListener(ButtonClient);
+        startBtn.onClick.AddListener(() =>
+        {
+            Sequence sequence = DOTween.Sequence();
+
+            sequence.Append(blackImage.DOFade(1, 1f));
+
+            sequence.onComplete += () => { SceneManager.LoadScene("Waiting"); };
+
+            sequence.Play();
+        });
+        creditBtn.onClick.AddListener(() => { });
     }
 
-    public void ButtonHost()
+    // Update is called once per frame
+    void Update()
     {
-        (NetworkManager.singleton as NetWorkRoomManagerExt).HostGame();
     }
 
-    public void ButtonClient()
-    {
-        (NetworkManager.singleton as NetWorkRoomManagerExt).Connect();
-    }
-    
     private void OnDestroy()
     {
-        createGameBtn.onClick.RemoveAllListeners();
-        joinGameBtn.onClick.RemoveAllListeners();
+        startBtn.onClick.RemoveAllListeners();
+        creditBtn.onClick.RemoveAllListeners();
     }
 }

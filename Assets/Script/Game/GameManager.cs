@@ -95,7 +95,7 @@ public class GameManager : Singleton<GameManager>
 
         Cursor.lockState = CursorLockMode.Locked;
 
-        SceneManager.LoadScene("Title");
+        SceneManager.LoadScene("Loading");
     }
 
     private void Start()
