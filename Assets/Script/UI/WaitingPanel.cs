@@ -1,5 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class WaitingPanel : MonoBehaviour
@@ -14,11 +15,7 @@ public class WaitingPanel : MonoBehaviour
 
     public Image LeftCharaBG;
 
-    public Sprite leftCharaBGSprite;
-
     public Image RightCharaBG;
-
-    public Sprite rightCharaBGSprite;
 
     public Transform Effect;
 
@@ -40,8 +37,7 @@ public class WaitingPanel : MonoBehaviour
         {
             isLeftReady = true;
             leftOkImg.sprite = leftOkSprite;
-            leftOkImg.transform.DOScale(new Vector3(15, 10, 0), 0.2f).SetLoops(2, LoopType.Yoyo);
-            LeftCharaBG.sprite = leftCharaBGSprite;
+            leftOkImg.rectTransform.DOScale(new Vector3(15, 10, 0), 0.2f).SetLoops(2, LoopType.Yoyo);
             HandleAllReady();
         }
 
@@ -49,8 +45,7 @@ public class WaitingPanel : MonoBehaviour
         {
             isRightReady = true;
             rightOkImg.sprite = rightOkSprite;
-            rightOkImg.transform.DOScale(new Vector3(15, 10, 0), 0.2f).SetLoops(2, LoopType.Yoyo);
-            RightCharaBG.sprite = rightCharaBGSprite;
+            rightOkImg.rectTransform.DOScale(new Vector3(15, 10, 0), 0.2f).SetLoops(2, LoopType.Yoyo);
             HandleAllReady();
         }
     }
@@ -62,14 +57,32 @@ public class WaitingPanel : MonoBehaviour
         {
             Sequence sequence = DOTween.Sequence();
 
-            sequence.Append(LeftCharaBG.rectTransform.DOAnchorPos(new Vector2(-364, 0), 0.5f).SetEase(Ease.OutQuad));
-            sequence.Join(RightCharaBG.rectTransform.DOAnchorPos(new Vector2(364, 0), 0.2f).SetEase(Ease.InQuad));
+            sequence.Append(LeftCharaBG.rectTransform.DOAnchorPos(new Vector2(-960, 0), 0.5f).SetEase(Ease.OutQuad));
+            sequence.Join(RightCharaBG.rectTransform.DOAnchorPos(new Vector2(960, 0), 0.5f).SetEase(Ease.OutQuad));
 
-            sequence.Append(LeftCharaBG.rectTransform.DOAnchorPos(new Vector2(0, 0), 0.5f).SetEase(Ease.OutQuad));
-            sequence.Join(RightCharaBG.rectTransform.DOAnchorPos(new Vector2(0, 0), 0.2f).SetEase(Ease.InQuad));
+            sequence.Append(LeftCharaBG.rectTransform.DOAnchorPos(new Vector2(-421, 0), 0.2f).SetEase(Ease.InQuad));
+            sequence.Join(RightCharaBG.rectTransform.DOAnchorPos(new Vector2(421, 0), 0.2f).SetEase(Ease.InQuad));
+
+            sequence.Append(LeftCharaBG.rectTransform.DOAnchorPos(new Vector2(-234, 0), 0.2f).SetEase(Ease.InQuad));
+            sequence.Join(RightCharaBG.rectTransform.DOAnchorPos(new Vector2(234, 0), 0.2f).SetEase(Ease.InQuad));
+
+            sequence.Join(LeftCharaBG.rectTransform.DOScale(new Vector3(0.3f, 8.75f, 8.75f), 0.2f))
+                .SetEase(Ease.InQuad);
+            sequence.Join(RightCharaBG.rectTransform.DOScale(new Vector3(0.3f, 8.75f, 8.75f), 0.2f))
+                .SetEase(Ease.InQuad);
+
+            sequence.Append(LeftCharaBG.rectTransform.DOAnchorPos(new Vector2(-421, 0), 0.2f).SetEase(Ease.InQuad));
+            sequence.Join(RightCharaBG.rectTransform.DOAnchorPos(new Vector2(421, 0), 0.2f).SetEase(Ease.InQuad));
+
+            sequence.Join(LeftCharaBG.rectTransform.DOScale(new Vector3(8.75f, 8.75f, 8.75f), 0.2f))
+                .SetEase(Ease.InQuad);
+            sequence.Join(RightCharaBG.rectTransform.DOScale(new Vector3(8.75f, 8.75f, 8.75f), 0.2f))
+                .SetEase(Ease.InQuad);
 
             sequence.Join(Effect.DOScale(Vector3.one, 0.6f)).SetEase(Ease.InQuad);
 
+
+            sequence.AppendInterval(2f).AppendCallback(() => { SceneManager.LoadScene("Gaming"); });
             sequence.Play();
         }
     }
