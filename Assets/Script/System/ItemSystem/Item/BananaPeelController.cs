@@ -5,11 +5,12 @@ using Character;
 
 public class BananaPeelController : MonoBehaviour
 {
+
     private void OnTriggerEnter(Collider other)
     {
-        if(other.TryGetComponent(out IItemAffectable itemAffectable))
+        if(other.CompareTag("Player"))
         {           
-            itemAffectable.OnAffect(this);
+            other.gameObject.GetComponent<Player>().OnEffect("Slip");
             Destroy(gameObject);
         }
     }

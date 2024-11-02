@@ -2,660 +2,670 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
+using Gaming.PowerUp;
 using Math;
+using Unity.VisualScripting;
 
+public enum ItemEffect
+{
+    None = 0,
+    Stun,
+    Slip,
+}
 public interface IItemAffectable
 {
-  void OnAffect(BananaPeelController bananaPeel);
-  void OnAffect(StunSilkController stunSilk);
-  void OnAffect(PaintBubbleController paintBubble);
+    void OnEffect(string effectName);
 }
 namespace Character
 {
-  [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-  public class Player : Character, IPlayer2ItemSystem,IItemAffectable
-  {
-      private enum State
-      {
-          None = 0,
-          Fine,
-          Dead,
-          Invincible,
-          Slippy,
-          Stun,
-      }
-
-      public bool HadSilk => mSilkData.SilkCount > 0;
-
-      public IItem item { get; set; }
-
-      private struct PlayerSilkData
-      {
-          public int SilkCount;                 
-          public GameObject SilkRenderer;       
-      }
-      private ColorCheck mColorCheck;                  
-      //TODO ï¿½ï¿½Â‚ï¿½ï¿½ï¿½Â‚É‚ï¿½ï¿½ï¿½
-      private InputAction mBoostAction;                 
-      private InputAction mRotateAction;                
-      private InputAction _itemAction;
-      private PlayerInput mPlayerInput;                  
-
-      [field:SerializeField]
-      private State _playerState;                               
-
-      private float mColliderOffset;                      
-      private float mCurrentMoveSpeed;                    
-      private float mMoveSpeedCoefficient;                
-      private Rigidbody mRigidbody;                       
-      private Vector3 mRotateDirection;                   
-      private bool _canBoost = false;                     
-      private SpriteRenderer mImageSpriteRenderer;       
-      private PlayerAnim mAnim;
-      private DropPointControl mDropPointControl;         
-      private PlayerParticleSystemControl mParticleSystemControl;
-
-      //TODO refactorying
-      private int mID = -1;                              
-      private Color mColor;                                                         
-      private PlayerSilkData mSilkData;
-      private float mBoostCoefficient;
-
-      private float _returnToFineTimer = 0f;
-
-      public Sprite[] silkCountSprites;
-
-      private void Awake()
-      {
-          // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-          Init();
-
-      }
-      private void Start()
-      {
-          mCurrentMoveSpeed = 0.0f;
-
-          GetComponent<DropPointControl>()?.Init();
-          transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
-          mParticleSystemControl.Play();
-      }
-      private void Update()
-      {
-          if (_playerState == State.Dead)
-              return;
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½uï¿½Êï¿½vï¿½ï¿½Ô‚ï¿½ï¿½ï¿½È‚ï¿½ï¿½ÆŒï¿½Ù‚Ç‚Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½È‚ï¿½
-          else if(_playerState != State.Fine)
-          {
-            ReturnToFineCountDown();
-            return;
-          }
-          UpdateFine();
-
-      }
-
-      private void FixedUpdate()
-      {
-          switch(_playerState)
-          {
-              case State.Fine:
-              {
-                // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì“ï¿½ï¿½ï¿½
-                PlayerMovement(Global.PLAYER_ACCELERATION);
-                // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‰ï¿½]
-                PlayerRotation();
-              }
-              break;
-              case State.Slippy:
-              {
-                float deceleration = GetOnSlipDeceleration();
-                PlayerMovement(deceleration);
-              }
-              break;
-              case State.Stun:
-              {
-                mCurrentMoveSpeed = 0f;
-              }
-              break;
-          }
-
-      }
-
-      private void LateUpdate()
-      {
-          switch(_playerState)
-          {
-              case State.Fine:
-                  return;
-              case State.Slippy:
-                  PlaySlipAnimation();
-                  return;
-          }
-      }
-
-
-      /// <summary>
-      /// ï¿½Õ“Ë‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-      /// </summary>
-      /// <param name="collision"></param>
-      private void OnCollisionEnter(Collision collision)
-      {
-          // ï¿½ï¿½ï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Í‹ï¿½ï¿½Ì–Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½
-          if (mSilkData.SilkCount > 0)
-          {
-              DropSilkEvent dropSilkEvent = new DropSilkEvent()
-              {
-                  pos = transform.position,
-              };
-              // ï¿½ï¿½ï¿½Ìï¿½ï¿½Ìƒhï¿½ï¿½ï¿½bï¿½vï¿½êŠï¿½ï¿½İ’è‚·ï¿½ï¿½
-              TypeEventSystem.Instance.Send(dropSilkEvent);
-          }
-          // ï¿½Õ“Ë‚ï¿½ï¿½ï¿½ï¿½ç€ï¿½Sï¿½ï¿½Ô‚Éİ’è‚·ï¿½ï¿½
-          SetDeadStatus();
-      }
-
-      private void OnTriggerEnter(Collider other)
-      {
-          if (other.gameObject.tag.Contains("DropPoint"))
-          {
-              // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DropPointï¿½ÈŠOï¿½ï¿½DropPointï¿½É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-              if (other.gameObject.tag.Contains(mID.ToString()) == false)
-              {
-                  if (mSilkData.SilkCount > 0)
-                  {
-                      DropSilkEvent dropSilkEvent = new DropSilkEvent()
-                      {
-                          pos = transform.position,
-                      };
-                      TypeEventSystem.Instance.Send(dropSilkEvent);
-                  }
-                  SetDeadStatus();
-              }
-          }
-      }
-      #region InternalLogic
-
-      private void UpdateFine()
-      {
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½æ‘œï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÉŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚É‚ï¿½ï¿½ï¿½
-          //mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
-
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½æ‘œï¿½ÌŒï¿½ï¿½ï¿½ï¿½ï¿½Ï‚ï¿½ï¿½ï¿½
-          FlipCharacterImage();
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Cï¿½ï¿½ï¿½vï¿½bï¿½gï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½
-          Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
-          // ï¿½ï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½
-          mRotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½ï¿½Ì’nï¿½Ê‚ÌFï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½ï¿½
-          CheckGroundColor();
-          // ï¿½Ìˆï¿½ï¿½`ï¿½æ‚µï¿½Ä‚İ‚ï¿½
-          TryPaintArea();
-
-      }
-
-      /// <summary>
-      /// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìƒvï¿½ï¿½ï¿½pï¿½eï¿½Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-      /// </summary>
-      private void Init()
-      {
-          mRigidbody = GetComponent<Rigidbody>();
-          mColorCheck = GetComponent<ColorCheck>();
-          mPlayerInput = GetComponent<PlayerInput>();
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ì‰æ‘œï¿½Ìƒï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½
-          mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-          mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
-          // DropPointControlï¿½Rï¿½ï¿½ï¿½|ï¿½lï¿½ï¿½ï¿½gï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ï¿½
-          mDropPointControl = gameObject.AddComponent<DropPointControl>();
-          // PlayerAnimï¿½Rï¿½ï¿½ï¿½|ï¿½lï¿½ï¿½ï¿½gï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ï¿½
-          mAnim = gameObject.AddComponent<PlayerAnim>();
-
-
-          mColorCheck.layerMask = LayerMask.GetMask("Ground");
-          mMoveSpeedCoefficient = 1.0f;
-          mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-          mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
-          _playerState = State.Fine;
-          mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
-          // ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ÏŠï¿½ï¿½ï¿½ï¿½ï¿½
-          mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
-          mSilkData.SilkCount = 0;
-          mSilkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
-          mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
-          mSilkData.SilkRenderer.SetActive(false);
-          mBoostCoefficient = 1f;
-
-      }
-
-      /// <summary>
-      /// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌˆÚ“ï¿½ï¿½ğ§Œä‚·ï¿½ï¿½
-      /// </summary>
-      private void PlayerMovement(in float acceleration)
-      {
-          // ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½vï¿½Zï¿½ï¿½ï¿½Aï¿½ÍˆÍ“ï¿½ï¿½Éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-          mCurrentMoveSpeed =  mCurrentMoveSpeed + acceleration * Time.fixedDeltaTime;
-          mCurrentMoveSpeed = Mathf.Clamp(mCurrentMoveSpeed, 0f, mStatus.mMaxMoveSpeed);
-
-          // ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½ÌˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-          Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient * mBoostCoefficient;
-          mRigidbody.velocity = moveDirection;
-      }
-
-      /// <summary>
-      /// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‰ï¿½]ï¿½ğ§Œä‚·ï¿½ï¿½
-      /// </summary>
-      private void PlayerRotation()
-      {
-          // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½È‚ï¿½ï¿½ÆIï¿½ï¿½
-          if (mRotateDirection == Vector3.zero)
-              return;
-
-          // ï¿½ï¿½ï¿½Í‚ï¿½ï¿½ê‚½ï¿½ï¿½ï¿½ï¿½ï¿½Ö‰ï¿½]ï¿½ï¿½ï¿½ï¿½
-          {
-              Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
-              mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mStatus.mRotationSpeed * Time.fixedDeltaTime);
-          }
-      }
-
-      /// <summary>
-      /// ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½^ï¿½[ï¿½Ì‰æ‘œï¿½ğ”½“]ï¿½ï¿½ï¿½ï¿½Öï¿½
-      /// </summary>
-      private void FlipCharacterImage()
-      {
-          if (transform.forward.x < 0.0f)
-          {
-              mImageSpriteRenderer.flipX = false;
-          }
-          else
-          {
-              mImageSpriteRenderer.flipX = true;
-          }
-      }
-
-      /// <summary>
-      /// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½Sï¿½ï¿½Ô‚ï¿½İ’è‚·ï¿½ï¿½
-      /// </summary>
-      private void SetDeadStatus()
-      {
-          mAnim.StartExplosionAnim();
-          DropSilkEvent dropSilkEvent = new DropSilkEvent()
-          {
-              dropCount = mSilkData.SilkCount,
-              pos = transform.position
-          };
-          TypeEventSystem.Instance.Send(dropSilkEvent);
-          PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
-          {
-              ID = mID
-          };
-          TypeEventSystem.Instance.Send(playerRespawnEvent);
-
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½Ô‚ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½ï¿½
-          ResetStatus();
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½ï¿½
-          FlipCharacterImage();
-          // ï¿½Rï¿½ï¿½ï¿½|ï¿½lï¿½ï¿½ï¿½gï¿½ğ–³Œï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½
-          GetComponent<DropPointControl>().enabled = false;
-          GetComponentInChildren<TrailRenderer>().enabled = false;
-          GetComponent<Collider>().enabled = false;
-          // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Cï¿½xï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½ï¿½
-          mAnim.StartRespawnAnim();
-          mParticleSystemControl.Stop();
-          SetPowerUpLevel();
-      }
-
-      /// <summary>
-      /// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌƒXï¿½eï¿½Cï¿½^ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½ï¿½
-      /// </summary>
-      private void ResetStatus()
-      {
-          mRigidbody.velocity = Vector3.zero;
-          mRigidbody.angularVelocity = Vector3.zero;
-
-          _playerState = State.Dead;
-
-          transform.localScale = Vector3.one;
-
-          mCurrentMoveSpeed = 0.0f;
-
-          _canBoost = false;
-
-          mSilkData.SilkCount = 0;
-
-          transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
-
-          DropPointSystem.Instance.ClearDropPoints(mID);
-
-          mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-
-          mDropPointControl.ResetTrail();
-
-          mSilkData.SilkRenderer.SetActive(false);
-
-          _returnToFineTimer = 0f;
-      }
-      /// <summary>
-      /// ï¿½nï¿½Ê‚ÌFï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½ï¿½
-      /// </summary>
-      private void CheckGroundColor()
-      {
-          // ï¿½ï¿½ï¿½ï¿½ï¿½Ì—Ìˆï¿½É‚ï¿½ï¿½ï¿½ï¿½ï¿½
-          if (mColorCheck.isTargetColor(Color.clear))
-          {
-              mMoveSpeedCoefficient = 1.0f;
-          }
-          // ï¿½Ê‚Ìƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì—Ìˆï¿½É‚ï¿½ï¿½ï¿½ï¿½ï¿½
-          else if (mColorCheck.isTargetColor(mColor))
-          {
-              mMoveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
-          }
-          // ï¿½hï¿½ï¿½ï¿½Ä‚ï¿½ï¿½È‚ï¿½ï¿½nï¿½Ê‚É‚ï¿½ï¿½ï¿½ï¿½ï¿½
-          else
-          {
-              mMoveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
-          }
-      }
-
-      /// <summary>
-      /// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìˆï¿½ï¿½`ï¿½æ‚µï¿½Ä‚İ‚ï¿½Öï¿½
-      /// </summary>
-      private void TryPaintArea()
-      {
-          Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(mID);
-          // DropPointï¿½ï¿½4ï¿½ÂˆÈã‚ ï¿½ï¿½Î•`ï¿½ï¿½Å‚ï¿½ï¿½ï¿½
-          if (dropPoints.Length >= 4)
-          {
-              // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìæ“ªï¿½ï¿½ï¿½W
-              Vector3 endPoint1 = transform.position + transform.forward * mColliderOffset;
-              // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ÉƒCï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DropPoint
-              Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
-              // endPoint1ï¿½ï¿½endPoint2ï¿½Åï¿½ï¿½ï¿½ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½endPoint2ï¿½ÈŠOï¿½ï¿½DropPointï¿½ï¿½æ“ªï¿½ï¿½ï¿½ç‡ï¿½Ô‚ï¿½2ï¿½Â‚ï¿½ï¿½Â‚Åï¿½ï¿½ï¿½ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚©ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½ï¿½
-              for (int i = 0; i < dropPoints.Length - 2; ++i)
-              {
-                  // ï¿½ï¿½Â‚Ìƒxï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½continue
-                  if (VectorMath.IsParallel(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1))
-                  {
-                      continue;
-                  }
-                  // ï¿½ï¿½ï¿½ê‚¼ï¿½ï¿½Ìï¿½ï¿½Wï¿½_ï¿½Æï¿½ï¿½ï¿½ï¿½ï¿½ï¿½gï¿½ÈŠOï¿½Ìƒxï¿½Nï¿½gï¿½ï¿½ï¿½ÌˆÊ’uï¿½ÖŒWï¿½ï¿½ï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½(0ï¿½ï¿½ï¿½å‚«ï¿½ï¿½ï¿½È‚ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½A0ï¿½ï¿½è¬ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½Ì‰Eï¿½ï¿½ï¿½A0ï¿½È‚ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½Ì’ï¿½)
-                  float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
-                  float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
-                  float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
-                  float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
-                  // ï¿½ï¿½Â‚Ìƒxï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½`ï¿½æ‚·ï¿½ï¿½
-                  if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
-                  {
-                      // ï¿½ï¿½_ï¿½ï¿½ï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½
-                      Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
-                      // ï¿½`ï¿½æ‚·ï¿½ï¿½Ìˆï¿½Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½
-                      List<Vector3> verts = new List<Vector3>();
-                      for (int j = i + 1; j < dropPoints.Length; j++)
-                      {
-                          verts.Add(dropPoints[j]);
-                      }
-                      verts.Add(crossPoint);
-                      // ï¿½`ï¿½æ‚·ï¿½ï¿½
-                      PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
-                      TryCaptureObject(verts.ToArray());
-                      // ï¿½Sï¿½Ä‚ï¿½DropPointï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-                      DropPointSystem.Instance.ClearDropPoints(mID);
-                      // ï¿½Kï¿½ï¿½ï¿½ï¿½TrailRendererï¿½Ìï¿½Ô‚ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½ï¿½
-                      mDropPointControl.ResetTrail();
-                      break;
-                  }
-              }
-          }
-      }
-
-      private void TryCaptureObject(Vector3[] verts)
-      {
-          #region Pick Silk
-          Vector3[] silkPos = ItemManager.Instance.GetOnFieldSilkPos();
-          List<Vector3> caputuredSilk = new List<Vector3>();
-          bool isPickedNew = false;
-          foreach (Vector3 pos in silkPos)
-          {
-              if (VectorMath.InPolygon(pos, verts))
-              {
-                  mSilkData.SilkCount++;
-                  caputuredSilk.Add(pos);
-                  isPickedNew = true;
-
-              }
-          }
-          // ï¿½ï¿½ï¿½Ìï¿½ï¿½Ì‰æ‘œï¿½ï¿½\ï¿½ï¿½
-          if (isPickedNew)
-          {
-              SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
-              {
-                  ID = mID,
-                  positions = caputuredSilk.ToArray()
-              };
-              TypeEventSystem.Instance.Send(silkCapturedEvent);
-              AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
-              // ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½^ï¿½[ï¿½æ‘œï¿½Ìcï¿½Ì‘å‚«ï¿½ï¿½ï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½Ä‰æ‘œï¿½Ìï¿½Å•\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-              mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
-              mSilkData.SilkRenderer.SetActive(true);
-              Transform silkCount = mSilkData.SilkRenderer.transform.GetChild(0);
-              if (silkCount != null)
-              {
-                  silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkData.SilkCount];
-                  silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
-              }
-              SetPowerUpLevel();
-          }
-          #endregion
-          #region Pick Item
-          Vector3[] itemBoxPos = ItemManager.Instance.GetOnFieldItemBoxPos();
-          List<Vector3> capturedItemBoxPos = new List<Vector3>();
-          isPickedNew = false;
-          foreach(var pos in itemBoxPos)
-          {
-              if(VectorMath.InPolygon(pos,verts))
-              {
-                  capturedItemBoxPos.Add(pos);
-                  isPickedNew = true;
-              }
-          }
-
-          if(isPickedNew)
-          {
-              TypeEventSystem.Instance.Send(new PlayerGetItem
-              {
-                  player = this,
-              });
-              TypeEventSystem.Instance.Send(new GetNewItem
-              {
-                  ItemBoxsPos = capturedItemBoxPos.ToArray()
-              });
-          }
-          #endregion
-      }
-
-      private void SetPlayerInputProperties()
-      {
-          mPlayerInput.defaultActionMap = name;
-          mPlayerInput.neverAutoSwitchControlSchemes = true;
-          mPlayerInput.SwitchCurrentActionMap(name);
-          mRotateAction = mPlayerInput.actions["Rotate"];
-          mBoostAction = mPlayerInput.actions["Boost"];
-          mBoostAction.performed += OnBoost;
-          _itemAction = mPlayerInput.actions["Item"];
-          _itemAction.performed += OnUseItem;
-      }
-
-      private void SetPowerUpLevel()
-      {
-          if (mSilkData.SilkCount > 0)
-          {
-              mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].SpeedUp;
-              mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].RotateUp;
-          }
-          else
-          {
-              mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-              mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
-          }
-      }
-
-      private void OnUseItem(InputAction.CallbackContext ctx)
-      {
-          if(_playerState == State.Fine && ctx.performed)
-          {
-              this.UseItem(this);
-              
-          }
-
-
-      }
-
-      private void ReturnToFineCountDown()
-      {
-          _returnToFineTimer -= Time.deltaTime;
-          if(_returnToFineTimer <= 0f)
-          {
-              mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
-              _playerState = State.Fine;
-          }
-      }
-
-      private float GetOnSlipDeceleration()
-      {
-          if(mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed / 4f)
-          {
-              return -(mCurrentMoveSpeed - mStatus.mMaxMoveSpeed / 4f) / (_returnToFineTimer - Global.ON_SLIP_TIME / 2f);  
-          }
-          if(mCurrentMoveSpeed <= Global.ON_SLIP_MIN_SPEED)
-          {
-              return 0f;
-          }
-          else
-          {
-              return -mCurrentMoveSpeed / _returnToFineTimer;
-          }
-      }
-
-      private void PlaySlipAnimation()
-      {
-          //float rotationAngle = (-720f / Global.ON_SLIP_TIME * _returnToFineTimer + 720f) * Time.deltaTime;
-          float rotationAngle = 720f / Global.ON_SLIP_TIME * Time.deltaTime;
-          mImageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
-      }
-      private void OnEnable()
-      {
-          mPlayerInput?.ActivateInput();
-      }
-      private void OnDisable()
-      {
-          mPlayerInput?.DeactivateInput();
-      }
-      private void OnDestroy()
-      {
-          mBoostAction.performed -= OnBoost;
-          _itemAction.performed -= OnUseItem;
-      }
-      // ï¿½uï¿½[ï¿½Xï¿½g
-      private void OnBoost(InputAction.CallbackContext context)
-      {
-          if (context.performed)
-          {
-              if (_playerState == State.Fine && _canBoost == false)
-              {
-                  mBoostCoefficient = 1.5f;
-                  mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
-                  _canBoost = true;
-                  TypeEventSystem.Instance.Send(new BoostStart 
-                  { 
-                      Number = mID
-                  });
-                  Timer stopBoostTimer = new Timer(Time.time, Global.BOOST_DURATION_TIME,
-                      () =>
-                      {
-                          mBoostCoefficient = 1.0f;
-                      }
-                      );
-                  Timer boostCoolDownTimer = new Timer(Time.time,Global.BOOST_COOLDOWN_TIME,
-                      () =>
-                      {
-                          _canBoost = false;
-                      }
-                      );
-                  stopBoostTimer.StartTimer(this);
-                  boostCoolDownTimer.StartTimer(this);
-              }
-
-          }
-      }
-
-      #endregion
-      #region interface
-      public bool IsDead() => _playerState == State.Dead;
-      public int GetID() => mID;
-      public Color GetColor() => mColor;
-      public void SetProperties(int ID, Color color)
-      {
-          if (mID == -1)
-          {
-              mID = ID;
-              mColor = color;
-              name = "Player" + mID.ToString();
-          }
-          if(mID != -1)
-          {
-              SetPlayerInputProperties();
-          }
-      }
-
-      public void StartRespawn()
-      {
-          if(_playerState == State.Dead)
-          {
-              transform.position = Global.PLAYER_START_POSITIONS[mID - 1];
-              transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
-              _playerState = State.Fine;
-              GetComponentInChildren<TrailRenderer>().enabled = true;
-              GetComponent<DropPointControl>().enabled = true;
-              GetComponent<Collider>().enabled = true;
-              GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
-              smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
-              smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
-              mParticleSystemControl.Play();
-          }
-      }
-
-      private void Slip()
-      {
-          _playerState = State.Slippy;
-          _returnToFineTimer = Global.ON_SLIP_TIME;
-      }
-
-      private void Stun()
-      {
-          _playerState = State.Stun;
-          mCurrentMoveSpeed = 0f;
-          mRigidbody.velocity = Vector3.zero;
-          _returnToFineTimer = Global.ON_STUN_TIME;
-      }
-
-      private void DirtScreen()
-      {
-        throw new NotImplementedException();  
-      }
-
-      void IItemAffectable.OnAffect(BananaPeelController bananaPeel)
-      {
-        Slip();
-      }
-
-      void IItemAffectable.OnAffect(StunSilkController stunSilk)
-      {
-        Stun();
-      }
-
-      void IItemAffectable.OnAffect(PaintBubbleController paintBubble)
-      {
-        DirtScreen();
-      }
-
+    [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
+    public class Player : Character, IPlayer2ItemSystem,IItemAffectable
+    {
+        private enum State
+        {
+            None = 0,
+            Fine,
+            Dead,
+            Invincible,
+            Uncontrollable,
+            Stun,
+        }
+
+        public bool HadSilk => mSilkData.SilkCount > 0;
+
+        public IItem item { get; set; }
+
+        private struct PlayerSilkData
+        {
+            public int SilkCount;                   // ƒvƒŒƒCƒ„[‚ª‚Á‚Ä‚¢‚é‹à‚Ì…‚Ì”
+            public GameObject SilkRenderer;         // ƒvƒŒƒCƒ„[‚ª‚Á‚Ä‚¢‚é‹à‚Ì…‚ğ‰æ–Ê‚É•\¦‚·‚éGameObject
+        }
+        private ColorCheck mColorCheck;                     // ƒJƒ‰[ƒ`ƒFƒbƒNƒRƒ“ƒ|ƒlƒ“ƒg
+        //TODO “ñ‚Â‚ğˆê‚Â‚É‚·‚é
+        private InputAction mBoostAction;                   // ƒvƒŒƒCƒ„[‚Ìƒu[ƒXƒg“ü—Í
+        private InputAction mRotateAction;                  // ƒvƒŒƒCƒ„[‚Ì‰ñ“]“ü—Í
+        private InputAction _itemAction;
+        private PlayerInput mPlayerInput;                   // playerInputAsset
+
+        [field:SerializeField]
+        private State _playerState;                               // ƒvƒŒƒCƒ„[‚ÌƒXƒe[ƒ^ƒX
+
+        private float mColliderOffset;                      // ƒvƒŒƒCƒ„[ƒRƒ‰ƒCƒ_[‚Ì’·‚³i³•ûŒ`j
+        private float mCurrentMoveSpeed;                    // ƒvƒŒƒCƒ„[‚ÌŒ»İ‘¬“x
+        private float mMoveSpeedCoefficient;                // ƒvƒŒƒCƒ„[‚ÌˆÚ“®‘¬“x‚ÌŒW”
+        private Rigidbody mRigidbody;                       // ƒvƒŒƒCƒ„[‚ÌRigidbody
+        private Vector3 mRotateDirection;                   // ƒvƒŒƒCƒ„[‚Ì‰ñ“]•ûŒü
+        private bool _canBoost = false;                     // ƒu[ƒXƒg‚Å‚«‚é‚©‚Ìƒtƒ‰ƒO
+        private SpriteRenderer mImageSpriteRenderer;        // ƒvƒŒƒCƒ„[‰æ‘œ‚ÌSpriteRenderer
+        private PlayerAnim mAnim;
+        private DropPointControl mDropPointControl;         // ƒvƒŒƒCƒ„[‚ÌDropPointControl
+        private PlayerParticleSystemControl mParticleSystemControl;
+
+        //TODO refactorying
+        private int mID = -1;                               // ƒvƒŒƒCƒ„[ID
+        private Color mColor;                               // ƒvƒŒƒCƒ„[‚Ì—Ìˆæ‚ÌF                          
+        private PlayerSilkData mSilkData;
+        private float mBoostCoefficient;
+
+        private float _returnToFineTimer = 0f;
+        //TODO ƒeƒXƒg—p
+        public Sprite[] silkCountSprites;
+
+        private Dictionary<ItemEffect, Action> _itemAffectActions;
+
+        private void Awake()
+        {
+            // ‰Šú‰»ˆ—
+            Init();
+            // Item affectable actions init
+            InitItemAffect();
+        }
+        private void Start()
+        {
+            mCurrentMoveSpeed = 0.0f;
+
+            GetComponent<DropPointControl>()?.Init();
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
+            mParticleSystemControl.Play();
+        }
+        private void Update()
+        {
+            if (_playerState == State.Dead)
+                return;
+            // ƒvƒŒƒCƒ„[‚ªu’Êívó‘Ô‚¶‚á‚È‚¢‚ÆŒã‚Ù‚Ç‚Ìˆ—‚ğÀs‚µ‚È‚¢
+            else if(_playerState != State.Fine)
+            {
+                ReturnToFineCountDown();
+                return;
+            }
+            UpdateFine();
+
+        }
+
+        private void FixedUpdate()
+        {
+            switch(_playerState)
+            {
+                case State.Fine:
+                    // ƒvƒŒƒCƒ„[‚Ì“®‚«
+                    PlayerMovement(Global.PLAYER_ACCELERATION);
+                    // ƒvƒŒƒCƒ„[‚Ì‰ñ“]
+                    PlayerRotation();
+                    break;
+                case State.Uncontrollable:
+                    float deceleration = GetOnSlipDeceleration();
+                    PlayerMovement(deceleration);
+                    break;
+                case State.Stun:
+                    mCurrentMoveSpeed = 0f;
+                    break;
+            }
+
+        }
+
+        private void LateUpdate()
+        {
+            switch(_playerState)
+            {
+                case State.Fine:
+                    return;
+                case State.Uncontrollable:
+                    PlaySlipAnimation();
+                    return;
+            }
+        }
+
+
+        /// <summary>
+        /// Õ“Ë‚ª‚ ‚Á‚½‚Æ‚«ˆ—‚·‚é
+        /// </summary>
+        /// <param name="collision"></param>
+        private void OnCollisionEnter(Collision collision)
+        {
+            // €–S‚µ‚½ƒvƒŒƒCƒ„[‚Í‹à‚Ì–Ô‚ğ‚Á‚Ä‚¢‚½‚ç
+            if (mSilkData.SilkCount > 0)
+            {
+                DropSilkEvent dropSilkEvent = new DropSilkEvent()
+                {
+                    pos = transform.position,
+                };
+                // ‹à‚Ì…‚ÌƒhƒƒbƒvêŠ‚ğİ’è‚·‚é
+                TypeEventSystem.Instance.Send(dropSilkEvent);
+            }
+            // Õ“Ë‚µ‚½‚ç€–Só‘Ô‚Éİ’è‚·‚é
+            SetDeadStatus();
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.gameObject.tag.Contains("DropPoint"))
+            {
+                // ©•ª‚ÌDropPointˆÈŠO‚ÌDropPoint‚É“–‚½‚Á‚½‚ç
+                if (other.gameObject.tag.Contains(mID.ToString()) == false)
+                {
+                    if (mSilkData.SilkCount > 0)
+                    {
+                        DropSilkEvent dropSilkEvent = new DropSilkEvent()
+                        {
+                            pos = transform.position,
+                        };
+                        TypeEventSystem.Instance.Send(dropSilkEvent);
+                    }
+                    SetDeadStatus();
+                }
+            }
+        }
+        #region InternalLogic
+
+        private void UpdateFine()
+        {
+            // ƒvƒŒƒCƒ„[‰æ‘œ‚ğ‚¸‚Á‚Æ“¯‚¶•ûŒü‚ÉŒü‚­‚±‚Æ‚É‚·‚é
+            //mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+
+            // ƒvƒŒƒCƒ„[‰æ‘œ‚ÌŒü‚«‚ğ•Ï‚¦‚é
+            FlipCharacterImage();
+            // ƒvƒŒƒCƒ„[ƒCƒ“ƒvƒbƒg‚ğæ“¾‚·‚é
+            Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
+            // ‰ñ“]•ûŒü‚ğŒˆ‚ß‚é
+            mRotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+            // ƒvƒŒƒCƒ„[‚ª‚¢‚é‚Æ‚±‚ë‚Ì’n–Ê‚ÌF‚ğƒ`ƒFƒbƒN‚·‚é
+            CheckGroundColor();
+            // —Ìˆæ‚ğ•`‰æ‚µ‚Ä‚İ‚é
+            TryPaintArea();
+
+        }
+
+        /// <summary>
+        /// ƒvƒŒƒCƒ„[‚ÌƒvƒƒpƒeƒB‚ğ‰Šú‰»‚·‚é
+        /// </summary>
+        private void Init()
+        {
+            mRigidbody = GetComponent<Rigidbody>();
+            mColorCheck = GetComponent<ColorCheck>();
+            mPlayerInput = GetComponent<PlayerInput>();
+            // ƒvƒŒƒCƒ„[©•ª‚Ì‰æ‘œ‚ÌƒŒƒ“ƒ_ƒ‰[‚ğæ“¾‚·‚é
+            mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
+            // DropPointControlƒRƒ“ƒ|ƒlƒ“ƒg‚ğ’Ç‰Á‚·‚é
+            mDropPointControl = gameObject.AddComponent<DropPointControl>();
+            // PlayerAnimƒRƒ“ƒ|ƒlƒ“ƒg‚ğ’Ç‰Á‚·‚é
+            mAnim = gameObject.AddComponent<PlayerAnim>();
+
+
+            mColorCheck.layerMask = LayerMask.GetMask("Ground");
+            mMoveSpeedCoefficient = 1.0f;
+            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
+            _playerState = State.Fine;
+            mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+            // •\¦‡ˆÊ‚ğ•ÏŠ·‚·‚é
+            mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
+            mSilkData.SilkCount = 0;
+            mSilkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
+            mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
+            mSilkData.SilkRenderer.SetActive(false);
+            mBoostCoefficient = 1f;
+
+        }
+
+        private void InitItemAffect()
+        {
+            _itemAffectActions = new Dictionary<ItemEffect, Action>
+            {
+                // Item Effect     Action
+                { ItemEffect.Stun, OnStun },
+                { ItemEffect.Slip, OnSlip }
+            };
+        }
+        /// <summary>
+        /// ƒvƒŒƒCƒ„[‚ÌˆÚ“®‚ğ§Œä‚·‚é
+        /// </summary>
+        private void PlayerMovement(in float acceleration)
+        {
+            // ‘¬“x‚ğŒvZ‚µA”ÍˆÍ“à‚É§ŒÀ‚·‚é
+            mCurrentMoveSpeed =  mCurrentMoveSpeed + acceleration * Time.fixedDeltaTime;
+            mCurrentMoveSpeed = Mathf.Clamp(mCurrentMoveSpeed, 0f, mStatus.mMaxMoveSpeed);
+
+            // ‘OŒü‚«‚ÌˆÚ“®‚ğ‚·‚é
+            Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient * mBoostCoefficient;
+            mRigidbody.velocity = moveDirection;
+        }
+
+        /// <summary>
+        /// ƒvƒŒƒCƒ„[‚Ì‰ñ“]‚ğ§Œä‚·‚é
+        /// </summary>
+        private void PlayerRotation()
+        {
+            // •ûŒü“ü—Í‚ª‚È‚¢‚ÆI—¹
+            if (mRotateDirection == Vector3.zero)
+                return;
+
+            // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
+            {
+                Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
+                mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mStatus.mRotationSpeed * Time.fixedDeltaTime);
+            }
+        }
+
+        /// <summary>
+        /// ƒLƒƒƒ‰ƒNƒ^[‚Ì‰æ‘œ‚ğ”½“]‚·‚éŠÖ”
+        /// </summary>
+        private void FlipCharacterImage()
+        {
+            if (transform.forward.x < 0.0f)
+            {
+                mImageSpriteRenderer.flipX = false;
+            }
+            else
+            {
+                mImageSpriteRenderer.flipX = true;
+            }
+        }
+
+        /// <summary>
+        /// ƒvƒŒƒCƒ„[‚Ì€–Só‘Ô‚ğİ’è‚·‚é
+        /// </summary>
+        private void SetDeadStatus()
+        {
+            mAnim.StartExplosionAnim();
+            DropSilkEvent dropSilkEvent = new DropSilkEvent()
+            {
+                dropCount = mSilkData.SilkCount,
+                pos = transform.position
+            };
+            TypeEventSystem.Instance.Send(dropSilkEvent);
+            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
+            {
+                ID = mID
+            };
+            TypeEventSystem.Instance.Send(playerRespawnEvent);
+
+            // ƒvƒŒƒCƒ„[‚Ìó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+            ResetStatus();
+            // ƒvƒŒƒCƒ„[‚ÌŒü‚«‚ğƒŠƒZƒbƒg‚·‚é
+            FlipCharacterImage();
+            // ƒRƒ“ƒ|ƒlƒ“ƒg‚ğ–³Œø‰»‚É‚·‚é
+            GetComponent<DropPointControl>().enabled = false;
+            GetComponentInChildren<TrailRenderer>().enabled = false;
+            GetComponent<Collider>().enabled = false;
+            // ƒvƒŒƒCƒ„[•œŠˆƒCƒxƒ“ƒg‚ğŠ«‹N‚·‚é
+            mAnim.StartRespawnAnim();
+            mParticleSystemControl.Stop();
+            SetPowerUpLevel();
+        }
+
+        /// <summary>
+        /// ƒvƒŒƒCƒ„[‚ÌƒXƒeƒCƒ^ƒX‚ğƒŠƒZƒbƒg‚·‚é
+        /// </summary>
+        private void ResetStatus()
+        {
+            mRigidbody.velocity = Vector3.zero;
+            mRigidbody.angularVelocity = Vector3.zero;
+
+            _playerState = State.Dead;
+
+            transform.localScale = Vector3.one;
+
+            mCurrentMoveSpeed = 0.0f;
+
+            _canBoost = false;
+
+            mSilkData.SilkCount = 0;
+
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
+
+            DropPointSystem.Instance.ClearDropPoints(mID);
+
+            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+
+            mDropPointControl.ResetTrail();
+
+            mSilkData.SilkRenderer.SetActive(false);
+
+            _returnToFineTimer = 0f;
+        }
+        /// <summary>
+        /// ’n–Ê‚ÌF‚ğƒ`ƒFƒbƒN‚·‚é
+        /// </summary>
+        private void CheckGroundColor()
+        {
+            // ©•ª‚Ì—Ìˆæ‚É‚¢‚½‚ç
+            if (mColorCheck.isTargetColor(Color.clear))
+            {
+                mMoveSpeedCoefficient = 1.0f;
+            }
+            // •Ê‚ÌƒvƒŒƒCƒ„[‚Ì—Ìˆæ‚É‚¢‚½‚ç
+            else if (mColorCheck.isTargetColor(mColor))
+            {
+                mMoveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
+            }
+            // “h‚ç‚ê‚Ä‚¢‚È‚¢’n–Ê‚É‚¢‚½‚ç
+            else
+            {
+                mMoveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
+            }
+        }
+
+        /// <summary>
+        /// ƒvƒŒƒCƒ„[—Ìˆæ‚ğ•`‰æ‚µ‚Ä‚İ‚éŠÖ”
+        /// </summary>
+        private void TryPaintArea()
+        {
+            Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(mID);
+            // DropPoint‚Í4ŒÂˆÈã‚ ‚ê‚Î•`‰æ‚Å‚«‚é
+            if (dropPoints.Length >= 4)
+            {
+                // ƒvƒŒƒCƒ„[‚Ìæ“ªÀ•W
+                Vector3 endPoint1 = transform.position + transform.forward * mColliderOffset;
+                // ƒvƒŒƒCƒ„[‚ª’¼‘O‚ÉƒCƒ“ƒXƒ^ƒ“ƒX‰»‚µ‚½DropPoint
+                Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
+                // endPoint1‚ÆendPoint2‚Åì‚Á‚½ƒxƒNƒgƒ‹‚ÆendPoint2ˆÈŠO‚ÌDropPoint‚ğæ“ª‚©‚ç‡”Ô‚Å2ŒÂ‚¸‚Â‚Åì‚Á‚½ƒxƒNƒgƒ‹‚ªŒğ‚í‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚·‚é
+                for (int i = 0; i < dropPoints.Length - 2; ++i)
+                {
+                    // “ñ‚Â‚ÌƒxƒNƒgƒ‹‚ª•½s‚µ‚½‚çcontinue
+                    if (VectorMath.IsParallel(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1))
+                    {
+                        continue;
+                    }
+                    // ‚»‚ê‚¼‚ê‚ÌÀ•W“_‚Æ©•ª©gˆÈŠO‚ÌƒxƒNƒgƒ‹‚ÌˆÊ’uŠÖŒW‚ğŒvZ‚·‚é(0‚æ‚è‘å‚«‚¢‚È‚çƒxƒNƒgƒ‹‚Ì¶‘¤A0‚æ‚è¬‚³‚¢‚È‚çƒxƒNƒgƒ‹‚Ì‰E‘¤A0‚È‚çƒxƒNƒgƒ‹‚Ì’†)
+                    float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
+                    float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
+                    float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
+                    float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
+                    // “ñ‚Â‚ÌƒxƒNƒgƒ‹‚ªŒğ‚í‚Á‚Ä‚¢‚½‚ç•`‰æ‚·‚é
+                    if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
+                    {
+                        // Œğ“_‚ğŒvZ‚·‚é
+                        Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
+                        // •`‰æ‚·‚é—Ìˆæ‚Ì’¸“_‚ğæ“¾‚·‚é
+                        List<Vector3> verts = new List<Vector3>();
+                        for (int j = i + 1; j < dropPoints.Length; j++)
+                        {
+                            verts.Add(dropPoints[j]);
+                        }
+                        verts.Add(crossPoint);
+                        // •`‰æ‚·‚é
+                        PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
+                        TryCaptureObject(verts.ToArray());
+                        // ‘S‚Ä‚ÌDropPoint‚ğÁ‚·
+                        DropPointSystem.Instance.ClearDropPoints(mID);
+                        // K”ö‚ÌTrailRenderer‚Ìó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+                        mDropPointControl.ResetTrail();
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void TryCaptureObject(Vector3[] verts)
+        {
+            #region Pick Silk
+            Vector3[] silkPos = ItemManager.Instance.GetOnFieldSilkPos();
+            List<Vector3> caputuredSilk = new List<Vector3>();
+            bool isPickedNew = false;
+            foreach (Vector3 pos in silkPos)
+            {
+                if (VectorMath.InPolygon(pos, verts))
+                {
+                    mSilkData.SilkCount++;
+                    caputuredSilk.Add(pos);
+                    isPickedNew = true;
+
+                }
+            }
+            // ‹à‚Ì…‚Ì‰æ‘œ‚ğ•\¦
+            if (isPickedNew)
+            {
+                SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
+                {
+                    ID = mID,
+                    positions = caputuredSilk.ToArray()
+                };
+                TypeEventSystem.Instance.Send(silkCapturedEvent);
+                AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
+                // ƒLƒƒƒ‰ƒNƒ^[‰æ‘œ‚Ìc‚Ì‘å‚«‚³‚ğæ“¾‚µ‚Ä‰æ‘œ‚Ìã‚Å•\¦‚·‚é
+                mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
+                mSilkData.SilkRenderer.SetActive(true);
+                Transform silkCount = mSilkData.SilkRenderer.transform.GetChild(0);
+                if (silkCount != null)
+                {
+                    silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkData.SilkCount];
+                    silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
+                }
+                SetPowerUpLevel();
+            }
+            #endregion
+            #region Pick Item
+            Vector3[] itemBoxPos = ItemManager.Instance.GetOnFieldItemBoxPos();
+            List<Vector3> capturedItemBoxPos = new List<Vector3>();
+            isPickedNew = false;
+            foreach(var pos in itemBoxPos)
+            {
+                if(VectorMath.InPolygon(pos,verts))
+                {
+                    capturedItemBoxPos.Add(pos);
+                    isPickedNew = true;
+                }
+            }
+
+            if(isPickedNew)
+            {
+                TypeEventSystem.Instance.Send(new PlayerGetItem
+                {
+                    player = this,
+                });
+                TypeEventSystem.Instance.Send(new GetNewItem
+                {
+                    ItemBoxsPos = capturedItemBoxPos.ToArray()
+                });
+            }
+            #endregion
+        }
+
+        private void SetPlayerInputProperties()
+        {
+            mPlayerInput.defaultActionMap = name;
+            mPlayerInput.neverAutoSwitchControlSchemes = true;
+            mPlayerInput.SwitchCurrentActionMap(name);
+            mRotateAction = mPlayerInput.actions["Rotate"];
+            mBoostAction = mPlayerInput.actions["Boost"];
+            mBoostAction.performed += OnBoost;
+            _itemAction = mPlayerInput.actions["Item"];
+            _itemAction.performed += OnUseItem;
+        }
+
+        private void SetPowerUpLevel()
+        {
+            if (mSilkData.SilkCount > 0)
+            {
+                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].SpeedUp;
+                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].RotateUp;
+            }
+            else
+            {
+                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
+            }
+        }
+
+        private void OnUseItem(InputAction.CallbackContext ctx)
+        {
+            if(_playerState == State.Fine && ctx.performed)
+            {
+                this.UseItem(this);
+                
+            }
+
+
+        }
+
+        private void ReturnToFineCountDown()
+        {
+            _returnToFineTimer -= Time.deltaTime;
+            if(_returnToFineTimer <= 0f)
+            {
+                mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
+                _playerState = State.Fine;
+            }
+        }
+
+        private float GetOnSlipDeceleration()
+        {
+            if(mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed / 4f)
+            {
+                return -(mCurrentMoveSpeed - mStatus.mMaxMoveSpeed / 4f) / (_returnToFineTimer - Global.ON_SLIP_TIME / 2f);  
+            }
+            if(mCurrentMoveSpeed <= Global.ON_SLIP_MIN_SPEED)
+            {
+                return 0f;
+            }
+            else
+            {
+                return -mCurrentMoveSpeed / _returnToFineTimer;
+            }
+        }
+
+        private void PlaySlipAnimation()
+        {
+            //float rotationAngle = (-720f / Global.ON_SLIP_TIME * _returnToFineTimer + 720f) * Time.deltaTime;
+            float rotationAngle = 720f / Global.ON_SLIP_TIME * Time.deltaTime;
+            mImageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
+        }
+        private void OnEnable()
+        {
+            mPlayerInput?.ActivateInput();
+        }
+        private void OnDisable()
+        {
+            mPlayerInput?.DeactivateInput();
+        }
+        private void OnDestroy()
+        {
+            mBoostAction.performed -= OnBoost;
+            _itemAction.performed -= OnUseItem;
+        }
+        // ƒu[ƒXƒg
+        private void OnBoost(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                if (_playerState == State.Fine && _canBoost == false)
+                {
+                    mBoostCoefficient = 1.5f;
+                    mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
+                    _canBoost = true;
+                    TypeEventSystem.Instance.Send(new BoostStart 
+                    { 
+                        Number = mID
+                    });
+                    Timer stopBoostTimer = new Timer(Time.time, Global.BOOST_DURATION_TIME,
+                        () =>
+                        {
+                            mBoostCoefficient = 1.0f;
+                        }
+                        );
+                    Timer boostCoolDownTimer = new Timer(Time.time,Global.BOOST_COOLDOWN_TIME,
+                        () =>
+                        {
+                            _canBoost = false;
+                        }
+                        );
+                    stopBoostTimer.StartTimer(this);
+                    boostCoolDownTimer.StartTimer(this);
+                }
+
+            }
+        }
+
+        #endregion
+        #region interface
+        public bool IsDead() => _playerState == State.Dead;
+        public int GetID() => mID;
+        public Color GetColor() => mColor;
+        public void SetProperties(int ID, Color color)
+        {
+            if (mID == -1)
+            {
+                mID = ID;
+                mColor = color;
+                name = "Player" + mID.ToString();
+            }
+            if(mID != -1)
+            {
+                SetPlayerInputProperties();
+            }
+        }
+
+        public void StartRespawn()
+        {
+            if(_playerState == State.Dead)
+            {
+                transform.position = Global.PLAYER_START_POSITIONS[mID - 1];
+                transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
+                _playerState = State.Fine;
+                GetComponentInChildren<TrailRenderer>().enabled = true;
+                GetComponent<DropPointControl>().enabled = true;
+                GetComponent<Collider>().enabled = true;
+                GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
+                smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
+                smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
+                mParticleSystemControl.Play();
+            }
+        }
+
+        private void OnSlip()
+        {
+            _playerState = State.Uncontrollable;
+            _returnToFineTimer = Global.ON_SLIP_TIME;
+        }
+
+        private void OnStun()
+        {
+            _playerState = State.Stun;
+            mCurrentMoveSpeed = 0f;
+            mRigidbody.velocity = Vector3.zero;
+            _returnToFineTimer = Global.ON_STUN_TIME;
+        }
+
+        public void OnEffect(string effectName)
+        {
+            effectName.ToTitleCast();
+
+            object receivedEffect;
+
+            if(Enum.TryParse(typeof(ItemEffect), effectName,out receivedEffect))
+            {
+                _itemAffectActions[(ItemEffect)receivedEffect].Invoke();
+            }
+            else
+            {
+                Debug.LogWarning("Can't find action of " + effectName + " effect." + "(In class " + GetType().Name + " )");
+            }
+        }
         public float ColliderOffset => mColliderOffset;
-      #endregion
-  }
+        #endregion
+
+
+    }
+
 }

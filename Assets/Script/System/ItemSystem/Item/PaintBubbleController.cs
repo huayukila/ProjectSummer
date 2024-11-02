@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Timers;
 using UnityEngine;
 
-public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
+
+public class PaintBubbleController : MonoBehaviour,IExplodable
 {
-    private const int EXPLODE_VERTEX_COUNT = 30;
     private Color _bubbleColor = Color.clear;
 
     private float _waitForExplodeTime = Global.BUBBLE_EXPLODE_TIME;
@@ -30,16 +30,11 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
         _material.color = _bubbleColor;
         _meshRenderer.sharedMaterial = _material;
     }
-
-    private void Update()
+    // Update is called once per frame
+    void Update()
     {
-        _waitForExplodeTime -= Time.deltaTime;
-        if (_waitForExplodeTime <= 0f)
-        {
-            ExplodeBubble();
-        }
+        
     }
-
     public void SetExplodeProperty(int owner, float radius, Color color)
     {
         _ownerPlayerID = owner;
@@ -56,7 +51,9 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
     }
     private void ExplodeBubble()
     {
+        Debug.LogWarning("Explode!!!");
         PaintExplodeArea();
+        JamEnemyPlayerScreen();
         Destroy(gameObject);
     }
 
@@ -68,28 +65,23 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
         }
 
         List<Vector3> explodeAreaVertexes = new List<Vector3>();
-        for(int i = 0;i < EXPLODE_VERTEX_COUNT;++i)
+        for(int i = 0;i < 30;++i)
         {
-            Quaternion angle = Quaternion.Euler(0f, 360f / (float)EXPLODE_VERTEX_COUNT * (float)i, 0f);
+            Quaternion angle = Quaternion.Euler(0, 12f * i, 0);
             Vector3 vert =  angle * Vector3.right ;
             explodeAreaVertexes.Add(vert.normalized * _explodeRadius + transform.position);
         }
 
-        PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(), _ownerPlayerID, _bubbleColor);
+        PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_bubbleColor);
+        foreach(var pos in explodeAreaVertexes)
+        {
+            Debug.Log(pos);
+        }
     }
 
-    void IItemAffectable.OnAffect(StunSilkController stunSilk)
+    private void JamEnemyPlayerScreen()
     {
-        _waitForExplodeTime = float.PositiveInfinity;
-        ExplodeBubble();
+
     }
 
-    void IItemAffectable.OnAffect(BananaPeelController bananaPeel)
-    { 
-        //* Do nothing
-    }
-    void IItemAffectable.OnAffect(PaintBubbleController paintBubble)
-    {
-      //* Do nothing 
-    }
 }

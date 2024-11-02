@@ -1,14 +1,20 @@
 Shader "Paint/AreaPainter"
 {
+    Properties
+    {
+        _TileFactor ("Tile Factor", Vector) = (5,5,0,0)
+    }
+    
     SubShader
     {
         Cull Off ZWrite Off ZTest Off
+
         Pass
         {
             CGPROGRAM
-            #pragma exclude_renderers d3d11
             #pragma vertex vert
             #pragma fragment frag
+            #include "UnityCG.cginc"
 
             struct appdata
             {
@@ -48,7 +54,8 @@ Shader "Paint/AreaPainter"
 
             vector _worldPosList[100];
             int _MaxVertNum;
-            float _TextureSize = 1.0;
+
+            float2 _TileFactor;
 
             v2f vert(appdata v)
             {
@@ -63,18 +70,19 @@ Shader "Paint/AreaPainter"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                // bool isMasked = mask(_MaxVertNum, _worldPosList, i.worldPos);
+                bool isMasked = mask(_MaxVertNum, _worldPosList, i.worldPos);
                 // if (isMasked)
                 // {
-                //     float newUV_X = i.worldPos.x % 100;
-                //     float newUV_Y = i.worldPos.y % 100;
-                //     float2 newUV;
-                //     newUV.x = newUV_X;
-                //     newUV.y = newUV_Y;
-                //     fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, newUV);
+                //     fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, i.uv);
                 //     return playerAreaTextColor;
                 // }
-                return tex2D(_PlayerAreaText, i.uv);
+                if(isMasked)
+                {
+                    float2 tiledUV = frac(i.uv * _TileFactor);
+                    fixed4 playerAreaTextColor = tex2D(_PlayerAreaText, tiledUV);
+                    return playerAreaTextColor;
+                }
+                return tex2D(_MainTex, i.uv);
             }
             ENDCG
         }

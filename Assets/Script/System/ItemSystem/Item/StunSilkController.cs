@@ -18,15 +18,29 @@ public class StunSilkController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.LogWarning(other.gameObject.name);
+        if (other.CompareTag("Player"))
+        {
+            other.gameObject.GetComponent<Player>().OnEffect("Stun");
+            Destroy(gameObject);
+        }
         if(other.CompareTag("Wall"))
         {
             Destroy(gameObject);
         }
+    }
+}
 
-        if (other.TryGetComponent(out IItemAffectable itemAffectable))
+public static class StringExtensions
+{
+    public static string ToTitleCast(this string s)
+    {
+        if(String.IsNullOrEmpty(s))
         {
-            itemAffectable.OnAffect(this);
-            Destroy(gameObject);
+            throw new ArgumentException("String is null or empty");
         }
+        string titleCastStr = s[0].ToString().ToUpper() + s.Substring(1).ToLower();
+
+        return titleCastStr;
     }
 }
