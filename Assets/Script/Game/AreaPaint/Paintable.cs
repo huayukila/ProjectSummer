@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class Paintable : MonoBehaviour
 {
@@ -21,7 +20,7 @@ public class Paintable : MonoBehaviour
     private int maskTextureID = Shader.PropertyToID("_MaskTex");
     private int areaMaskTextureID = Shader.PropertyToID("_AreaMaskTex");
 
-    public void Init()
+    private void Awake()
     {
         transform.localScale = new Vector3(Global.MAP_SIZE_WIDTH*10, 1, Global.MAP_SIZE_HEIGHT*10);
 
@@ -40,30 +39,17 @@ public class Paintable : MonoBehaviour
 
         areaCopyTexture = new RenderTexture(textureSize_x, textureSize_y, 0, RenderTextureFormat.ARGBFloat);
         areaCopyTexture.filterMode = FilterMode.Bilinear;
-        copyTexture.enableRandomWrite = true;
         areaCopyTexture.Create();
 
         rend = GetComponent<Renderer>();
         rend.material.SetTexture(maskTextureID, copyTexture);
         rend.material.SetTexture(areaMaskTextureID, areaCopyTexture);
         
-        ClearRT(copyTexture);
-        ClearRT(areaCopyTexture);
+        
+        PolygonPaintManager.Instance.ClearRT(copyTexture);
+        PolygonPaintManager.Instance.ClearRT(areaCopyTexture);
+        PolygonPaintManager.Instance.SetPaintable(this);
     }
-    
-    /// <summary>
-    /// ‰˜‚³‚ê‚½RT‚ðãY—í‚É‚·‚é
-    /// </summary>
-    /// <param name="rt"></param>
-    public void ClearRT(RenderTexture rt)
-    {
-        CommandBuffer command = new CommandBuffer();
-        command.SetRenderTarget(rt);
-        command.ClearRenderTarget(true, true, Color.clear);
-        Graphics.ExecuteCommandBuffer(command);
-        command.Clear();
-    }
-    
     void OnDisable()
     {
         maskTexture.Release();

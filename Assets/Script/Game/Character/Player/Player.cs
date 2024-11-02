@@ -4,35 +4,23 @@ using System;
 using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
+using Unity.VisualScripting;
 
-[Serializable]
-public struct PaintAreaEvent
+public enum ItemEffect
 {
-    public Vector3[] Verts;
-    public int PlayerID;
-    public Color32 PlayerAreaColor;
+    None = 0,
+    Stun,
+    Slip,
 }
-
-public interface IPlayerMainLogic
+public interface IItemAffectable
 {
-    void Tick();
-    void FixedTick();
+    void OnEffect(string effectName);
 }
-
-namespace WSV.Character
+namespace Character
 {
     [RequireComponent(typeof(ColorCheck), typeof(PlayerInput))]
-    public class Player :   Character, 
-                            IPlayer2ItemSystem, 
-                            IItemAffectable, 
-                            IPlayerCommand, 
-                            IPlayerInfo, 
-                            IPlayerState, 
-                            IPlayerInterfaceContainer,
-                            IPlayerBoost,
-                            IPlayerMainLogic
+    public class Player : Character, IPlayer2ItemSystem,IItemAffectable
     {
-        // プレイヤーの状態
         private enum State
         {
             None = 0,
@@ -42,177 +30,86 @@ namespace WSV.Character
             Uncontrollable,
             Stun,
         }
-        // プレイヤーの情報
-        private struct PlayerInfo
-        {
-            public int ID;          //プレイヤーのID
-            public Color AreaColor; //プレイヤーの領域の色
-        }
+
+        public bool HadSilk => mSilkData.SilkCount > 0;
+
+        public IItem item { get; set; }
+
         private struct PlayerSilkData
         {
-            public int SilkCount;                   // プレイヤーが持っている金の糸の数
-            public GameObject SilkRenderer;         // プレイヤーが持っている金の糸を画面に表示するGameObject
+            public int SilkCount;                   // �v���C���[�������Ă�����̎��̐�
+            public GameObject SilkRenderer;         // �v���C���[�������Ă�����̎�����ʂɕ\������GameObject
         }
-        public bool HadSilk => _silkData.SilkCount > 0;
-        public IItem item { get; set; }
-        private ColorCheck _colorCheck;                     // カラーチェックコンポネント
-        //TODO 二つを一つにする
-        private InputAction _boostAction;                   // プレイヤーのブースト入力
-        private InputAction _rotateAction;                  // プレイヤーの回転入力
+        private ColorCheck mColorCheck;                     // �J���[�`�F�b�N�R���|�l���g
+        //TODO �����ɂ���
+        private InputAction mBoostAction;                   // �v���C���[�̃u�[�X�g����
+        private InputAction mRotateAction;                  // �v���C���[�̉�]����
         private InputAction _itemAction;
-        private PlayerInput _input;                         // playerInputAsset
+        private PlayerInput mPlayerInput;                   // playerInputAsset
 
         [field:SerializeField]
-        private State _playerState;                         // プレイヤーのステータス
+        private State _playerState;                               // �v���C���[�̃X�e�[�^�X
 
-        private float _itemPlaceOffset;                     // アイテムの放置場所とプレイヤー座標の間の距離（プレイヤーコライダーの辺の長さ（正方形））
-        private float _currentMoveSpeed;                    // プレイヤーの現在速度
-        private float _moveSpeedCoefficient;                // プレイヤーの移動速度の係数
-        private Rigidbody _rigidbody;                       // プレイヤーのRigidbody
-        private Vector3 _rotateDirection;                   // プレイヤーの回転方向
-        private bool _isBoostCooldown = false;              // ブーストクールダウンしているかのフラグ
-        private SpriteRenderer _imageSpriteRenderer;        // プレイヤー画像のSpriteRenderer
+        private float mColliderOffset;                      // �v���C���[�R���C�_�[�̒����i�����`�j
+        private float mCurrentMoveSpeed;                    // �v���C���[�̌��ݑ��x
+        private float mMoveSpeedCoefficient;                // �v���C���[�̈ړ����x�̌W��
+        private Rigidbody mRigidbody;                       // �v���C���[��Rigidbody
+        private Vector3 mRotateDirection;                   // �v���C���[�̉�]����
+        private bool _canBoost = false;                     // �u�[�X�g�ł��邩�̃t���O
+        private SpriteRenderer mImageSpriteRenderer;        // �v���C���[�摜��SpriteRenderer
+        private PlayerAnim mAnim;
+        private DropPointControl mDropPointControl;         // �v���C���[��DropPointControl
+        private PlayerParticleSystemControl mParticleSystemControl;
 
-        [SerializeField]
-        private PlayerAnim _playerAnim;
-        private DropPointControl _dropPointCtrl;            // プレイヤーのDropPointControl
-        private PlayerParticleSystemControl _particleSystemCtrl; // プレイヤー自身にくっつけているパーティクルシステムを管理するコントローラー
-        //TODO refactoring           
-        private PlayerSilkData _silkData;
+        //TODO refactorying
+        private int mID = -1;                               // �v���C���[ID
+        private Color mColor;                               // �v���C���[�̗̈�̐F                          
+        private PlayerSilkData mSilkData;
         private float mBoostCoefficient;
-        [SerializeField]
-        private PlayerInfo _playerInfo = default;           // プレイヤーの情報
+
         private float _returnToFineTimer = 0f;
-        //TODO テスト用
+        //TODO �e�X�g�p
         public Sprite[] silkCountSprites;
-        private Dictionary<EItemEffect, Action> _itemAffectActions;
-        private PlayerInterfaceContainer _playerInterface ;
 
-        private Vector3 _spawnPos;
+        private Dictionary<ItemEffect, Action> _itemAffectActions;
 
-        //TODO need refactorying(player should not know the existence of system)
-        private IItemSystem _itemSystem;
-
-        private GamePlayer _networkPlayer;
-
-        private float _boostChargeTimeCnt;
-
-        public Vector3 SpawnPos
-        {
-            get => _spawnPos;
-            set => _spawnPos = value;
-        }
-        
         private void Awake()
         {
-            // 初期化処理
+            // ����������
             Init();
             // Item affectable actions init
             InitItemAffect();
-
-            {
-                _boostChargeTimeCnt = Global.BOOST_COOLDOWN_TIME;
-            }
-                   
-            TypeEventSystem.Instance.Register<SendInitializedPlayerEvent>
-            (
-                eve =>
-                {
-                    IPlayerInfo info = eve.Player.GetComponent<IPlayerInfo>();
-                    if(info != null)
-                    {
-                        eve.Player.transform.forward = Global.PLAYER_DEFAULT_FORWARD[info.ID - 1];
-                        eve.Player.SpawnPos = (NetWorkRoomManagerExt.singleton as IRoomManager).GetRespawnPosition(info.ID - 1).position;
-                    }
-                    
-                }
-            ).UnregisterWhenGameObjectDestroyed(gameObject);
         }
         private void Start()
         {
-            _currentMoveSpeed = 0.0f;
-            //TODO Need Change To Network Code
-            _particleSystemCtrl.Play();
+            mCurrentMoveSpeed = 0.0f;
 
-            {
-                _itemSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IItemSystem>();
-            }
-
-
+            GetComponent<DropPointControl>()?.Init();
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
+            mParticleSystemControl.Play();
         }
-        // private void LateUpdate()
-        // {
-        //     switch(_playerState)
-        //     {
-        //         case State.Fine:
-        //             return;
-        //         case State.Uncontrollable:
-        //         // TODO need add to playerAnim
-        //             //PlaySlipAnimation();
-        //             return;
-        //     }  
-        // }        
-        #region Item Effect
-        private void OnSlip()
-        {
-            _playerState = State.Uncontrollable;
-            _returnToFineTimer = Global.ON_SLIP_TIME;
-        }
-
-        private void OnStun()
-        {
-            _playerState = State.Stun;
-            _currentMoveSpeed = 0f;
-            _rigidbody.velocity = Vector3.zero;
-            _returnToFineTimer = Global.ON_STUN_TIME;
-        }
-
-        #endregion 
-        //Item Effect
-
-        #region Interface
-        public int ID => _playerInfo.ID;
-        public int SilkCount => _silkData.SilkCount;
-        public Color AreaColor => _playerInfo.AreaColor;
-        public void SetInfo(int ID, Color color)
-        {
-            if (_playerInfo.ID != 0)
-                return;
-            
-            {
-                _playerInfo.ID = ID;
-                _playerInfo.AreaColor = color;
-            }
-        }
-
-        public bool IsDead => _playerState == State.Dead;
-        public bool IsFine => _playerState == State.Fine;
-        public bool IsInvincible => _playerState == State.Invincible;
-        public bool IsUncontrollable => _playerState == State.Uncontrollable;
-        public bool IsStuning => _playerState == State.Stun;
-
-
-        public void Tick()
+        private void Update()
         {
             if (_playerState == State.Dead)
                 return;
-
-            // プレイヤーが「通常」状態じゃないと後ほどの処理を実行しない
+            // �v���C���[���u�ʏ�v��Ԃ���Ȃ��ƌ�قǂ̏��������s���Ȃ�
             else if(_playerState != State.Fine)
             {
                 ReturnToFineCountDown();
                 return;
             }
             UpdateFine();
+
         }
-        public void FixedTick()
+
+        private void FixedUpdate()
         {
             switch(_playerState)
             {
                 case State.Fine:
-                    // プレイヤーの動き
+                    // �v���C���[�̓���
                     PlayerMovement(Global.PLAYER_ACCELERATION);
-                    // プレイヤーの回転
+                    // �v���C���[�̉�]
                     PlayerRotation();
                     break;
                 case State.Uncontrollable:
@@ -220,341 +117,300 @@ namespace WSV.Character
                     PlayerMovement(deceleration);
                     break;
                 case State.Stun:
-                    _currentMoveSpeed = 0f;
+                    mCurrentMoveSpeed = 0f;
                     break;
             }
+
         }
-        public PlayerInterfaceContainer GetContainer()
+
+        private void LateUpdate()
         {
-            if(_playerInterface == null)
-                _playerInterface = new PlayerInterfaceContainer(this);
-
-            return _playerInterface;
+            switch(_playerState)
+            {
+                case State.Fine:
+                    return;
+                case State.Uncontrollable:
+                    PlaySlipAnimation();
+                    return;
+            }
         }
 
-        public void CallPlayerCommand(EPlayerCommand cmd)
+
+        /// <summary>
+        /// �Փ˂��������Ƃ���������
+        /// </summary>
+        /// <param name="collision"></param>
+        private void OnCollisionEnter(Collision collision)
         {
-            Debug.Log("Command:" + cmd.ToString() + " get called");
-            switch(cmd)
+            // ���S�����v���C���[�͋��̖Ԃ������Ă�����
+            if (mSilkData.SilkCount > 0)
             {
-                case EPlayerCommand.Respawn:
-                    OnRespawn();
-                    break;
-                case EPlayerCommand.Dead:
-                    OnDead();
-                    break;
-                default:
-                    break;
+                DropSilkEvent dropSilkEvent = new DropSilkEvent()
+                {
+                    pos = transform.position,
+                };
+                // ���̎��̃h���b�v�ꏊ��ݒ肷��
+                TypeEventSystem.Instance.Send(dropSilkEvent);
             }
+            // �Փ˂����玀�S��Ԃɐݒ肷��
+            SetDeadStatus();
         }
 
-        
-        public void OnEffect(string effectName)
+        private void OnTriggerEnter(Collider other)
         {
-            effectName.ToTitleCast();
-
-            object receivedEffect;
-
-            if(Enum.TryParse(typeof(EItemEffect), effectName,out receivedEffect))
+            if (other.gameObject.tag.Contains("DropPoint"))
             {
-                _itemAffectActions[(EItemEffect)receivedEffect].Invoke();
-            }
-            else
-            {
-                Debug.LogWarning("Can't find action of " + effectName + " effect." + "(In class " + GetType().Name + " )");
+                // ������DropPoint�ȊO��DropPoint�ɓ���������
+                if (other.gameObject.tag.Contains(mID.ToString()) == false)
+                {
+                    if (mSilkData.SilkCount > 0)
+                    {
+                        DropSilkEvent dropSilkEvent = new DropSilkEvent()
+                        {
+                            pos = transform.position,
+                        };
+                        TypeEventSystem.Instance.Send(dropSilkEvent);
+                    }
+                    SetDeadStatus();
+                }
             }
         }
-        public float ItemPlaceOffset => _itemPlaceOffset;
-
-        //
-        public float ChargeBarPercentage => Mathf.Clamp(_boostChargeTimeCnt / Global.BOOST_COOLDOWN_TIME, 0f, 1f);
-        #endregion 
-        // Interface
-
         #region InternalLogic
+
         private void UpdateFine()
         {
+            // �v���C���[�摜�������Ɠ��������Ɍ������Ƃɂ���
+            //mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
-            // TODO プレイヤー画像の向きを変える
+            // �v���C���[�摜�̌�����ς���
             FlipCharacterImage();
-
-            if(Application.isFocused)
-            {
-                // 回転する入力処理
-                Vector2 rotateInput = _rotateAction.ReadValue<Vector2>();
-
-                _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
-            }
-
-            // プレイヤーがいるところの地面の色をチェックする
+            // �v���C���[�C���v�b�g���擾����
+            Vector2 rotateInput = mRotateAction.ReadValue<Vector2>();
+            // ��]���������߂�
+            mRotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
+            // �v���C���[������Ƃ���̒n�ʂ̐F���`�F�b�N����
             CheckGroundColor();
-            
-            // TODO 領域を描画してみる
+            // �̈��`�悵�Ă݂�
             TryPaintArea();
-
-            if(_isBoostCooldown)
-            {
-                _boostChargeTimeCnt += Time.deltaTime;
-            }
 
         }
 
         /// <summary>
-        /// プレイヤーのプロパティを初期化する
+        /// �v���C���[�̃v���p�e�B������������
         /// </summary>
         private void Init()
         {
-            _rigidbody = GetComponent<Rigidbody>();
-            _colorCheck = GetComponent<ColorCheck>();
-
-            // プレイヤー自分の画像のレンダラーを取得する
-
-            _imageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-
-            _particleSystemCtrl = gameObject.GetComponent<PlayerParticleSystemControl>();
-
-            // DropPointControlコンポネントを追加する
-            _dropPointCtrl = gameObject.GetComponent<DropPointControl>();
-
-            // PlayerAnimコンポネントを追加する
-            _playerAnim = gameObject.GetComponent<PlayerAnim>();
+            mRigidbody = GetComponent<Rigidbody>();
+            mColorCheck = GetComponent<ColorCheck>();
+            mPlayerInput = GetComponent<PlayerInput>();
+            // �v���C���[�����̉摜�̃����_���[���擾����
+            mImageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            mParticleSystemControl = gameObject.GetComponent<PlayerParticleSystemControl>();
+            // DropPointControl�R���|�l���g��ǉ�����
+            mDropPointControl = gameObject.AddComponent<DropPointControl>();
+            // PlayerAnim�R���|�l���g��ǉ�����
+            mAnim = gameObject.AddComponent<PlayerAnim>();
 
 
-            _colorCheck.layerMask = LayerMask.GetMask("Ground");
-            _moveSpeedCoefficient = 1.0f;
-            _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-            _status.RotationSpeed = Global.PLAYER_ROTATION_SPEED;
+            mColorCheck.layerMask = LayerMask.GetMask("Ground");
+            mMoveSpeedCoefficient = 1.0f;
+            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             _playerState = State.Fine;
-            _itemPlaceOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
-            
-            // 表示順位を変換する
-            _imageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
-
-            _silkData.SilkCount = 0;
-            _silkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
-            _silkData.SilkRenderer.transform.parent = _imageSpriteRenderer.transform;
-
-            _silkData.SilkRenderer.SetActive(false);
+            mColliderOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
+            // �\�����ʂ�ϊ�����
+            mImageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
+            mSilkData.SilkCount = 0;
+            mSilkData.SilkRenderer = Instantiate(GameResourceSystem.Instance.GetPrefabResource("GoldenSilkImage"));
+            mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
+            mSilkData.SilkRenderer.SetActive(false);
             mBoostCoefficient = 1f;
-
-            SetPlayerInputProperties();
-
-            _networkPlayer = GetComponent<GamePlayer>();
-
 
         }
 
         private void InitItemAffect()
         {
-            _itemAffectActions = new Dictionary<EItemEffect, Action>
+            _itemAffectActions = new Dictionary<ItemEffect, Action>
             {
                 // Item Effect     Action
-                { EItemEffect.Stun, OnStun },
-                { EItemEffect.Slip, OnSlip }
+                { ItemEffect.Stun, OnStun },
+                { ItemEffect.Slip, OnSlip }
             };
         }
-
-        #region Player Move
         /// <summary>
-        /// プレイヤーの移動を制御する
+        /// �v���C���[�̈ړ��𐧌䂷��
         /// </summary>
         private void PlayerMovement(in float acceleration)
         {
-            // 速度を計算し、範囲内に制限する
-            _currentMoveSpeed =  _currentMoveSpeed + acceleration * Time.fixedDeltaTime;
-            _currentMoveSpeed = Mathf.Clamp(_currentMoveSpeed, 0f, _status.MaxMoveSpeed);
+            // ���x���v�Z���A�͈͓��ɐ�������
+            mCurrentMoveSpeed =  mCurrentMoveSpeed + acceleration * Time.fixedDeltaTime;
+            mCurrentMoveSpeed = Mathf.Clamp(mCurrentMoveSpeed, 0f, mStatus.mMaxMoveSpeed);
 
-            // 前向きの移動をする
-            Vector3 moveDirection = transform.forward * _currentMoveSpeed * _moveSpeedCoefficient * mBoostCoefficient;
-            _rigidbody.velocity = moveDirection;
+            // �O�����̈ړ�������
+            Vector3 moveDirection = transform.forward * mCurrentMoveSpeed * mMoveSpeedCoefficient * mBoostCoefficient;
+            mRigidbody.velocity = moveDirection;
         }
-        #endregion
 
-
-        #region Player Rotate
         /// <summary>
-        /// プレイヤーの回転を制御する
+        /// �v���C���[�̉�]�𐧌䂷��
         /// </summary>
         private void PlayerRotation()
         {
-            // ゲーム画面に注視していないと回転しない
-            if(!Application.isFocused)
+            // �������͂��Ȃ��ƏI��
+            if (mRotateDirection == Vector3.zero)
                 return;
 
-            // 方向入力がないと終了
-            if (_rotateDirection == Vector3.zero)
-                return;
-
-            // 入力された方向へ回転する
+            // ���͂��ꂽ�����։�]����
             {
-                Quaternion rotation = Quaternion.LookRotation(_rotateDirection, Vector3.up);
-                _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, _status.RotationSpeed * Time.fixedDeltaTime);
+                Quaternion rotation = Quaternion.LookRotation(mRotateDirection, Vector3.up);
+                mRigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, mStatus.mRotationSpeed * Time.fixedDeltaTime);
             }
         }
-        #endregion
 
         /// <summary>
-        /// キャラクターの画像を反転する関数
+        /// �L�����N�^�[�̉摜�𔽓]����֐�
         /// </summary>
         private void FlipCharacterImage()
         {
             if (transform.forward.x < 0.0f)
             {
-                _imageSpriteRenderer.flipX = false;
+                mImageSpriteRenderer.flipX = false;
             }
             else
             {
-                _imageSpriteRenderer.flipX = true;
+                mImageSpriteRenderer.flipX = true;
             }
         }
 
         /// <summary>
-        /// プレイヤーの死亡状態を設定する
+        /// �v���C���[�̎��S��Ԃ�ݒ肷��
         /// </summary>
-        private void OnDead()
+        private void SetDeadStatus()
         {
-            if(_playerAnim != null)
-                _playerAnim.StartExplosionAnim();
-
+            mAnim.StartExplosionAnim();
             DropSilkEvent dropSilkEvent = new DropSilkEvent()
             {
-                dropCount = _silkData.SilkCount,
+                dropCount = mSilkData.SilkCount,
                 pos = transform.position
             };
             TypeEventSystem.Instance.Send(dropSilkEvent);
+            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent()
+            {
+                ID = mID
+            };
+            TypeEventSystem.Instance.Send(playerRespawnEvent);
 
-            //_networkPlayer.CmdRespawnPlayer();
-
-            // プレイヤーの状態をリセットする
+            // �v���C���[�̏�Ԃ����Z�b�g����
             ResetStatus();
-            // プレイヤーの向きをリセットする
+            // �v���C���[�̌��������Z�b�g����
             FlipCharacterImage();
-            // コンポネントを無効化にする
+            // �R���|�l���g�𖳌����ɂ���
             GetComponent<DropPointControl>().enabled = false;
             GetComponentInChildren<TrailRenderer>().enabled = false;
             GetComponent<Collider>().enabled = false;
-            // プレイヤー復活イベントを喚起する
-            _particleSystemCtrl.Stop();
+            // �v���C���[�����C�x���g�����N����
+            mAnim.StartRespawnAnim();
+            mParticleSystemControl.Stop();
             SetPowerUpLevel();
-
         }
 
         /// <summary>
-        /// プレイヤーのステイタスをリセットする
+        /// �v���C���[�̃X�e�C�^�X�����Z�b�g����
         /// </summary>
         private void ResetStatus()
         {
-
-            //ResetRigidbody();     
+            mRigidbody.velocity = Vector3.zero;
+            mRigidbody.angularVelocity = Vector3.zero;
 
             _playerState = State.Dead;
 
             transform.localScale = Vector3.one;
 
-            _currentMoveSpeed = 0.0f;
+            mCurrentMoveSpeed = 0.0f;
 
-            _isBoostCooldown = false;
+            _canBoost = false;
 
-            _silkData.SilkCount = 0;
+            mSilkData.SilkCount = 0;
 
-            transform.forward = Global.PLAYER_DEFAULT_FORWARD[(_playerInfo.ID - 1)];
+            transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
 
-            //_dropPointCtrl.CmdOnClearAllDropPoints();
+            DropPointSystem.Instance.ClearDropPoints(mID);
 
-            _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+            mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
 
-            _dropPointCtrl.ResetTrail();
+            mDropPointControl.ResetTrail();
 
-            _silkData.SilkRenderer.SetActive(false);
+            mSilkData.SilkRenderer.SetActive(false);
 
             _returnToFineTimer = 0f;
         }
-
-        public void ResetRigidbody()
-        {
-            _rigidbody.velocity = Vector3.zero;
-            _rigidbody.angularVelocity = Vector3.zero;
-            Debug.Log("Reset Rigidbody");
-        }
         /// <summary>
-        /// 地面の色をチェックする
+        /// �n�ʂ̐F���`�F�b�N����
         /// </summary>
         private void CheckGroundColor()
         {
-            // 自分の領域にいたら
-            if (_colorCheck.isTargetColor(Color.clear))
+            // �����̗̈�ɂ�����
+            if (mColorCheck.isTargetColor(Color.clear))
             {
-                _moveSpeedCoefficient = 1.0f;
+                mMoveSpeedCoefficient = 1.0f;
             }
-            // 別のプレイヤーの領域にいたら
-            else if (_colorCheck.isTargetColor(_playerInfo.AreaColor))
+            // �ʂ̃v���C���[�̗̈�ɂ�����
+            else if (mColorCheck.isTargetColor(mColor))
             {
-                _moveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
+                mMoveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
             }
-            // 塗られていない地面にいたら
+            // �h���Ă��Ȃ��n�ʂɂ�����
             else
             {
-                _moveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
+                mMoveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
             }
         }
 
         /// <summary>
-        /// プレイヤー領域を描画してみる関数
+        /// �v���C���[�̈��`�悵�Ă݂�֐�
         /// </summary>
         private void TryPaintArea()
         {
-            Vector3[] dropPoints = _dropPointCtrl.GetPlayerDropPointsPosition();
-            // DropPointは4個以上あれば描画できる
+            Vector3[] dropPoints = DropPointSystem.Instance.GetPlayerDropPoints(mID);
+            // DropPoint��4�ȏ゠��Ε`��ł���
             if (dropPoints.Length >= 4)
             {
-                // プレイヤーの先頭座標
-                Vector3 endPoint1 = transform.position + transform.forward * _itemPlaceOffset;
-                // プレイヤーが直前にインスタンス化したDropPointの座標
+                // �v���C���[�̐擪���W
+                Vector3 endPoint1 = transform.position + transform.forward * mColliderOffset;
+                // �v���C���[�����O�ɃC���X�^���X������DropPoint
                 Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
-                // endPoint1とendPoint2で作ったベクトルとendPoint2以外のDropPointを先頭から順番で2個ずつで作ったベクトルが交わっているかどうかをチェックする
+                // endPoint1��endPoint2�ō�����x�N�g����endPoint2�ȊO��DropPoint��擪���珇�Ԃ�2���ō�����x�N�g����������Ă��邩�ǂ������`�F�b�N����
                 for (int i = 0; i < dropPoints.Length - 2; ++i)
                 {
-                    // 二つのベクトルが平行したらcontinue
+                    // ��̃x�N�g�������s������continue
                     if (VectorMath.IsParallel(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1))
                     {
                         continue;
                     }
-                    // それぞれの座標点と自分自身以外のベクトルの位置関係を計算する(0より大きいならベクトルの左側、0より小さいならベクトルの右側、0ならベクトルの中)
+                    // ���ꂼ��̍��W�_�Ǝ������g�ȊO�̃x�N�g���̈ʒu�֌W���v�Z����(0���傫���Ȃ�x�N�g���̍����A0��菬�����Ȃ�x�N�g���̉E���A0�Ȃ�x�N�g���̒�)
                     float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
                     float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
                     float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
                     float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
-                    // 二つのベクトルが交わっていたら描画する
+                    // ��̃x�N�g����������Ă�����`�悷��
                     if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
                     {
-                        // 交点を計算する
+                        // ��_���v�Z����
                         Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
-                        // 描画する領域の頂点を取得する
+                        // �`�悷��̈�̒��_���擾����
                         List<Vector3> verts = new List<Vector3>();
                         for (int j = i + 1; j < dropPoints.Length; j++)
                         {
                             verts.Add(dropPoints[j]);
                         }
                         verts.Add(crossPoint);
-                        // 描画する
-
-                        #region Paint Area
-                        PaintAreaEvent paintEvent = new PaintAreaEvent
-                        {
-                            Verts = verts.ToArray(),
-                            PlayerID = _playerInfo.ID,
-                            PlayerAreaColor = _playerInfo.AreaColor
-                        };
-                        //TypeEventSystem.Instance.Send(paintEvent);
-                        _networkPlayer.CmdPaintArea(paintEvent);
-                        #endregion
-
+                        // �`�悷��
+                        PolygonPaintManager.Instance.Paint(verts.ToArray(), mID, mColor);
                         TryCaptureObject(verts.ToArray());
-                        // 全てのDropPointを消す
-                        _dropPointCtrl.CmdOnClearAllDropPoints();
-                        
-                        // 尻尾のTrailRendererの状態をリセットする
-                        _dropPointCtrl.ResetTrail();
+                        // �S�Ă�DropPoint������
+                        DropPointSystem.Instance.ClearDropPoints(mID);
+                        // �K����TrailRenderer�̏�Ԃ����Z�b�g����
+                        mDropPointControl.ResetTrail();
                         break;
                     }
                 }
@@ -564,63 +420,54 @@ namespace WSV.Character
         private void TryCaptureObject(Vector3[] verts)
         {
             #region Pick Silk
+            Vector3[] silkPos = ItemManager.Instance.GetOnFieldSilkPos();
+            List<Vector3> caputuredSilk = new List<Vector3>();
             bool isPickedNew = false;
-            List<Vector3> caputuredSilk = null;
-            if(_itemSystem != null)
+            foreach (Vector3 pos in silkPos)
             {
-                Vector3[] silkPos = _itemSystem.GetOnFieldSilkPos();
-                caputuredSilk = new List<Vector3>();
-                
-                foreach (Vector3 pos in silkPos)
+                if (VectorMath.InPolygon(pos, verts))
                 {
-                    if (VectorMath.InPolygon(pos, verts))
-                    {
-                        _silkData.SilkCount++;
-                        caputuredSilk.Add(pos);
-                        isPickedNew = true;
-                    }
+                    mSilkData.SilkCount++;
+                    caputuredSilk.Add(pos);
+                    isPickedNew = true;
+
                 }
             }
-            
-            // 金の糸の画像を表示
+            // ���̎��̉摜��\��
             if (isPickedNew)
             {
                 SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
                 {
-                    ID = _playerInfo.ID,
-                    positions = caputuredSilk?.ToArray()
+                    ID = mID,
+                    positions = caputuredSilk.ToArray()
                 };
                 TypeEventSystem.Instance.Send(silkCapturedEvent);
-                //AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
-                // キャラクター画像の縦の大きさを取得して画像の上で表示する
-                _silkData.SilkRenderer.transform.localPosition = new Vector3(-_imageSpriteRenderer.bounds.size.x / 4f, _imageSpriteRenderer.bounds.size.z * 1.2f, 0);
-                _silkData.SilkRenderer.SetActive(true);
-                Transform silkCount = _silkData.SilkRenderer.transform.GetChild(0);
+                AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
+                // �L�����N�^�[�摜�̏c�̑傫�����擾���ĉ摜�̏�ŕ\������
+                mSilkData.SilkRenderer.transform.localPosition = new Vector3(-mImageSpriteRenderer.bounds.size.x / 4f, mImageSpriteRenderer.bounds.size.z * 1.2f, 0);
+                mSilkData.SilkRenderer.SetActive(true);
+                Transform silkCount = mSilkData.SilkRenderer.transform.GetChild(0);
                 if (silkCount != null)
                 {
-                    silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[_silkData.SilkCount];
-                    silkCount.transform.localPosition = new Vector3(_imageSpriteRenderer.bounds.size.x, 0, 0);
+                    silkCount.GetComponent<SpriteRenderer>().sprite = silkCountSprites[mSilkData.SilkCount];
+                    silkCount.transform.localPosition = new Vector3(mImageSpriteRenderer.bounds.size.x, 0, 0);
                 }
                 SetPowerUpLevel();
             }
             #endregion
             #region Pick Item
-            List<Vector3> capturedItemBoxPos = null;
-            if(_itemSystem != null)
+            Vector3[] itemBoxPos = ItemManager.Instance.GetOnFieldItemBoxPos();
+            List<Vector3> capturedItemBoxPos = new List<Vector3>();
+            isPickedNew = false;
+            foreach(var pos in itemBoxPos)
             {
-                Vector3[] itemBoxPos = _itemSystem.GetOnFieldItemBoxPos();
-                capturedItemBoxPos = new List<Vector3>();
-                isPickedNew = false;
-                foreach(var pos in itemBoxPos)
+                if(VectorMath.InPolygon(pos,verts))
                 {
-                    if(VectorMath.InPolygon(pos,verts))
-                    {
-                        capturedItemBoxPos.Add(pos);
-                        isPickedNew = true;
-                    }
+                    capturedItemBoxPos.Add(pos);
+                    isPickedNew = true;
                 }
             }
-            
+
             if(isPickedNew)
             {
                 TypeEventSystem.Instance.Send(new PlayerGetItem
@@ -629,7 +476,7 @@ namespace WSV.Character
                 });
                 TypeEventSystem.Instance.Send(new GetNewItem
                 {
-                    ItemBoxsPos = capturedItemBoxPos?.ToArray()
+                    ItemBoxsPos = capturedItemBoxPos.ToArray()
                 });
             }
             #endregion
@@ -637,28 +484,27 @@ namespace WSV.Character
 
         private void SetPlayerInputProperties()
         {
-            _input = GetComponent<PlayerInput>();
-            _input.defaultActionMap = "Player";
-            _input.neverAutoSwitchControlSchemes = true;
-            _input.SwitchCurrentActionMap("Player");
-            _rotateAction = _input.actions["Rotate"];
-            _boostAction = _input.actions["Boost"];
-            _boostAction.performed += OnBoost;
-            _itemAction = _input.actions["Item"];
+            mPlayerInput.defaultActionMap = name;
+            mPlayerInput.neverAutoSwitchControlSchemes = true;
+            mPlayerInput.SwitchCurrentActionMap(name);
+            mRotateAction = mPlayerInput.actions["Rotate"];
+            mBoostAction = mPlayerInput.actions["Boost"];
+            mBoostAction.performed += OnBoost;
+            _itemAction = mPlayerInput.actions["Item"];
             _itemAction.performed += OnUseItem;
         }
 
         private void SetPowerUpLevel()
         {
-            if (_silkData.SilkCount > 0)
+            if (mSilkData.SilkCount > 0)
             {
-                _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].SpeedUp;
-                _status.RotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[_silkData.SilkCount - 1].RotateUp;
+                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].SpeedUp;
+                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED + Global.POWER_UP_PARAMETER[mSilkData.SilkCount - 1].RotateUp;
             }
             else
             {
-                _status.MaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
-                _status.RotationSpeed = Global.PLAYER_ROTATION_SPEED;
+                mStatus.mMaxMoveSpeed = Global.PLAYER_MAX_MOVE_SPEED;
+                mStatus.mRotationSpeed = Global.PLAYER_ROTATION_SPEED;
             }
         }
 
@@ -666,12 +512,11 @@ namespace WSV.Character
         {
             if(_playerState == State.Fine && ctx.performed)
             {
-                if(_networkPlayer != null)
-                {
-                    _networkPlayer.CmdOnItemSpawn(gameObject);
-                    //this.UseItem(this);
-                }
+                this.UseItem(this);
+                
             }
+
+
         }
 
         private void ReturnToFineCountDown()
@@ -679,24 +524,24 @@ namespace WSV.Character
             _returnToFineTimer -= Time.deltaTime;
             if(_returnToFineTimer <= 0f)
             {
-                _imageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
+                mImageSpriteRenderer.transform.rotation = Quaternion.LookRotation(Vector3.down, transform.forward);
                 _playerState = State.Fine;
             }
         }
 
         private float GetOnSlipDeceleration()
         {
-            if(_currentMoveSpeed >= _status.MaxMoveSpeed / 4f)
+            if(mCurrentMoveSpeed >= mStatus.mMaxMoveSpeed / 4f)
             {
-                return -(_currentMoveSpeed - _status.MaxMoveSpeed / 4f) / (_returnToFineTimer - Global.ON_SLIP_TIME / 2f);  
+                return -(mCurrentMoveSpeed - mStatus.mMaxMoveSpeed / 4f) / (_returnToFineTimer - Global.ON_SLIP_TIME / 2f);  
             }
-            if(_currentMoveSpeed <= Global.ON_SLIP_MIN_SPEED)
+            if(mCurrentMoveSpeed <= Global.ON_SLIP_MIN_SPEED)
             {
                 return 0f;
             }
             else
             {
-                return -_currentMoveSpeed / _returnToFineTimer;
+                return -mCurrentMoveSpeed / _returnToFineTimer;
             }
         }
 
@@ -704,37 +549,34 @@ namespace WSV.Character
         {
             //float rotationAngle = (-720f / Global.ON_SLIP_TIME * _returnToFineTimer + 720f) * Time.deltaTime;
             float rotationAngle = 720f / Global.ON_SLIP_TIME * Time.deltaTime;
-            _imageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
+            mImageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
         }
         private void OnEnable()
         {
-            _input?.ActivateInput();
+            mPlayerInput?.ActivateInput();
         }
         private void OnDisable()
         {
-            _input?.DeactivateInput();
+            mPlayerInput?.DeactivateInput();
         }
         private void OnDestroy()
         {
-            _boostAction.performed -= OnBoost;
+            mBoostAction.performed -= OnBoost;
             _itemAction.performed -= OnUseItem;
         }
-
-        #region Boost Method
-        // ブースト
+        // �u�[�X�g
         private void OnBoost(InputAction.CallbackContext context)
         {
             if (context.performed)
             {
-                if (_playerState == State.Fine && _isBoostCooldown == false)
+                if (_playerState == State.Fine && _canBoost == false)
                 {
-                    _boostChargeTimeCnt = 0f;
                     mBoostCoefficient = 1.5f;
-                    _currentMoveSpeed = _status.MaxMoveSpeed;
-                    _isBoostCooldown = true;
+                    mCurrentMoveSpeed = mStatus.mMaxMoveSpeed;
+                    _canBoost = true;
                     TypeEventSystem.Instance.Send(new BoostStart 
                     { 
-                        Number = _playerInfo.ID
+                        Number = mID
                     });
                     Timer stopBoostTimer = new Timer(Time.time, Global.BOOST_DURATION_TIME,
                         () =>
@@ -745,8 +587,7 @@ namespace WSV.Character
                     Timer boostCoolDownTimer = new Timer(Time.time,Global.BOOST_COOLDOWN_TIME,
                         () =>
                         {
-                            _isBoostCooldown = false;
-                            _boostChargeTimeCnt = Global.BOOST_COOLDOWN_TIME;
+                            _canBoost = false;
                         }
                         );
                     stopBoostTimer.StartTimer(this);
@@ -755,36 +596,76 @@ namespace WSV.Character
 
             }
         }
+
         #endregion
-
-        private void OnRespawn()
+        #region interface
+        public bool IsDead() => _playerState == State.Dead;
+        public int GetID() => mID;
+        public Color GetColor() => mColor;
+        public void SetProperties(int ID, Color color)
         {
-            // 死亡以外は再生処理しない
-            if (_playerState != State.Dead)
-                return;
-
-            // 再生処理
+            if (mID == -1)
             {
-                transform.position = _spawnPos;
-                transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
-                _playerState = State.Fine;
+                mID = ID;
+                mColor = color;
+                name = "Player" + mID.ToString();
+            }
+            if(mID != -1)
+            {
+                SetPlayerInputProperties();
+            }
+        }
 
+        public void StartRespawn()
+        {
+            if(_playerState == State.Dead)
+            {
+                transform.position = Global.PLAYER_START_POSITIONS[mID - 1];
+                transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
+                _playerState = State.Fine;
                 GetComponentInChildren<TrailRenderer>().enabled = true;
                 GetComponent<DropPointControl>().enabled = true;
                 GetComponent<Collider>().enabled = true;
-
-                // 落下後の煙エフェクトの作成
                 GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
                 smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                 smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
-
-                // パーティクルシステムの再開
-                _particleSystemCtrl.Play();
+                mParticleSystemControl.Play();
             }
-
         }
-        #endregion 
-        // InternalLogic
+
+        private void OnSlip()
+        {
+            _playerState = State.Uncontrollable;
+            _returnToFineTimer = Global.ON_SLIP_TIME;
+        }
+
+        private void OnStun()
+        {
+            _playerState = State.Stun;
+            mCurrentMoveSpeed = 0f;
+            mRigidbody.velocity = Vector3.zero;
+            _returnToFineTimer = Global.ON_STUN_TIME;
+        }
+
+        public void OnEffect(string effectName)
+        {
+            effectName.ToTitleCast();
+
+            object receivedEffect;
+
+            if(Enum.TryParse(typeof(ItemEffect), effectName,out receivedEffect))
+            {
+                _itemAffectActions[(ItemEffect)receivedEffect].Invoke();
+            }
+            else
+            {
+                Debug.LogWarning("Can't find action of " + effectName + " effect." + "(In class " + GetType().Name + " )");
+            }
+        }
+        public float ColliderOffset => mColliderOffset;
+        #endregion
+
+
     }
-    
+
 }

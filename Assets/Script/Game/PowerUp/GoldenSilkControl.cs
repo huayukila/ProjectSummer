@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using Mirror;
 
 namespace Gaming.PowerUp
 {
     public interface IGoldenSilk
     {
         void StartSpawn(Vector3 position);
+        void SetInactive();
         void StartDrop(Vector3 startPos,Vector3 endPos);
         
         void SetActiveCallBack(Action<GameObject> callback); 
     }
 
-    public class GoldenSilkControl : NetworkBehaviour, IGoldenSilk
+    public class GoldenSilkControl : MonoBehaviour, IGoldenSilk
     {
         private enum State
         {       
@@ -24,25 +24,25 @@ namespace Gaming.PowerUp
             Drop,
         }
 
-        private Action<GameObject> _activeCallBack = null;
-        private GameObject _silkShadow;     // 金の糸の影
+        private Action<GameObject> mActiveCallBack = null;
+        private GameObject mSilkShadow;     // 金の糸の影
         //TODO 壁際にあるときに使う変数（未完成）
-        private Vector3 _dropStartPos = Vector3.zero;
-        private Vector3 _dropEndPos = Vector3.zero;
+        private Vector3 mDropStartPos = Vector3.zero;
+        private Vector3 mDropEndPos = Vector3.zero;
         [SerializeField]
-        private State _currentState = State.Inactive;
+        private State mCurrentState = State.Inactive;
 
         // Start is called before the first frame update
         void Awake()
         {
-            _silkShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("SilkShadow"), transform.position, Quaternion.identity);
+            mSilkShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("SilkShadow"), transform.position, Quaternion.identity);
             ResetAnimationStatus();
         }
 
         // Update is called once per frame
         void Update()
         {
-            switch (_currentState)
+            switch (mCurrentState)
             {
                 // 生成されていないときは処理しない
                 case State.Inactive:
@@ -62,12 +62,11 @@ namespace Gaming.PowerUp
         /// <summary>
         /// 落下アニメーションを更新する関数
         /// </summary>
-        
         private void UpdateSpawnAnimation()
         {
             transform.Translate(0, 0, -300.0f / Global.SILK_SPAWN_TIME * Time.deltaTime);
             transform.localScale -= Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
-            _silkShadow.transform.localScale += Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
+            mSilkShadow.transform.localScale += Vector3.one * Time.deltaTime * 2.0f / Global.SILK_SPAWN_TIME;
         }
 
         /// <summary>
@@ -76,7 +75,7 @@ namespace Gaming.PowerUp
         private void InitSpawnAnimation()
         {
             transform.localScale = Vector3.one * 1.9f;
-            //AudioManager.Instance.PlayFX("FallFX", 0.7f);
+            AudioManager.Instance.PlayFX("FallFX", 0.7f);
             Timer spawnTimer = new Timer(Time.time,Global.SILK_SPAWN_TIME / 2.0f,
                 () =>
                 {
@@ -84,8 +83,8 @@ namespace Gaming.PowerUp
                     GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
                     smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                     smoke.transform.position -= new Vector3(0.0f, 0.2f, 0.0f);
-                    _currentState = State.Active;
-                    _activeCallBack?.Invoke(gameObject);
+                    mCurrentState = State.Active;
+                    mActiveCallBack?.Invoke(gameObject);
                     TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
                 });
             spawnTimer.StartTimer(this);
@@ -97,20 +96,20 @@ namespace Gaming.PowerUp
         /// </summary>
         private void ResetAnimationStatus()
         {
-            _silkShadow.transform.localScale = Vector3.zero;
-            _silkShadow.GetComponent<Renderer>().material.color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-            _silkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
+            mSilkShadow.transform.localScale = Vector3.zero;
+            mSilkShadow.GetComponent<Renderer>().material.color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+            mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
         }
 
         private void UpdateDropAnimation()
         {
-            transform.position = Vector3.Lerp(_dropStartPos, _dropEndPos, Time.deltaTime * 2);
-            _dropStartPos = transform.position;
-            if((_dropStartPos - _dropEndPos).magnitude < 0.1f)
+            transform.position = Vector3.Lerp(mDropStartPos, mDropEndPos, Time.deltaTime * 2);
+            mDropStartPos = transform.position;
+            if((mDropStartPos - mDropEndPos).magnitude < 0.1f)
             {
-                transform.position = _dropEndPos;
-                _dropStartPos = Vector3.zero;
-                _dropEndPos = Vector3.zero;
+                transform.position = mDropEndPos;
+                mDropStartPos = Vector3.zero;
+                mDropEndPos = Vector3.zero;
                 OnSetState(State.Active);
                 TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
             }
@@ -118,11 +117,11 @@ namespace Gaming.PowerUp
 
         private void SetAnimationStartPosition(Vector3 position)
         {
-            _silkShadow.transform.position = position - new Vector3(0, 0.2f, 0);
-            transform.position = _silkShadow.transform.position + Vector3.forward * 150 + new Vector3(0, 0.2f, 0);
+            mSilkShadow.transform.position = position - new Vector3(0, 0.2f, 0);
+            transform.position = mSilkShadow.transform.position + Vector3.forward * 150 + new Vector3(0, 0.2f, 0);
         }
 
-        private void OnSetState(State state) => _currentState = state;
+        private void OnSetState(State state) => mCurrentState = state;
 
         public void StartSpawn(Vector3 position)
         {
@@ -135,26 +134,21 @@ namespace Gaming.PowerUp
 
         public void SetInactive()
         {
-            _silkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
+            mSilkShadow.transform.position = Global.GAMEOBJECT_STACK_POS;
             transform.position = Global.GAMEOBJECT_STACK_POS;
             OnSetState(State.Inactive);
         }
 
         public void StartDrop(Vector3 startPos,Vector3 endPos)
         {
-            _dropStartPos = startPos;
-            _dropEndPos = endPos;
+            mDropStartPos = startPos;
+            mDropEndPos = endPos;
             OnSetState(State.Drop);
         }
 
         public void SetActiveCallBack(Action<GameObject> callback)
         {
-            _activeCallBack = callback;
-        }
-
-        private void OnDestroy()
-        {
-            Destroy(_silkShadow);
+            mActiveCallBack = callback;
         }
     }
 

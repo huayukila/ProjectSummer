@@ -12,6 +12,7 @@ interface AudioPlayer
     /// <param name="audioName">BGM‚Ì–¼‘O</param>
     /// <param name="volume">‰¹—Ê</param>
     void PlayBGM(string audioName, float volume);
+
     void StopBGM();
     void PauseBGM();
     void PauseAllMusic();
@@ -151,10 +152,12 @@ public class FXAudioPlayer : MonoBehaviour
     AudioSource _audioSource;
     Action _callBack;
     bool _isPlaying;
+
     private void Start()
     {
         _audioSource = GetComponent<AudioSource>();
     }
+
     private void Update()
     {
         if (_audioSource == null || !_isPlaying) return;
@@ -162,6 +165,7 @@ public class FXAudioPlayer : MonoBehaviour
         _isPlaying = false;
         _callBack?.Invoke();
     }
+
     public void PlayMusic(AudioClip clip, float volume)
     {
         _audioSource.clip = clip;
@@ -169,8 +173,10 @@ public class FXAudioPlayer : MonoBehaviour
         _audioSource.Play();
         _isPlaying = true;
     }
+
     public void Init(Action callback)
     {
         _callBack = callback;
     }
+
 }

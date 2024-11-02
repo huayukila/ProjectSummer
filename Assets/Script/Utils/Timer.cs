@@ -1,17 +1,19 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 public interface ITimer
 {
-    void OnTimerStart();
-    void OnTimerUpdate(float deltaTime);
-    void OnTimerPause();
-    void OnTimerReset();
-    void OnTimerStop();
+    void onStart();
+    void onUpdate(float deltaTime);
+    void onPause();
+    void onReset();
     bool IsFinished();
-    bool IsRepeatable();
     void SetRepeatable(bool value);
+    bool IsWaitForRepeat();
 
 }
-
 public class Timer : ITimer
 {
     private struct Clock
@@ -29,66 +31,80 @@ public class Timer : ITimer
         public float Interval;
         public ClockState State;
     }
-    private Clock _clock;
-    private Action _callback;
-    private bool _isRepeatable;
+    private Clock m_Clock;
+    private Action m_Callback;
+    private bool IsRepeatable;
     public Timer()
     {
-        _clock = new Clock()
+        m_Clock = new Clock()
         {
             StartTime = 0,
             Duration = 0,
             Interval = 0,
             State = Clock.ClockState.NotStart,
         };
-        _callback = null;
-        _isRepeatable = false;
+        m_Callback = null;
+        IsRepeatable = false;
     }
 
     public Timer(float startTime,float interval,Action callback = null)
     {
-        _clock = new Clock()
+        m_Clock = new Clock()
         {
             StartTime = startTime,
             Duration = interval,
             Interval = interval,
             State = Clock.ClockState.NotStart,
         };
-        _callback = callback;
-        _isRepeatable = false;
+        m_Callback = callback;
+        IsRepeatable = false;
     }
-    public void OnTimerStart() => _clock.State = Clock.ClockState.Run;
-    public void OnTimerPause() => _clock.State = Clock.ClockState.Pause;
-    public void OnTimerStop() => _clock.State = Clock.ClockState.Finish;
-    public void SetRepeatable(bool value) => _isRepeatable = value;
+    public void onStart() => m_Clock.State = Clock.ClockState.Run;
+    public void onPause() => m_Clock.State = Clock.ClockState.Pause;
+    public void onStop() => m_Clock.State = Clock.ClockState.Finish;
+    public void SetRepeatable(bool value) => IsRepeatable = value;
 
-    public void OnTimerUpdate(float deltaTime)
+    public void onUpdate(float deltaTime)
     {
         if (!IsRunning())
             return;
-
-        _clock.Duration -= deltaTime;
-        if (_clock.Duration <= 0.0f)
+        m_Clock.Duration -= deltaTime;
+        if (m_Clock.Duration <= 0.0f)
         {
-            _clock.State = Clock.ClockState.Finish;
-            _callback?.Invoke();
+            m_Clock.State = Clock.ClockState.Finish;
+            m_Callback?.Invoke();
         }
     }
-    public void OnTimerReset()
+    public void onReset()
     {
-        _clock.Duration = _clock.Interval;
-
-        #if UNITY_EDITOR
-            _clock.StartTime = UnityEngine.Time.time;
-        #else
-            _clock.StartTime = 0f;
-        #endif
-
+        m_Clock.Duration = m_Clock.Interval;
+        m_Clock.StartTime = Time.time;
     }
 
-    private bool IsRunning() => _clock.State == Clock.ClockState.Run;
-    public bool IsFinished() => _clock.State == Clock.ClockState.Finish;
-    public bool IsRepeatable() => _isRepeatable;
+    private bool IsRunning() => m_Clock.State == Clock.ClockState.Run;
+    public bool IsFinished() => m_Clock.State == Clock.ClockState.Finish;
+    public bool IsWaitForRepeat() => IsRepeatable;
 
 }
 
+public static class TimerExtension
+{
+
+    public static void StartTimer(this ITimer self,MonoBehaviour monoBehaviour)
+    {
+        monoBehaviour.GetOrAddTimerExecutor(self);
+    }
+}
+
+public static class MonoBehaviourTimerExtension
+{
+    public static void GetOrAddTimerExecutor<T>(this T self,ITimer timer) where T : MonoBehaviour
+    {
+        if (timer.IsFinished())
+        {
+            timer.onReset();
+        }
+        timer.onStart();
+        self.GetOrAddComponent<TimerExecutor>().AddTimer(timer);
+    }
+}

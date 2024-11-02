@@ -1,5 +1,4 @@
 using Gaming.PowerUp;
-using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,7 +12,7 @@ public interface IOnFieldItem
 {
     Vector3[] GetOnFieldItemBoxPos();
 }
-public class ItemManager : View, IOnFieldSilk,IOnFieldItem
+public class ItemManager : Singleton<ItemManager>, IOnFieldSilk,IOnFieldItem
 {
     private enum SpawnMode
     {
@@ -24,31 +23,16 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
     }
     private readonly int MAX_ITEM_BOX_COUNT = 1;
     private List<GameObject> _onFieldSilks;
-    private List<GameObject> _capturedSilks;
+    private Stack<GameObject> _capturedSilks;
     private bool _canSpawnNewSilk = true;
     private List<GameObject> _onFieldItemBoxes;
-    private List<GameObject> _unactivedItemBoxes;
     private SpawnMode _spawnMode = SpawnMode.Normal;
-
-    private ItemSystem _itemSystem;
-
-    private GameObject _silkPrefab;
-
     // Start is called before the first frame update
-    private void Awake()
+    protected override void Awake()
     {
-
         _onFieldSilks = new List<GameObject>();
-        _capturedSilks = new List<GameObject>();
+        _capturedSilks = new Stack<GameObject>();
         _onFieldItemBoxes = new List<GameObject>();
-        _unactivedItemBoxes = new List<GameObject>();
-
-        _silkPrefab = GameResourceSystem.Instance.GetPrefabResource("GoldenSilk");
-       
-        _itemSystem = GetSystem<IItemSystem>() as ItemSystem;
-
-        _itemSystem.RegisterManager(this);
-        
     }
     void Start()
     {
@@ -65,9 +49,9 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
                     GameObject silk = _onFieldSilks[index];
                     if (silk.transform.position == pos)
                     {
-                        _capturedSilks.Add(silk);
+                        _capturedSilks.Push(silk);
                         _onFieldSilks.Remove(silk);
-                        silk.GetComponent<GoldenSilkControl>().SetInactive();
+                        silk.GetComponent<IGoldenSilk>()?.SetInactive();
                         break;
                     }
                     ++index;
@@ -80,15 +64,13 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         {
             if(e.dropCount > 0)
             {
-                DestroyItem(_capturedSilks[0]);
-                _capturedSilks.RemoveAt(0);
+                GoldenSilkSystem.Instance.RecycleSilk(_capturedSilks.Pop());
                 --e.dropCount;
                 while (e.dropCount > 0)
                 {
                     if(_capturedSilks.Count > 0)
                     {
-                        GameObject dropSilk = _capturedSilks[0];
-                        _capturedSilks.RemoveAt(0);
+                        GameObject dropSilk = _capturedSilks.Pop();
                         dropSilk.GetComponent<IGoldenSilk>()?.StartDrop(e.pos,e.pos + GetDropSilkEndPos(e.pos));
                         _onFieldSilks.Add(dropSilk);
                         --e.dropCount;
@@ -112,18 +94,7 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
                 {
                     if(itemBox.transform.position == pos)
                     {
-                        _unactivedItemBoxes.Add(itemBox);
-                        _onFieldItemBoxes.Remove(itemBox);
-                        itemBox.SetActive(false);
-                        Timer respawnItemBoxTimer = new Timer(Time.time,Global.ITEM_BOX_SPAWN_TIME,
-                        () =>
-                        {
-                            _unactivedItemBoxes.Remove(itemBox);
-                            _onFieldItemBoxes.Add(itemBox);
-                            itemBox.SetActive(true);
-                        });
-                        respawnItemBoxTimer.StartTimer(this);
-
+                        itemBox.GetComponent<ItemBoxController>().SetInactive();
                         break;
                     }
                 }
@@ -131,19 +102,17 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
             TypeEventSystem.Instance.Send<UpdataMiniMapSilkPos>();
         }).UnregisterWhenGameObjectDestroyed(gameObject);
 
-        #endregion //Event Register
-
-        if(isServer)         
-            InitItemBox();
+        #endregion
+        for (int i = 0; i < MAX_ITEM_BOX_COUNT ; ++i)
+        {
+            _onFieldItemBoxes.Add(ItemSystem.Instance.SpawnItem(Global.ITEM_BOX_POS));
+        }
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(!isServer)
-            return;
-
         switch(_spawnMode)
         {
             case SpawnMode.Normal:
@@ -158,10 +127,9 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
         }
     }
 
-    [Server]
-    public void SpawnNewSilk()
+    private void SpawnNewSilk()
     {
-        if (_onFieldSilks.Count >= Global.MAX_SILK_COUNT)
+        if (GoldenSilkSystem.Instance.CurrentSilkCount >= Global.MAX_SILK_COUNT)
             return;
 
         if (!_canSpawnNewSilk)
@@ -172,23 +140,14 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
             () =>
             {
                 _canSpawnNewSilk = true;
-                DropNewSilk();
-
+                GameObject obj = GoldenSilkSystem.Instance.DropNewSilk();
+                //TODO リストに入れるタイミングを修正する
+                obj.GetComponent<IGoldenSilk>().SetActiveCallBack(obj =>
+                {
+                    _onFieldSilks.Add(obj);
+                });
             });
         dropSilkTimer.StartTimer(this);
-    }
-
-    [Server]
-    public void InitItemBox()
-    {
-
-        for (int i = 0; i < MAX_ITEM_BOX_COUNT ; ++i)
-        {
-            GameObject itemBox = _itemSystem.SpawnItem(Global.ITEM_BOX_POS);
-            _onFieldItemBoxes.Add(itemBox);
-            NetworkServer.Spawn(itemBox);
-        }
-
     }
 
     private Vector3 GetDropSilkEndPos(Vector3 startPos)
@@ -243,68 +202,10 @@ public class ItemManager : View, IOnFieldSilk,IOnFieldItem
 
     private void DeinitItemManager()
     {
-        ClearAllServerItems();
+        _onFieldSilks.Clear();
+        _capturedSilks.Clear();
+        _onFieldItemBoxes.Clear();
     }
-
-    private void ClearAllServerItems()
-    {
-        ClearServerItems(_onFieldItemBoxes);
-        ClearServerItems(_capturedSilks);
-        ClearServerItems(_onFieldItemBoxes);
-        ClearServerItems(_unactivedItemBoxes);
-    }
-
-    [Server]
-    private void ClearServerItems(List<GameObject> items)
-    {
-        foreach(var item in items)
-        {
-            NetworkServer.Destroy(item);
-        }
-        items.Clear();
-    }
-
-    [Server]
-    private void DropNewSilk()
-    {
-        if(_onFieldSilks.Count + _capturedSilks.Count >= Global.MAX_SILK_COUNT)
-            return;
-
-            GameObject newSilk = Instantiate(_silkPrefab);
-
-            //生成したGoldenSilkのセットアップ
-            GoldenSilkControl ctrl = newSilk.GetComponent<GoldenSilkControl>();
-            ctrl.StartSpawn(GetInSpaceRandomPosition());
-
-            NetworkServer.Spawn(newSilk);
-
-            //TODO リストに入れるタイミングを修正する
-            newSilk.GetComponent<IGoldenSilk>().SetActiveCallBack(obj =>
-            {
-                _onFieldSilks.Add(obj);
-            });
-    }
-    [Server]
-    public void DestroyItem(GameObject obj)
-    {
-        NetworkServer.Destroy(obj);
-    }
-
-    private Vector3 GetInSpaceRandomPosition()
-        {
-            // ステージの一定範囲内にインスタンス化する
-            float spawnAreaWidth = Global.STAGE_WIDTH / 2.5f;
-            float spawnAreaHeight = Global.STAGE_HEIGHT / 2.5f;
-            float posX = 0.0f;
-            float posZ = 0.0f;
-            while (posX == 0.0f || posZ == 0.0f)
-            {
-                posX = Random.Range(-spawnAreaWidth, spawnAreaWidth);
-                posZ = Random.Range(-spawnAreaHeight, spawnAreaHeight);
-            }
-            return new Vector3(posX, 0.54f, posZ);
-        }
-
     public Vector3[] GetOnFieldSilkPos()
     {
         List<Vector3> silkPos = new List<Vector3>();

@@ -1,9 +1,10 @@
+using Character;
 using UnityEngine;
 
 /// <summary>
 /// É}ÉbÉvÇ≈ê∂ê¨Ç∑ÇÈitem
 /// </summary>
-public class ItemObject : View
+public class ItemObject : MonoBehaviour
 {
     private void OnCollisionEnter(Collision other)
     {
@@ -21,6 +22,7 @@ public class ItemObject : View
         });
 
         //ìπãÔê∂ê¨
-        GetSystem<IItemSystem>().SpawnItem(Vector3.zero);
+        ItemSystem.Instance.SpawnItem(Vector3.zero);
+        
     }
 }

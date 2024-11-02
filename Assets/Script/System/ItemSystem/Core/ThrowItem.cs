@@ -1,3 +1,4 @@
+using Character;
 using Unity.Mathematics;
 using UnityEngine;
 /// <summary>

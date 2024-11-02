@@ -1,10 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using WSV.Character;
-using Mirror;
+using Character;
 
-public class BananaPeelController : NetworkBehaviour
+public class BananaPeelController : MonoBehaviour
 {
 
     private void OnTriggerEnter(Collider other)
@@ -12,6 +11,7 @@ public class BananaPeelController : NetworkBehaviour
         if(other.CompareTag("Player"))
         {           
             other.gameObject.GetComponent<Player>().OnEffect("Slip");
+            Destroy(gameObject);
         }
     }
 }

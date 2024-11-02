@@ -23,11 +23,7 @@ public struct DropSilkEvent
 
 public struct PlayerRespawnEvent
 {
-    public GameObject Player;
-}
-
-public struct PlayerDeadEvent
-{
+    public int ID;
 }
 
 public struct SilkCapturedEvent

@@ -1,17 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Timers;
-using Mirror;
 using UnityEngine;
 
 
-public class PaintBubbleController : NetworkBehaviour,IExplodable
+public class PaintBubbleController : MonoBehaviour,IExplodable
 {
     private Color _bubbleColor = Color.clear;
 
     private float _waitForExplodeTime = Global.BUBBLE_EXPLODE_TIME;
 
-    [SerializeField]
     private float _explodeRadius = 0f;
 
     private int _ownerPlayerID = -1;
@@ -22,7 +20,8 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
 
     private void Awake()
     {
-
+        Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,ExplodeBubble);
+        explodeTimer.StartTimer(this);
         _meshRenderer = GetComponent<MeshRenderer>();
     }
     private void Start()
@@ -32,13 +31,15 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
         _meshRenderer.sharedMaterial = _material;
     }
     // Update is called once per frame
-    public void Init(int owner, Color color)
+    void Update()
+    {
+        
+    }
+    public void SetExplodeProperty(int owner, float radius, Color color)
     {
         _ownerPlayerID = owner;
+        _explodeRadius = radius;
         _bubbleColor = color;
-
-        Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,ExplodeBubble);
-        explodeTimer.StartTimer(this);
     }
 
     private void OnDestroy()
@@ -48,16 +49,14 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
             Destroy(_material);
         }
     }
-
-    [Server]
     private void ExplodeBubble()
     {
+        Debug.LogWarning("Explode!!!");
         PaintExplodeArea();
         JamEnemyPlayerScreen();
-        NetworkServer.Destroy(gameObject);
+        Destroy(gameObject);
     }
 
-    [Server]
     private void PaintExplodeArea()
     {
         if (_ownerPlayerID == -1)
@@ -73,16 +72,12 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
             explodeAreaVertexes.Add(vert.normalized * _explodeRadius + transform.position);
         }
 
-        #region Paint Area
-
-        IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
-        if(paintSystem != null)
+        PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_bubbleColor);
+        foreach(var pos in explodeAreaVertexes)
         {
-            paintSystem.Paint(explodeAreaVertexes.ToArray(),_ownerPlayerID,_bubbleColor);
+            Debug.Log(pos);
         }
-        #endregion
     }
-
 
     private void JamEnemyPlayerScreen()
     {

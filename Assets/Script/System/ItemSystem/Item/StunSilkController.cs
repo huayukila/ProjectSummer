@@ -1,11 +1,10 @@
-using WSV.Character;
-using Mirror;
+using Character;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StunSilkController : NetworkBehaviour
+public class StunSilkController : MonoBehaviour
 {
     private Rigidbody _rigidBody;
     private void Awake()
@@ -17,18 +16,17 @@ public class StunSilkController : NetworkBehaviour
         _rigidBody.velocity = transform.forward * Global.STUN_SILK_SPEED;
     }
 
-    [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
         Debug.LogWarning(other.gameObject.name);
         if (other.CompareTag("Player"))
         {
             other.gameObject.GetComponent<Player>().OnEffect("Stun");
-            NetworkServer.Destroy(gameObject);
+            Destroy(gameObject);
         }
         if(other.CompareTag("Wall"))
         {
-            NetworkServer.Destroy(gameObject);
+            Destroy(gameObject);
         }
     }
 }

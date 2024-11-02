@@ -1,4 +1,4 @@
-using WSV.Character;
+using Character;
 
 public interface IPlayer2ItemSystem
 {

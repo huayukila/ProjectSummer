@@ -1,24 +1,17 @@
 ﻿using System.Linq;
-using Mirror.Examples.NetworkRoom;
 using Unity.Mathematics;
 using UnityEngine;
 
-public interface IItemSystem : ISystem
+interface IItemSystem
 {
     /// <summary>
     /// 
     /// </summary>
     /// <param name="spawnPos_"></param>
     GameObject SpawnItem(Vector3 spawnPos_);
-
-    Vector3[] GetOnFieldItemBoxPos();
-    Vector3[] GetOnFieldSilkPos();
-    void InitItemSystem();
-    void DestroyItem(GameObject obj);
 }
 
-
-public class ItemSystem : AbstractSystem, IItemSystem
+public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
 {
     GameObject itemPrefab;
 
@@ -32,15 +25,13 @@ public class ItemSystem : AbstractSystem, IItemSystem
     ItemBase[] weakItemArray;
     System.Random rand;
 
-    ItemManager _itemManager;
-
-    protected override void OnInit()
+    public void Init()
     {
         rand = new System.Random((int)Time.time);
         InitItemArray();
         itemPrefab = Resources.Load("Prefabs/Item/pfItemObject") as GameObject;
         TypeEventSystem.Instance.Register<PlayerGetItem>(e => { e.player.GetItem(LotteryItem(e.player)); })
-            .UnregisterWhenGameObjectDestroyed(NetWorkRoomManagerExt.singleton.gameObject);
+            .UnregisterWhenGameObjectDestroyed(GameManager.Instance.gameObject);
     }
 
     //道具生成
@@ -48,11 +39,6 @@ public class ItemSystem : AbstractSystem, IItemSystem
     {
         GameObject temp = GameObject.Instantiate(itemPrefab, spawnPos_, quaternion.identity);
         return temp;
-    }
-
-    public void RegisterManager(ItemManager itemManager)
-    {
-        _itemManager = itemManager;
     }
 
     #region 内部用
@@ -92,26 +78,6 @@ public class ItemSystem : AbstractSystem, IItemSystem
 
         //普通の場合獲得できるのアイテム
         return normalItemArray[rand.Next(0, normalItemArray.Count())];
-    }
-
-    public Vector3[] GetOnFieldSilkPos()
-    {
-        return _itemManager.GetOnFieldSilkPos();
-    }
-
-    public Vector3[] GetOnFieldItemBoxPos() 
-    {
-        return _itemManager.GetOnFieldItemBoxPos();
-    }
-
-    public void InitItemSystem()
-    {
-        _itemManager.InitItemBox();
-    }
-
-    public void DestroyItem(GameObject obj)
-    {
-        _itemManager.DestroyItem(obj);
     }
 
     #endregion

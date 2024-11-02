@@ -1,31 +1,33 @@
-using System;
-using Mirror;
 using UnityEngine;
 
-public class DropPoint : NetworkBehaviour
+public class DropPoint : MonoBehaviour
 {
-    private event Action<GameObject> _destroyCallback;
+    private Timer m_NewTimer;            // DropPointのタイマー
 
-    public override void OnStartServer()
+    void Awake()
     {
-        Invoke(nameof(DestroySelf),Global.DROP_POINT_ALIVE_TIME);
-    }
-    public void SetDestroyCallback(Action<GameObject> callback)
-    {
-        _destroyCallback = callback;
-    }
-
-    // 点を管理するリストから外して、サーバーから消す
-    [Server]
-    public void DestroySelf()
-    {
-        _destroyCallback?.Invoke(gameObject);
-        NetworkServer.Destroy(gameObject);
-        _destroyCallback = null;
+        m_NewTimer = new Timer(Time.time,Global.DROP_POINT_ALIVE_TIME,
+            () =>
+            {
+                Destroy(gameObject);
+            });
+        m_NewTimer.StartTimer(this);
     }
 
     private void OnDestroy()
     {
-        _destroyCallback = null;
+        // どのプレイヤーが落としたDropPointをチェック
+        int i = -1;
+        string numString = null;
+        if (tag.Length > 9)
+        {
+            numString = tag.Substring(9);
+        }
+        if (int.TryParse(numString, out int num) == true)
+        {
+            i = num;
+        }
+        DropPointSystem.Instance.RemovePoint(i, gameObject);
+
     }
 }

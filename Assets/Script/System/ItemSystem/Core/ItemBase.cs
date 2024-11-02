@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using WSV.Character;
+using Character;
 
 public interface IItem
 {
@@ -13,7 +13,7 @@ public class ItemBase : ScriptableObject, IItem
 {
     public string itemName;
     public int id;
-    public Sprite ItemImage;
+
     void IItem.Use(Player player)
     {
         OnUse(player);
@@ -22,8 +22,6 @@ public class ItemBase : ScriptableObject, IItem
     //Item実際のロジックコードはここに書いてください
     public virtual void OnUse(Player player)
     {
-        if(player == null)
-            return;
         Debug.Log(itemName); //ひとまずデバッグ
     }
 

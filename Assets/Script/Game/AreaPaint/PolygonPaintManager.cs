@@ -1,65 +1,46 @@
-using System.Linq;
-using Mirror;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class PolygonPaintManager : View
+public class PolygonPaintManager : Singleton<PolygonPaintManager>
 {
-    readonly SyncList<int> CountResultList = new SyncList<int>();
-
-    public Paintable mapPaintable;
     public Shader texturePaint;
     public Shader areaPaint;
     public ComputeShader computeShader;
+
     public Sprite player1AreaTexture;
     public Sprite player2AreaTexture;
-    public int AreaTextureSize;
 
+    Paintable mapPaintable;
     CommandBuffer command;
-    ComputeBuffer countBuffer;
+    ComputeBuffer mCountBuffer;
     Material paintMaterial;
     Material areaMaterial;
-    RenderTexture copyRT;
-    int[] result=new int[2];
-    
-    //shader変数
+    RenderTexture CopyRT;
+
     int kernelHandle;
     int colorID = Shader.PropertyToID("_Color");
     int textureID = Shader.PropertyToID("_MainTex");
     int maxVertNum = Shader.PropertyToID("_MaxVertNum");
     int playerAreaTextureID = Shader.PropertyToID("_PlayerAreaText");
-    private int worldPointID = Shader.PropertyToID("_worldPosList");
-    int textureSizeID=Shader.PropertyToID("_TextureSize");
 
-    
-    protected void Awake()
+    int[] CountResultArray = new int[2];
+
+    protected override void Awake()
     {
-        mapPaintable.Init();
-        if (isServer)
-        {
-            foreach (var connection in NetworkServer.connections)
-            {
-                //接続しているクライアント数によってデータ増加
-                CountResultList.Add(0);
-            }
-        }
-
-        CountResultList.Callback += OnsyncListChanged;
-
         paintMaterial = new Material(texturePaint);
         areaMaterial = new Material(areaPaint);
 
         kernelHandle = computeShader.FindKernel("CSMain");
-        countBuffer = new ComputeBuffer(2, sizeof(int));
+        mCountBuffer = new ComputeBuffer(2, sizeof(int));
 
         command = new CommandBuffer();
         command.name = "CommmandBuffer - " + gameObject.name;
 
-        computeShader.SetBuffer(kernelHandle, "CountBuffer", countBuffer);
-        computeShader.SetTexture(kernelHandle, "Result", mapPaintable.GetCopy());
+
+        computeShader.SetBuffer(kernelHandle, "CountBuffer", mCountBuffer);
         computeShader.SetVector("TargetColorA", Global.PLAYER_TRACE_COLORS[0]);
         computeShader.SetVector("TargetColorB", Global.PLAYER_TRACE_COLORS[1]);
-        GetSystem<IPaintSystem>().RegisterManager(this);
     }
 
     /// <summary>
@@ -68,25 +49,49 @@ public class PolygonPaintManager : View
     /// <returns></returns>
     public RenderTexture GetMiniMapRT()
     {
-        return mapPaintable.GetCopy();
+        if (CopyRT == null)
+        {
+            Debug.LogError("render texture is not already");
+            return null;
+        }
+
+        return CopyRT;
     }
 
 
-    private int m_MixVariant = Global.MAP_SIZE_WIDTH * Global.MAP_SIZE_HEIGHT * 10000; //計算負担軽減するため、プリ計算
-
+    private int m_MixVariant = Global.MAP_SIZE_WIDTH * Global.MAP_SIZE_HEIGHT * 10000;//計算負担軽減するため、プリ計算
     /// <summary>
     /// プレイヤーのマップ占有率
     /// </summary>
     /// <returns></returns>
     public float[] GetPlayersAreaPercent()
     {
-        float[] temp = new float[CountResultList.Count];
-        for (int i = 0; i < CountResultList.Count; i++)
+        float[] temp = new float[CountResultArray.Length];
+        for (int i = 0; i < CountResultArray.Length; i++)
         {
-            temp[i] = CountResultList[i] / (float)m_MixVariant;
+            temp[i] = CountResultArray[i] /(float)m_MixVariant;
         }
-
         return temp;
+    }
+
+    public void SetPaintable(Paintable paintable)
+    {
+        mapPaintable = paintable;
+        CopyRT = mapPaintable.GetCopy();
+        computeShader.SetTexture(kernelHandle, "Result", CopyRT);
+    }
+
+    /// <summary>
+    /// 汚されたRTを綺麗にする
+    /// </summary>
+    /// <param name="rt"></param>
+    public void ClearRT(RenderTexture rt)
+    {
+        CommandBuffer command = new CommandBuffer();
+        command.SetRenderTarget(rt);
+        command.ClearRenderTarget(true, true, Color.clear);
+        Graphics.ExecuteCommandBuffer(command);
+        command.Clear();
     }
 
     /// <summary>
@@ -95,30 +100,7 @@ public class PolygonPaintManager : View
     /// <param name="worldPosList">輸入の世界座標の点</param>
     /// <param name="color">描きたいの色</param>
     /// <param name="index">プレイヤーの番号(1-2)</param>
-    public void Paint(Vector3[] worldPosList, int index, Color32 color)
-    {
-        RpcPaintPolygon(worldPosList, index, color);
-        CountPixelByColor();
-    }
-
-    #region 内部用
-
-    /// <summary>
-    /// 分数計算
-    /// </summary>
-    /// <param name="color"></param>
-    [Server]
-    void CountPixelByColor()
-    {
-        computeShader.Dispatch(kernelHandle,
-            mapPaintable.GetCopy().width / 10,
-            mapPaintable.GetCopy().height / 10, 1);
-        countBuffer.GetData(CountResultList.ToArray());
-        countBuffer.SetData(new int[2] { 0, 0 });
-    }
-
-    [ClientRpc]
-    void RpcPaintPolygon(Vector3[] worldPosList, int index, Color32 color)
+    public void Paint(Vector3[] worldPosList, int index, Color32? color = null)
     {
         RenderTexture mask = mapPaintable.GetMask();
         RenderTexture copy = mapPaintable.GetCopy();
@@ -133,22 +115,20 @@ public class PolygonPaintManager : View
             posList[i] = worldPosList[i];
         }
 
-        //領域shader変数設置
+        //shader変数設置
         paintMaterial.SetInt(maxVertNum, worldPosList.Length);
-        paintMaterial.SetVectorArray(worldPointID, posList);
-        paintMaterial.SetColor(colorID, color);
+        paintMaterial.SetVectorArray("_worldPosList", posList);
+        paintMaterial.SetColor(colorID, color ?? new Color32(255, 0, 0, 255));
         paintMaterial.SetTexture(textureID, copy);
 
-        //家紋shader変数設置
+        //shader変数設置
         areaMaterial.SetInt(maxVertNum, worldPosList.Length);
-        areaMaterial.SetVectorArray(worldPointID, posList);
+        areaMaterial.SetVectorArray("_worldPosList", posList);
         areaMaterial.SetTexture(textureID, areaCopy);
-        areaMaterial.SetInt(textureSizeID,AreaTextureSize);
 
-
+        //プレイヤー１なら
         switch (index)
         {
-            //プレイヤー１なら
             case 1:
                 areaMaterial.SetTexture(playerAreaTextureID, player1AreaTexture.texture);
                 break;
@@ -185,26 +165,30 @@ public class PolygonPaintManager : View
         Graphics.ExecuteCommandBuffer(command);
         //命令隊列クリア
         command.Clear();
+        CountPixelByColor();
+        TypeEventSystem.Instance.Send(new RefreshVSBarEvent
+            { PlayerPixelNums = CountResultArray });
     }
 
-    //syncList変わったときのCallback
-    void OnsyncListChanged(SyncList<int>.Operation op, int Index, int oldItem, int newItem)
+    #region 内部用
+
+    /// <summary>
+    /// 分数計算
+    /// </summary>
+    /// <param name="color"></param>
+    void CountPixelByColor()
     {
-        TypeEventSystem.Instance.Send(new RefreshVSBarEvent
-            { PlayerPixelNums = CountResultList.ToArray() });
+        computeShader.Dispatch(kernelHandle, 
+            mapPaintable.GetCopy().width / 10,
+            mapPaintable.GetCopy().height / 10, 1);
+        mCountBuffer.GetData(CountResultArray);
+        mCountBuffer.SetData(new int[2] { 0, 0 });
     }
 
     private void OnDestroy()
     {
-        countBuffer.Release();
-        countBuffer = null;
-        copyRT.Release();
-        copyRT = null;
-        Destroy(paintMaterial);
-        paintMaterial = null;
-        Destroy(areaMaterial);
-        areaMaterial = null;
-        CountResultList.Callback -= OnsyncListChanged;
+        mCountBuffer.Release();
+        mCountBuffer = null;
     }
 
     #endregion
