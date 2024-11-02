@@ -25,13 +25,18 @@ public class MiniMap : MonoBehaviour
         TypeEventSystem.Instance.Register<RefreshVSBarEvent>(e =>
         {
             float[] values = PolygonPaintManager.Instance.GetPlayersAreaPercent();
-            LeftBar.DOFillAmount(values[0],0.5f);
-            RightBar.DOFillAmount(values[1],0.5f);
+            LeftBar.DOFillAmount(values[0] * 0.004f, 0.5f);
+            RightBar.DOFillAmount(values[1] * 0.004f, 0.5f);
         }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
 
     // Update is called once per frame
     void Update()
     {
+        Vector3 leftPlayerPos = GameManager.Instance.GetPlayerPos(1);
+
+        Vector3 rightPlayerPos = GameManager.Instance.GetPlayerPos(2);
+        LeftPlayerImg.localPosition = new Vector3(leftPlayerPos.x, leftPlayerPos.z, 0);
+        RightPlayerImg.localPosition = new Vector3(rightPlayerPos.x, rightPlayerPos.z, 0);
     }
 }

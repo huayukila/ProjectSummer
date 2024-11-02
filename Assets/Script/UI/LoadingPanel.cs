@@ -48,7 +48,7 @@ public class LoadingPanel : MonoBehaviour
         countTime += Time.deltaTime;
         if (countTime >= waiteTime)
         {
-            SceneManager.LoadScene("Title");
+            SceneManager.LoadScene("Gaming");
         }
     }
 }

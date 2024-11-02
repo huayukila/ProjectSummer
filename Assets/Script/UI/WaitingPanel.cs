@@ -82,7 +82,7 @@ public class WaitingPanel : MonoBehaviour
             sequence.Join(Effect.DOScale(Vector3.one, 0.6f)).SetEase(Ease.InQuad);
 
 
-            sequence.AppendInterval(2f).AppendCallback(() => { SceneManager.LoadScene("Gaming"); });
+            sequence.AppendInterval(2f).AppendCallback(() => { SceneManager.LoadScene("Loading"); });
             sequence.Play();
         }
     }
