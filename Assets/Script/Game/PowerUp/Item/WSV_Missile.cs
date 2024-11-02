@@ -21,12 +21,12 @@ public class Missile : ThrowItem
 
             if(missile.TryGetComponent<IExplodable>(out IExplodable explodable))
             {
-                // TODO player‚ðŽg‚í‚È‚¢
+                // TODO playerï¿½ï¿½ï¿½gï¿½ï¿½È‚ï¿½
                 PlayerInterfaceContainer container = player.GetContainer();
                 IPlayerInfo playerInfo = container.GetInterface<IPlayerInfo>();
                 if(playerInfo != null)
                 {
-                    explodable.SetupExplode(playerInfo.ID,playerInfo.AreaColor);
+                    explodable.Init(playerInfo.ID,playerInfo.AreaColor);
                 }
             }
         }

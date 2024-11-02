@@ -11,9 +11,9 @@ public class MissileController : NetworkBehaviour,IExplodable
 {
     private enum EHomingMode
     {
-        None = 0,       // ’Ç”ö‚µ‚È‚¢
-        StrongHoming,   // ‚¸‚Á‚Æƒ^[ƒQƒbƒg‚ÌŒ³‚ÉˆÚ“®‚·‚é
-        WeakHoming,     // ƒ^[ƒQƒbƒg‚É‹ß‚Ã‚¯‚½‚ç•âŠÔ’Ç”ö(Lerp)
+        None = 0,       // ï¿½Ç”ï¿½ï¿½ï¿½ï¿½È‚ï¿½
+        StrongHoming,   // ï¿½ï¿½ï¿½ï¿½ï¿½Æƒ^ï¿½[ï¿½Qï¿½bï¿½gï¿½ÌŒï¿½ï¿½ÉˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½
+        WeakHoming,     // ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½É‹ß‚Ã‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô’Ç”ï¿½(Lerp)
     }
     private Color _explodeColor = Color.clear;
 
@@ -71,14 +71,14 @@ public class MissileController : NetworkBehaviour,IExplodable
 
     private void Update()
     {
-        // ’Ç”ö‚µ‚È‚¢ê‡I—¹
+        // ï¿½Ç”ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ê‡ï¿½Iï¿½ï¿½
         if(_homingMode == EHomingMode.None)
             return;
 
-        // ƒ^[ƒQƒbƒgƒw‚Ì‹——£‚ğŒvZi“ñæ‚Ì‚Ü‚Üj
+        // ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½wï¿½Ì‹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½vï¿½Zï¿½iï¿½ï¿½ï¿½Ì‚Ü‚Üj
         float distance = GetSqrDistanceToTarget();
 
-        // ƒ^[ƒQƒbƒg‚ª‚È‚¢
+        // ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½ï¿½ï¿½È‚ï¿½
         if(distance == float.PositiveInfinity)
             return;
         
@@ -95,7 +95,7 @@ public class MissileController : NetworkBehaviour,IExplodable
                 break;
             }
         }
-        // ‘æˆêŒ`‘Ô‚©‚Âƒ^[ƒQƒbƒgƒw‚Ì‹——£‚ªŒŸõ”ÍˆÍ“àA‘æ“ñŒ`‘Ô‚Ö•ÏX
+        // ï¿½ï¿½ï¿½`ï¿½Ô‚ï¿½ï¿½Âƒ^ï¿½[ï¿½Qï¿½bï¿½gï¿½wï¿½Ì‹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÍˆÍ“ï¿½ï¿½Aï¿½ï¿½ï¿½`ï¿½Ô‚Ö•ÏX
         if(_homingMode == EHomingMode.StrongHoming && distance <= _sqrSearchRadius)
         {
             _homingMode = EHomingMode.WeakHoming;
@@ -108,14 +108,14 @@ public class MissileController : NetworkBehaviour,IExplodable
                 _isChasing = true;
             }       
         }
-        // ‘æ“ñŒ`‘Ô‚©‚ÂŒŸõ”ÍˆÍ‚©‚ç—£‚ê‚éA’Ç”ö’â~ƒJƒEƒ“ƒ^[‚ğ‰ÁZ‚·‚é
+        // ï¿½ï¿½ï¿½`ï¿½Ô‚ï¿½ï¿½ÂŒï¿½ï¿½ï¿½ï¿½ÍˆÍ‚ï¿½ï¿½ç—£ï¿½ï¿½ï¿½Aï¿½Ç”ï¿½ï¿½ï¿½~ï¿½Jï¿½Eï¿½ï¿½ï¿½^ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½ï¿½
         if(_homingMode == EHomingMode.WeakHoming && distance > _sqrChaseRadius)
         {
             if(_isChasing)
             {
                 _targetLostTimeCnt += Time.deltaTime;
 
-                // ˆê’èŠÔ‚ª‚½‚Á‚½‚ç’Ç”ö’â~
+                // ï¿½ï¿½èï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç”ï¿½ï¿½ï¿½~
                 if(_targetLostTimeCnt >= _stopSearchInterval)
                 {
                     _homingMode = EHomingMode.None;
@@ -126,7 +126,7 @@ public class MissileController : NetworkBehaviour,IExplodable
     }
 
     // Update is called once per frame
-    public void SetupExplode(int owner, Color color)
+    public void Init(int owner, Color color)
     {
         _ownerPlayerID = owner;
         _explodeColor = color;
@@ -156,19 +156,19 @@ public class MissileController : NetworkBehaviour,IExplodable
         var networkIdentities = NetworkServer.connections;
 
         float targetDistance = float.PositiveInfinity;
-        // ƒT[ƒo[‚ÉŒq‚ª‚Á‚Ä‚¢‚éƒIƒuƒWƒFƒNƒg‚©‚ç’T‚·
+        // ï¿½Tï¿½[ï¿½oï¿½[ï¿½ÉŒqï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½Tï¿½ï¿½
         foreach(var identityKeyValuePair in networkIdentities)
         {
             GameObject identityObject = identityKeyValuePair.Value.identity.gameObject;
 
-            // ƒvƒŒƒCƒ„[‚¾‚Á‚½ê‡
+            // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‡
             if(identityObject.TryGetComponent(out Player player))
             {
-                // Œ©‚Â‚©‚Á‚½ƒvƒŒƒCƒ„[‚ªƒ~ƒTƒCƒ‹‚Ìg‚¢è‚¾‚Á‚½ê‡
+                // ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½~ï¿½Tï¿½Cï¿½ï¿½ï¿½Ìgï¿½ï¿½ï¿½è‚¾ï¿½ï¿½ï¿½ï¿½ï¿½ê‡
                 if(player.ID == _ownerPlayerID)
                     continue;
 
-                // ˆê”Ô‹ß‚¢ƒvƒŒƒCƒ„[‚ğ’T‚·
+                // ï¿½ï¿½Ô‹ß‚ï¿½ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½Tï¿½ï¿½
                 float tempDistance = Vector3.Distance(transform.position,identityObject.transform.position);
                 if(tempDistance <= targetDistance)
                 {
@@ -207,11 +207,11 @@ public class MissileController : NetworkBehaviour,IExplodable
         ExplodeMissile();
     }
 
-    // ƒ^[ƒQƒbƒgƒw‚Ì‹——£‚ğ•Ô‚·(“ñæ‚Ì‚Ü‚Ü)
-    // ƒ^[ƒQƒbƒg‚ª‚È‚¢ê‡‚Ífloat.PositiveInfinity‚ğ•Ô‚·
+    // ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½wï¿½Ì‹ï¿½ï¿½ï¿½ï¿½ï¿½Ô‚ï¿½(ï¿½ï¿½ï¿½Ì‚Ü‚ï¿½)
+    // ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½ï¿½ï¿½È‚ï¿½ï¿½ê‡ï¿½ï¿½float.PositiveInfinityï¿½ï¿½Ô‚ï¿½
     private float GetSqrDistanceToTarget()
     {
-        // ƒ^[ƒQƒbƒg‚ª‚È‚¢
+        // ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½ï¿½ï¿½È‚ï¿½
         if(_target == null)
             return float.PositiveInfinity;
 

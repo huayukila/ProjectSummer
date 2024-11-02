@@ -25,7 +25,7 @@ public class PaintBubble : ThrowItem
             BoxCollider playerCol = player.GetComponent<BoxCollider>();
 
 
-            explodeCtrl.SetupExplode(player.ID, player.AreaColor);
+            explodeCtrl.Init(player.ID, player.AreaColor);
 
         }
         

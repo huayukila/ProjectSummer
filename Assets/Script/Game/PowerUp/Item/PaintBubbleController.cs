@@ -32,7 +32,7 @@ public class PaintBubbleController : NetworkBehaviour,IExplodable
         _meshRenderer.sharedMaterial = _material;
     }
     // Update is called once per frame
-    public void SetupExplode(int owner, Color color)
+    public void Init(int owner, Color color)
     {
         _ownerPlayerID = owner;
         _bubbleColor = color;

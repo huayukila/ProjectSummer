@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Gaming.PowerUp;
 using Math;
 
-// F‚ğ“h‚éƒCƒxƒ“ƒg‚Å•K—v‚Èî•ñ
 [Serializable]
 public struct PaintAreaEvent
 {
@@ -33,7 +32,7 @@ namespace WSV.Character
                             IPlayerBoost,
                             IPlayerMainLogic
     {
-        // ƒvƒŒƒCƒ„[‚Ìó‘Ô
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®çŠ¶æ…‹
         private enum State
         {
             None = 0,
@@ -43,48 +42,48 @@ namespace WSV.Character
             Uncontrollable,
             Stun,
         }
-        // ƒvƒŒƒCƒ„[‚Ìî•ñ
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æƒ…å ±
         private struct PlayerInfo
         {
-            public int ID;          //ƒvƒŒƒCƒ„[‚ÌID
-            public Color AreaColor; //ƒvƒŒƒCƒ„[‚Ì—Ìˆæ‚ÌF
+            public int ID;          //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ID
+            public Color AreaColor; //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®é ˜åŸŸã®è‰²
         }
         private struct PlayerSilkData
         {
-            public int SilkCount;                   // ƒvƒŒƒCƒ„[‚ª‚Á‚Ä‚¢‚é‹à‚Ì…‚Ì”
-            public GameObject SilkRenderer;         // ƒvƒŒƒCƒ„[‚ª‚Á‚Ä‚¢‚é‹à‚Ì…‚ğ‰æ–Ê‚É•\¦‚·‚éGameObject
+            public int SilkCount;                   // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæŒã£ã¦ã„ã‚‹é‡‘ã®ç³¸ã®æ•°
+            public GameObject SilkRenderer;         // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæŒã£ã¦ã„ã‚‹é‡‘ã®ç³¸ã‚’ç”»é¢ã«è¡¨ç¤ºã™ã‚‹GameObject
         }
         public bool HadSilk => _silkData.SilkCount > 0;
         public IItem item { get; set; }
-        private ColorCheck _colorCheck;                     // ƒJƒ‰[ƒ`ƒFƒbƒNƒRƒ“ƒ|ƒlƒ“ƒg
-        //TODO “ñ‚Â‚ğˆê‚Â‚É‚·‚é
-        private InputAction _boostAction;                   // ƒvƒŒƒCƒ„[‚Ìƒu[ƒXƒg“ü—Í
-        private InputAction _rotateAction;                  // ƒvƒŒƒCƒ„[‚Ì‰ñ“]“ü—Í
+        private ColorCheck _colorCheck;                     // ã‚«ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ã‚³ãƒ³ãƒãƒãƒ³ãƒˆ
+        //TODO äºŒã¤ã‚’ä¸€ã¤ã«ã™ã‚‹
+        private InputAction _boostAction;                   // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ–ãƒ¼ã‚¹ãƒˆå…¥åŠ›
+        private InputAction _rotateAction;                  // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å›è»¢å…¥åŠ›
         private InputAction _itemAction;
         private PlayerInput _input;                         // playerInputAsset
 
         [field:SerializeField]
-        private State _playerState;                         // ƒvƒŒƒCƒ„[‚ÌƒXƒe[ƒ^ƒX
+        private State _playerState;                         // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 
-        private float _itemPlaceOffset;                     // ƒAƒCƒeƒ€‚Ì•ú’uêŠ‚ÆƒvƒŒƒCƒ„[À•W‚ÌŠÔ‚Ì‹——£iƒvƒŒƒCƒ„[ƒRƒ‰ƒCƒ_[‚Ì•Ó‚Ì’·‚³i³•ûŒ`jj
-        private float _currentMoveSpeed;                    // ƒvƒŒƒCƒ„[‚ÌŒ»İ‘¬“x
-        private float _moveSpeedCoefficient;                // ƒvƒŒƒCƒ„[‚ÌˆÚ“®‘¬“x‚ÌŒW”
-        private Rigidbody _rigidbody;                       // ƒvƒŒƒCƒ„[‚ÌRigidbody
-        private Vector3 _rotateDirection;                   // ƒvƒŒƒCƒ„[‚Ì‰ñ“]•ûŒü
-        private bool _isBoostCooldown = false;              // ƒu[ƒXƒgƒN[ƒ‹ƒ_ƒEƒ“‚µ‚Ä‚¢‚é‚©‚Ìƒtƒ‰ƒO
-        private SpriteRenderer _imageSpriteRenderer;        // ƒvƒŒƒCƒ„[‰æ‘œ‚ÌSpriteRenderer
+        private float _itemPlaceOffset;                     // ã‚¢ã‚¤ãƒ†ãƒ ã®æ”¾ç½®å ´æ‰€ã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼åº§æ¨™ã®é–“ã®è·é›¢ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®è¾ºã®é•·ã•ï¼ˆæ­£æ–¹å½¢ï¼‰ï¼‰
+        private float _currentMoveSpeed;                    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç¾åœ¨é€Ÿåº¦
+        private float _moveSpeedCoefficient;                // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç§»å‹•é€Ÿåº¦ã®ä¿‚æ•°
+        private Rigidbody _rigidbody;                       // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®Rigidbody
+        private Vector3 _rotateDirection;                   // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å›è»¢æ–¹å‘
+        private bool _isBoostCooldown = false;              // ãƒ–ãƒ¼ã‚¹ãƒˆã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã—ã¦ã„ã‚‹ã‹ã®ãƒ•ãƒ©ã‚°
+        private SpriteRenderer _imageSpriteRenderer;        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”»åƒã®SpriteRenderer
 
         [SerializeField]
         private PlayerAnim _playerAnim;
-        private DropPointControl _dropPointCtrl;            // ƒvƒŒƒCƒ„[‚ÌDropPointControl
-        private PlayerParticleSystemControl _particleSystemCtrl; // ƒvƒŒƒCƒ„[©g‚É‚­‚Á‚Â‚¯‚Ä‚¢‚éƒp[ƒeƒBƒNƒ‹ƒVƒXƒeƒ€‚ğŠÇ—‚·‚éƒRƒ“ƒgƒ[ƒ‰[
+        private DropPointControl _dropPointCtrl;            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®DropPointControl
+        private PlayerParticleSystemControl _particleSystemCtrl; // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è‡ªèº«ã«ãã£ã¤ã‘ã¦ã„ã‚‹ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ã‚·ã‚¹ãƒ†ãƒ ã‚’ç®¡ç†ã™ã‚‹ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
         //TODO refactoring           
         private PlayerSilkData _silkData;
         private float mBoostCoefficient;
         [SerializeField]
-        private PlayerInfo _playerInfo = default;           // ƒvƒŒƒCƒ„[‚Ìî•ñ
+        private PlayerInfo _playerInfo = default;           // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æƒ…å ±
         private float _returnToFineTimer = 0f;
-        //TODO ƒeƒXƒg—p
+        //TODO ãƒ†ã‚¹ãƒˆç”¨
         public Sprite[] silkCountSprites;
         private Dictionary<EItemEffect, Action> _itemAffectActions;
         private PlayerInterfaceContainer _playerInterface ;
@@ -100,20 +99,13 @@ namespace WSV.Character
 
         public Vector3 SpawnPos
         {
-            get
-            {
-                return _spawnPos;
-            }
-            
-            set
-            {
-                _spawnPos = value;
-            }
+            get => _spawnPos;
+            set => _spawnPos = value;
         }
         
         private void Awake()
         {
-            // ‰Šú‰»ˆ—
+            // åˆæœŸåŒ–å‡¦ç†
             Init();
             // Item affectable actions init
             InitItemAffect();
@@ -140,22 +132,7 @@ namespace WSV.Character
         {
             _currentMoveSpeed = 0.0f;
             //TODO Need Change To Network Code
-            //_particleSystemCtrl.Play();
-
-            // {
-            //     TypeEventSystem.Instance.Register<PaintAreaEvent>
-            //     (
-            //         e =>
-            //         {
-            //             IPaintSystem paintSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IPaintSystem>();
-            //             if(paintSystem != null)
-            //             {
-            //                 paintSystem.Paint(e.Verts,e.PlayerID,e.PlayerAreaColor);
-            //             }
-            //         }
-            //     ).UnregisterWhenGameObjectDestroyed(gameObject);
-
-            // }
+            _particleSystemCtrl.Play();
 
             {
                 _itemSystem = (NetWorkRoomManagerExt.singleton as NetWorkRoomManagerExt).GetFramework().GetSystem<IItemSystem>();
@@ -220,7 +197,7 @@ namespace WSV.Character
             if (_playerState == State.Dead)
                 return;
 
-            // ƒvƒŒƒCƒ„[‚ªu’Êívó‘Ô‚¶‚á‚È‚¢‚ÆŒã‚Ù‚Ç‚Ìˆ—‚ğÀs‚µ‚È‚¢
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã€Œé€šå¸¸ã€çŠ¶æ…‹ã˜ã‚ƒãªã„ã¨å¾Œã»ã©ã®å‡¦ç†ã‚’å®Ÿè¡Œã—ãªã„
             else if(_playerState != State.Fine)
             {
                 ReturnToFineCountDown();
@@ -233,9 +210,9 @@ namespace WSV.Character
             switch(_playerState)
             {
                 case State.Fine:
-                    // ƒvƒŒƒCƒ„[‚Ì“®‚«
+                    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‹•ã
                     PlayerMovement(Global.PLAYER_ACCELERATION);
-                    // ƒvƒŒƒCƒ„[‚Ì‰ñ“]
+                    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å›è»¢
                     PlayerRotation();
                     break;
                 case State.Uncontrollable:
@@ -298,21 +275,21 @@ namespace WSV.Character
         private void UpdateFine()
         {
 
-            // TODO ƒvƒŒƒCƒ„[‰æ‘œ‚ÌŒü‚«‚ğ•Ï‚¦‚é
+            // TODO ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”»åƒã®å‘ãã‚’å¤‰ãˆã‚‹
             FlipCharacterImage();
 
             if(Application.isFocused)
             {
-                // ‰ñ“]‚·‚é“ü—Íˆ—
+                // å›è»¢ã™ã‚‹å…¥åŠ›å‡¦ç†
                 Vector2 rotateInput = _rotateAction.ReadValue<Vector2>();
 
                 _rotateDirection = new Vector3(rotateInput.x, 0.0f, rotateInput.y);
             }
 
-            // ƒvƒŒƒCƒ„[‚ª‚¢‚é‚Æ‚±‚ë‚Ì’n–Ê‚ÌF‚ğƒ`ƒFƒbƒN‚·‚é
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ã‚‹ã¨ã“ã‚ã®åœ°é¢ã®è‰²ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
             CheckGroundColor();
             
-            // TODO —Ìˆæ‚ğ•`‰æ‚µ‚Ä‚İ‚é
+            // TODO é ˜åŸŸã‚’æç”»ã—ã¦ã¿ã‚‹
             TryPaintArea();
 
             if(_isBoostCooldown)
@@ -323,23 +300,23 @@ namespace WSV.Character
         }
 
         /// <summary>
-        /// ƒvƒŒƒCƒ„[‚ÌƒvƒƒpƒeƒB‚ğ‰Šú‰»‚·‚é
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’åˆæœŸåŒ–ã™ã‚‹
         /// </summary>
         private void Init()
         {
             _rigidbody = GetComponent<Rigidbody>();
             _colorCheck = GetComponent<ColorCheck>();
 
-            // ƒvƒŒƒCƒ„[©•ª‚Ì‰æ‘œ‚ÌƒŒƒ“ƒ_ƒ‰[‚ğæ“¾‚·‚é
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è‡ªåˆ†ã®ç”»åƒã®ãƒ¬ãƒ³ãƒ€ãƒ©ãƒ¼ã‚’å–å¾—ã™ã‚‹
 
             _imageSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
             _particleSystemCtrl = gameObject.GetComponent<PlayerParticleSystemControl>();
 
-            // DropPointControlƒRƒ“ƒ|ƒlƒ“ƒg‚ğ’Ç‰Á‚·‚é
+            // DropPointControlã‚³ãƒ³ãƒãƒãƒ³ãƒˆã‚’è¿½åŠ ã™ã‚‹
             _dropPointCtrl = gameObject.GetComponent<DropPointControl>();
 
-            // PlayerAnimƒRƒ“ƒ|ƒlƒ“ƒg‚ğ’Ç‰Á‚·‚é
+            // PlayerAnimã‚³ãƒ³ãƒãƒãƒ³ãƒˆã‚’è¿½åŠ ã™ã‚‹
             _playerAnim = gameObject.GetComponent<PlayerAnim>();
 
 
@@ -350,7 +327,7 @@ namespace WSV.Character
             _playerState = State.Fine;
             _itemPlaceOffset = GetComponent<BoxCollider>().size.x * transform.localScale.x * 0.5f;
             
-            // •\¦‡ˆÊ‚ğ•ÏŠ·‚·‚é
+            // è¡¨ç¤ºé †ä½ã‚’å¤‰æ›ã™ã‚‹
             _imageSpriteRenderer.transform.localPosition = new Vector3(0.0f, -0.05f, 0.0f);
 
             _silkData.SilkCount = 0;
@@ -379,15 +356,15 @@ namespace WSV.Character
 
         #region Player Move
         /// <summary>
-        /// ƒvƒŒƒCƒ„[‚ÌˆÚ“®‚ğ§Œä‚·‚é
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç§»å‹•ã‚’åˆ¶å¾¡ã™ã‚‹
         /// </summary>
         private void PlayerMovement(in float acceleration)
         {
-            // ‘¬“x‚ğŒvZ‚µA”ÍˆÍ“à‚É§ŒÀ‚·‚é
+            // é€Ÿåº¦ã‚’è¨ˆç®—ã—ã€ç¯„å›²å†…ã«åˆ¶é™ã™ã‚‹
             _currentMoveSpeed =  _currentMoveSpeed + acceleration * Time.fixedDeltaTime;
             _currentMoveSpeed = Mathf.Clamp(_currentMoveSpeed, 0f, _status.MaxMoveSpeed);
 
-            // ‘OŒü‚«‚ÌˆÚ“®‚ğ‚·‚é
+            // å‰å‘ãã®ç§»å‹•ã‚’ã™ã‚‹
             Vector3 moveDirection = transform.forward * _currentMoveSpeed * _moveSpeedCoefficient * mBoostCoefficient;
             _rigidbody.velocity = moveDirection;
         }
@@ -396,19 +373,19 @@ namespace WSV.Character
 
         #region Player Rotate
         /// <summary>
-        /// ƒvƒŒƒCƒ„[‚Ì‰ñ“]‚ğ§Œä‚·‚é
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å›è»¢ã‚’åˆ¶å¾¡ã™ã‚‹
         /// </summary>
         private void PlayerRotation()
         {
-            // ƒQ[ƒ€‰æ–Ê‚É’‹‚µ‚Ä‚¢‚È‚¢‚Æ‰ñ“]‚µ‚È‚¢
+            // ã‚²ãƒ¼ãƒ ç”»é¢ã«æ³¨è¦–ã—ã¦ã„ãªã„ã¨å›è»¢ã—ãªã„
             if(!Application.isFocused)
                 return;
 
-            // •ûŒü“ü—Í‚ª‚È‚¢‚ÆI—¹
+            // æ–¹å‘å…¥åŠ›ãŒãªã„ã¨çµ‚äº†
             if (_rotateDirection == Vector3.zero)
                 return;
 
-            // “ü—Í‚³‚ê‚½•ûŒü‚Ö‰ñ“]‚·‚é
+            // å…¥åŠ›ã•ã‚ŒãŸæ–¹å‘ã¸å›è»¢ã™ã‚‹
             {
                 Quaternion rotation = Quaternion.LookRotation(_rotateDirection, Vector3.up);
                 _rigidbody.rotation = Quaternion.Slerp(transform.rotation, rotation, _status.RotationSpeed * Time.fixedDeltaTime);
@@ -417,7 +394,7 @@ namespace WSV.Character
         #endregion
 
         /// <summary>
-        /// ƒLƒƒƒ‰ƒNƒ^[‚Ì‰æ‘œ‚ğ”½“]‚·‚éŠÖ”
+        /// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®ç”»åƒã‚’åè»¢ã™ã‚‹é–¢æ•°
         /// </summary>
         private void FlipCharacterImage()
         {
@@ -432,7 +409,7 @@ namespace WSV.Character
         }
 
         /// <summary>
-        /// ƒvƒŒƒCƒ„[‚Ì€–Só‘Ô‚ğİ’è‚·‚é
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ­»äº¡çŠ¶æ…‹ã‚’è¨­å®šã™ã‚‹
         /// </summary>
         private void OnDead()
         {
@@ -448,22 +425,22 @@ namespace WSV.Character
 
             //_networkPlayer.CmdRespawnPlayer();
 
-            // ƒvƒŒƒCƒ„[‚Ìó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
             ResetStatus();
-            // ƒvƒŒƒCƒ„[‚ÌŒü‚«‚ğƒŠƒZƒbƒg‚·‚é
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘ãã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
             FlipCharacterImage();
-            // ƒRƒ“ƒ|ƒlƒ“ƒg‚ğ–³Œø‰»‚É‚·‚é
+            // ã‚³ãƒ³ãƒãƒãƒ³ãƒˆã‚’ç„¡åŠ¹åŒ–ã«ã™ã‚‹
             GetComponent<DropPointControl>().enabled = false;
             GetComponentInChildren<TrailRenderer>().enabled = false;
             GetComponent<Collider>().enabled = false;
-            // ƒvƒŒƒCƒ„[•œŠˆƒCƒxƒ“ƒg‚ğŠ«‹N‚·‚é
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å¾©æ´»ã‚¤ãƒ™ãƒ³ãƒˆã‚’å–šèµ·ã™ã‚‹
             _particleSystemCtrl.Stop();
             SetPowerUpLevel();
 
         }
 
         /// <summary>
-        /// ƒvƒŒƒCƒ„[‚ÌƒXƒeƒCƒ^ƒX‚ğƒŠƒZƒbƒg‚·‚é
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚¹ãƒ†ã‚¤ã‚¿ã‚¹ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
         /// </summary>
         private void ResetStatus()
         {
@@ -500,21 +477,21 @@ namespace WSV.Character
             Debug.Log("Reset Rigidbody");
         }
         /// <summary>
-        /// ’n–Ê‚ÌF‚ğƒ`ƒFƒbƒN‚·‚é
+        /// åœ°é¢ã®è‰²ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
         /// </summary>
         private void CheckGroundColor()
         {
-            // ©•ª‚Ì—Ìˆæ‚É‚¢‚½‚ç
+            // è‡ªåˆ†ã®é ˜åŸŸã«ã„ãŸã‚‰
             if (_colorCheck.isTargetColor(Color.clear))
             {
                 _moveSpeedCoefficient = 1.0f;
             }
-            // •Ê‚ÌƒvƒŒƒCƒ„[‚Ì—Ìˆæ‚É‚¢‚½‚ç
+            // åˆ¥ã®ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®é ˜åŸŸã«ã„ãŸã‚‰
             else if (_colorCheck.isTargetColor(_playerInfo.AreaColor))
             {
                 _moveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
             }
-            // “h‚ç‚ê‚Ä‚¢‚È‚¢’n–Ê‚É‚¢‚½‚ç
+            // å¡—ã‚‰ã‚Œã¦ã„ãªã„åœ°é¢ã«ã„ãŸã‚‰
             else
             {
                 _moveSpeedCoefficient = Global.SPEED_DOWN_COEFFICIENT;
@@ -522,44 +499,44 @@ namespace WSV.Character
         }
 
         /// <summary>
-        /// ƒvƒŒƒCƒ„[—Ìˆæ‚ğ•`‰æ‚µ‚Ä‚İ‚éŠÖ”
+        /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼é ˜åŸŸã‚’æç”»ã—ã¦ã¿ã‚‹é–¢æ•°
         /// </summary>
         private void TryPaintArea()
         {
             Vector3[] dropPoints = _dropPointCtrl.GetPlayerDropPointsPosition();
-            // DropPoint‚Í4ŒÂˆÈã‚ ‚ê‚Î•`‰æ‚Å‚«‚é
+            // DropPointã¯4å€‹ä»¥ä¸Šã‚ã‚Œã°æç”»ã§ãã‚‹
             if (dropPoints.Length >= 4)
             {
-                // ƒvƒŒƒCƒ„[‚Ìæ“ªÀ•W
+                // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å…ˆé ­åº§æ¨™
                 Vector3 endPoint1 = transform.position + transform.forward * _itemPlaceOffset;
-                // ƒvƒŒƒCƒ„[‚ª’¼‘O‚ÉƒCƒ“ƒXƒ^ƒ“ƒX‰»‚µ‚½DropPoint‚ÌÀ•W
+                // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒç›´å‰ã«ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã—ãŸDropPointã®åº§æ¨™
                 Vector3 endPoint2 = dropPoints[dropPoints.Length - 1];
-                // endPoint1‚ÆendPoint2‚Åì‚Á‚½ƒxƒNƒgƒ‹‚ÆendPoint2ˆÈŠO‚ÌDropPoint‚ğæ“ª‚©‚ç‡”Ô‚Å2ŒÂ‚¸‚Â‚Åì‚Á‚½ƒxƒNƒgƒ‹‚ªŒğ‚í‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚·‚é
+                // endPoint1ã¨endPoint2ã§ä½œã£ãŸãƒ™ã‚¯ãƒˆãƒ«ã¨endPoint2ä»¥å¤–ã®DropPointã‚’å…ˆé ­ã‹ã‚‰é †ç•ªã§2å€‹ãšã¤ã§ä½œã£ãŸãƒ™ã‚¯ãƒˆãƒ«ãŒäº¤ã‚ã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
                 for (int i = 0; i < dropPoints.Length - 2; ++i)
                 {
-                    // “ñ‚Â‚ÌƒxƒNƒgƒ‹‚ª•½s‚µ‚½‚çcontinue
+                    // äºŒã¤ã®ãƒ™ã‚¯ãƒˆãƒ«ãŒå¹³è¡Œã—ãŸã‚‰continue
                     if (VectorMath.IsParallel(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1))
                     {
                         continue;
                     }
-                    // ‚»‚ê‚¼‚ê‚ÌÀ•W“_‚Æ©•ª©gˆÈŠO‚ÌƒxƒNƒgƒ‹‚ÌˆÊ’uŠÖŒW‚ğŒvZ‚·‚é(0‚æ‚è‘å‚«‚¢‚È‚çƒxƒNƒgƒ‹‚Ì¶‘¤A0‚æ‚è¬‚³‚¢‚È‚çƒxƒNƒgƒ‹‚Ì‰E‘¤A0‚È‚çƒxƒNƒgƒ‹‚Ì’†)
+                    // ãã‚Œãã‚Œã®åº§æ¨™ç‚¹ã¨è‡ªåˆ†è‡ªèº«ä»¥å¤–ã®ãƒ™ã‚¯ãƒˆãƒ«ã®ä½ç½®é–¢ä¿‚ã‚’è¨ˆç®—ã™ã‚‹(0ã‚ˆã‚Šå¤§ãã„ãªã‚‰ãƒ™ã‚¯ãƒˆãƒ«ã®å·¦å´ã€0ã‚ˆã‚Šå°ã•ã„ãªã‚‰ãƒ™ã‚¯ãƒˆãƒ«ã®å³å´ã€0ãªã‚‰ãƒ™ã‚¯ãƒˆãƒ«ã®ä¸­)
                     float pointPos1 = VectorMath.PointOfLine(dropPoints[i], endPoint2, endPoint1);
                     float pointPos2 = VectorMath.PointOfLine(dropPoints[i + 1], endPoint2, endPoint1);
                     float pointPos3 = VectorMath.PointOfLine(endPoint2, dropPoints[i], dropPoints[i + 1]);
                     float pointPos4 = VectorMath.PointOfLine(endPoint1, dropPoints[i], dropPoints[i + 1]);
-                    // “ñ‚Â‚ÌƒxƒNƒgƒ‹‚ªŒğ‚í‚Á‚Ä‚¢‚½‚ç•`‰æ‚·‚é
+                    // äºŒã¤ã®ãƒ™ã‚¯ãƒˆãƒ«ãŒäº¤ã‚ã£ã¦ã„ãŸã‚‰æç”»ã™ã‚‹
                     if (pointPos1 * pointPos2 < 0 && pointPos3 * pointPos4 < 0)
                     {
-                        // Œğ“_‚ğŒvZ‚·‚é
+                        // äº¤ç‚¹ã‚’è¨ˆç®—ã™ã‚‹
                         Vector3 crossPoint = VectorMath.GetCrossPoint(dropPoints[i], dropPoints[i + 1], endPoint2, endPoint1);
-                        // •`‰æ‚·‚é—Ìˆæ‚Ì’¸“_‚ğæ“¾‚·‚é
+                        // æç”»ã™ã‚‹é ˜åŸŸã®é ‚ç‚¹ã‚’å–å¾—ã™ã‚‹
                         List<Vector3> verts = new List<Vector3>();
                         for (int j = i + 1; j < dropPoints.Length; j++)
                         {
                             verts.Add(dropPoints[j]);
                         }
                         verts.Add(crossPoint);
-                        // •`‰æ‚·‚é
+                        // æç”»ã™ã‚‹
 
                         #region Paint Area
                         PaintAreaEvent paintEvent = new PaintAreaEvent
@@ -573,10 +550,10 @@ namespace WSV.Character
                         #endregion
 
                         TryCaptureObject(verts.ToArray());
-                        // ‘S‚Ä‚ÌDropPoint‚ğÁ‚·
+                        // å…¨ã¦ã®DropPointã‚’æ¶ˆã™
                         _dropPointCtrl.CmdOnClearAllDropPoints();
                         
-                        // K”ö‚ÌTrailRenderer‚Ìó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+                        // å°»å°¾ã®TrailRendererã®çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
                         _dropPointCtrl.ResetTrail();
                         break;
                     }
@@ -605,7 +582,7 @@ namespace WSV.Character
                 }
             }
             
-            // ‹à‚Ì…‚Ì‰æ‘œ‚ğ•\¦
+            // é‡‘ã®ç³¸ã®ç”»åƒã‚’è¡¨ç¤º
             if (isPickedNew)
             {
                 SilkCapturedEvent silkCapturedEvent = new SilkCapturedEvent()
@@ -615,7 +592,7 @@ namespace WSV.Character
                 };
                 TypeEventSystem.Instance.Send(silkCapturedEvent);
                 //AudioManager.Instance.PlayFX("SpawnFX", 0.7f);
-                // ƒLƒƒƒ‰ƒNƒ^[‰æ‘œ‚Ìc‚Ì‘å‚«‚³‚ğæ“¾‚µ‚Ä‰æ‘œ‚Ìã‚Å•\¦‚·‚é
+                // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ç”»åƒã®ç¸¦ã®å¤§ãã•ã‚’å–å¾—ã—ã¦ç”»åƒã®ä¸Šã§è¡¨ç¤ºã™ã‚‹
                 _silkData.SilkRenderer.transform.localPosition = new Vector3(-_imageSpriteRenderer.bounds.size.x / 4f, _imageSpriteRenderer.bounds.size.z * 1.2f, 0);
                 _silkData.SilkRenderer.SetActive(true);
                 Transform silkCount = _silkData.SilkRenderer.transform.GetChild(0);
@@ -744,7 +721,7 @@ namespace WSV.Character
         }
 
         #region Boost Method
-        // ƒu[ƒXƒg
+        // ãƒ–ãƒ¼ã‚¹ãƒˆ
         private void OnBoost(InputAction.CallbackContext context)
         {
             if (context.performed)
@@ -782,11 +759,11 @@ namespace WSV.Character
 
         private void OnRespawn()
         {
-            // €–SˆÈŠO‚ÍÄ¶ˆ—‚µ‚È‚¢
+            // æ­»äº¡ä»¥å¤–ã¯å†ç”Ÿå‡¦ç†ã—ãªã„
             if (_playerState != State.Dead)
                 return;
 
-            // Ä¶ˆ—
+            // å†ç”Ÿå‡¦ç†
             {
                 transform.position = _spawnPos;
                 transform.forward = Global.PLAYER_DEFAULT_FORWARD[_playerInfo.ID - 1];
@@ -796,12 +773,12 @@ namespace WSV.Character
                 GetComponent<DropPointControl>().enabled = true;
                 GetComponent<Collider>().enabled = true;
 
-                // —‰ºŒã‚Ì‰ŒƒGƒtƒFƒNƒg‚Ìì¬
+                // è½ä¸‹å¾Œã®ç…™ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ä½œæˆ
                 GameObject smoke = Instantiate(GameResourceSystem.Instance.GetPrefabResource("Smoke"), transform.position, Quaternion.identity);
                 smoke.transform.rotation = Quaternion.LookRotation(Vector3.up);
                 smoke.transform.position -= new Vector3(0.0f, 0.32f, 0.0f);
 
-                // ƒp[ƒeƒBƒNƒ‹ƒVƒXƒeƒ€‚ÌÄŠJ
+                // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«ã‚·ã‚¹ãƒ†ãƒ ã®å†é–‹
                 _particleSystemCtrl.Play();
             }
 
