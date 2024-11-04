@@ -3,12 +3,14 @@ using UnityEngine;
 public static class Global
 {
     #region Player
-
-    public struct PowerUp
+    
+    internal struct PowerUp
     {
         public float SpeedUp;
         public float RotateUp;
     }
+
+    public static int PLAYER_MAX_COUNT = 2;
 
     public static readonly Vector3[] PLAYER_START_POSITIONS =
     {
@@ -33,21 +35,21 @@ public static class Global
         new Color(0, 152/255f, 253/255f, 1)
     };
 
-    public static readonly float RESPAWN_TIME = 5.0f; // ƒvƒŒƒCƒ„[‚ª€‚ñ‚Å‚©‚ç•œŠˆ‚Ü‚Å‚ÌŠÔŠÔŠu
+    public static readonly float RESPAWN_TIME = 5.0f; // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ç•œï¿½ï¿½ï¿½Ü‚Å‚Ìï¿½ï¿½ÔŠÔŠu
 
     #region PlayerStatus
 
-    public static readonly float SPEED_DOWN_COEFFICIENT = 0.8f; // ‘¼‚ÌƒvƒŒƒCƒ„[‚Ì—Ìˆæã‚É‚¢‚é‚ÌƒXƒr[ƒgŒW”
-    public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // ©•ª‚ÌƒvƒŒƒCƒ„[‚Ì—Ìˆæã‚É‚¢‚é‚ÌƒXƒr[ƒgŒW”
+    public static readonly float SPEED_DOWN_COEFFICIENT = 0.8f; // ï¿½ï¿½ï¿½Ìƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì—Ìˆï¿½ï¿½É‚ï¿½ï¿½éï¿½ÌƒXï¿½rï¿½[ï¿½gï¿½Wï¿½ï¿½
+    public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // ï¿½ï¿½ï¿½ï¿½ï¿½Ìƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì—Ìˆï¿½ï¿½É‚ï¿½ï¿½éï¿½ÌƒXï¿½rï¿½[ï¿½gï¿½Wï¿½ï¿½
 
-    public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // ƒvƒŒƒCƒ„[‚ÌÅ‘å‘¬“x
-    public static readonly float PLAYER_ACCELERATION = 15.0f; // ƒvƒŒƒCƒ„[‚Ì‰Á‘¬“x
-    public static readonly float PLAYER_ROTATION_SPEED = 4.0f; // ƒvƒŒƒCƒ„[‚Ì‰ñ“]‘¬“x
+    public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌÅ‘å‘¬ï¿½x
+    public static readonly float PLAYER_ACCELERATION = 15.0f; // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‰ï¿½ï¿½ï¿½ï¿½x
+    public static readonly float PLAYER_ROTATION_SPEED = 4.0f; // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‰ï¿½]ï¿½ï¿½ï¿½x
 
     public static readonly float BOOST_DURATION_TIME = 1.0f;
     public static readonly float BOOST_COOLDOWN_TIME = 6.0f;
 
-    public static readonly PowerUp[] POWER_UP_PARAMETER =
+    internal static readonly PowerUp[] POWER_UP_PARAMETER =
     {
         new PowerUp() { SpeedUp = 6f, RotateUp = -0.5f },
         new PowerUp() { SpeedUp = 12f, RotateUp = -0.8f },
@@ -60,8 +62,8 @@ public static class Global
 
     #region DropPoint
 
-    public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPoint‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»‚·‚éŠÔŠÔŠu
-    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPoint‚Ì‘¶İ‚µ‚Ä‚¢‚éŠÔ
+    public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPointï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½éï¿½ÔŠÔŠu
+    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPointï¿½Ì‘ï¿½ï¿½İ‚ï¿½ï¿½Ä‚ï¿½ï¿½éï¿½ï¿½
 
     #endregion
 
@@ -88,17 +90,17 @@ public static class Global
 
     #endregion
 
-    public static readonly float SET_GAME_TIME = 180f; //ƒQ[ƒ€ŠÔ
+    public static readonly float SET_GAME_TIME = 180f; //ï¿½Qï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-    public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //ƒQ[ƒ€‘€ì•û–@Ğ‰î‰æ–Ê PRESS–³Œø‚ÌŠÔ
-    public static readonly float CREDITS_SCENE_TIME = 1.5f; //ƒQ[ƒ€I—¹Œã‚ÌŠ´Ó‰æ–Ê PRESS–³Œø‚ÌŠÔ
+    public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //ï¿½Qï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½@ï¿½Ğ‰ï¿½ï¿½ï¿½ PRESSï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½
+    public static readonly float CREDITS_SCENE_TIME = 1.5f; //ï¿½Qï¿½[ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ÌŠï¿½ï¿½Ó‰ï¿½ï¿½ PRESSï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½
 
-    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(10000f, 0, 0); //¶¬‚³‚ê‚½ƒIƒuƒWƒFƒNƒg‚Ì•Û‘¶À•W
+    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(10000f, 0, 0); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½Ì•Û‘ï¿½ï¿½ï¿½ï¿½W
 
     #region Map
 
-    public static readonly int MAP_SIZE_WIDTH = 2; //ƒ}ƒbƒv‚Ì’·‚³
-    public static readonly int MAP_SIZE_HEIGHT = 2; //ƒ}ƒbƒv‚Ì‚‚³
+    public static readonly int MAP_SIZE_WIDTH = 2; //ï¿½}ï¿½bï¿½vï¿½Ì’ï¿½ï¿½ï¿½
+    public static readonly int MAP_SIZE_HEIGHT = 2; //ï¿½}ï¿½bï¿½vï¿½Ìï¿½ï¿½ï¿½
     public static readonly float STAGE_WIDTH = MAP_SIZE_WIDTH * 100f;
     public static readonly float STAGE_HEIGHT = MAP_SIZE_HEIGHT * 100f;
 

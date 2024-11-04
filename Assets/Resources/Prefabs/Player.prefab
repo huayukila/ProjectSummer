@@ -70,9 +70,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 5
+  m_SortingLayerID: -1356891053
+  m_SortingLayer: -1
+  m_SortingOrder: 0
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -99,7 +99,7 @@ GameObject:
   - component: {fileID: 3936512292978523728}
   - component: {fileID: 282311515637009442}
   - component: {fileID: 7107468156506239068}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -204,12 +204,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8784c6e7ce85a1f409b17ce3624efaa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mAcceleration: 0
+  _playerState: 0
   silkCountSprites:
   - {fileID: 1261572293, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: -939105449, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: 1531186191, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
   - {fileID: -1927035945, guid: f86f2b41d36fc394a9a5a732914bb959, type: 3}
+  DirtTex: {fileID: 2800000, guid: a4ee375fdec425a44abf3ff6dee3f661, type: 3}
+  DirtScale: 0.2
 --- !u!114 &3936512292978523728
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -241,7 +243,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 7, y: 0.9, z: 7}
+  m_Size: {x: 15, y: 0.9, z: 15}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &7107468156506239068
 Rigidbody:

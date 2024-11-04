@@ -21,7 +21,7 @@ public class PaintBubble : ThrowItem
         float explodeRadius = Mathf.Sqrt(
             Mathf.Pow(playerCol.size.x * player.transform.localScale.x, 2f) +
             Mathf.Pow(playerCol.size.z * player.transform.localScale.z, 2f)
-            ) * 5f;
+            ) * 20f;
 
         explodeCtrl.SetExplodeProperty(player.GetID(), explodeRadius, player.GetColor());
     }

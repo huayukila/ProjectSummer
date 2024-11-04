@@ -7,22 +7,22 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
 {
     private const int EXPLODE_VERTEX_COUNT = 30;
     private Color _bubbleColor = Color.clear;
-
     private float _waitForExplodeTime = Global.BUBBLE_EXPLODE_TIME;
-
     private float _explodeRadius = 0f;
-
     private int _ownerPlayerID = -1;
-
     private Material _material;
-
     private MeshRenderer _meshRenderer;
+    private Collider[] _explodeTargetColliders;
+    public Color Color => _bubbleColor;
+    public int OwnerPlayerID => _ownerPlayerID;
 
     private void Awake()
     {
         Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,ExplodeBubble);
         explodeTimer.StartTimer(this);
         _meshRenderer = GetComponent<MeshRenderer>();
+        
+        _explodeTargetColliders = new Collider[Global.PLAYER_MAX_COUNT];
     }
     private void Start()
     {
@@ -73,6 +73,20 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
             Quaternion angle = Quaternion.Euler(0f, 360f / (float)EXPLODE_VERTEX_COUNT * (float)i, 0f);
             Vector3 vert =  angle * Vector3.right ;
             explodeAreaVertexes.Add(vert.normalized * _explodeRadius + transform.position);
+        }
+
+        int cnt = Physics.OverlapSphereNonAlloc(    transform.position,
+                                                    _explodeRadius,
+                                                    _explodeTargetColliders,
+                                                    LayerMask.GetMask("Player")
+                                                );
+
+        for(int i = 0; i < cnt; ++i)
+        {
+            if(_explodeTargetColliders[i].TryGetComponent(out IItemAffectable itemAffectable))
+            {
+                itemAffectable.OnAffect(this);
+            }
         }
 
         PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(), _ownerPlayerID, _bubbleColor);

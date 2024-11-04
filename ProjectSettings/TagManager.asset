@@ -19,7 +19,7 @@ TagManager:
   - Water
   - UI
   - Ground
-  - 
+  - Player
   - 
   - 
   - 
@@ -45,6 +45,15 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Item
+    uniqueID: 4140424933
+    locked: 0
+  - name: PlayerImage
+    uniqueID: 2938076243
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Dirt
+    uniqueID: 859643817
     locked: 0

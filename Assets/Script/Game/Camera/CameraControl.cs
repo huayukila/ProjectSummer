@@ -17,22 +17,15 @@ namespace Gaming
             OnTarget
         }
         [SerializeField]
-        private float m_Smoothness;
-        private GameObject m_Target;
+        private float _smoothness;
+        private GameObject _target;
         private CamState mState = CamState.None;
         private Timer _playerRespawnLockOnTimer;
 
         // Start is called before the first frame update
         void Start()
         {
-            m_Smoothness = 2.5f;
-        }
-
-        // Update is called once per frame
-
-        private void Update()
-        {
-
+            _smoothness = 2.5f;
         }
 
         private void FixedUpdate()
@@ -43,8 +36,8 @@ namespace Gaming
                     break;
                 case CamState.OnTarget:
                 {
-                    Vector3 camPos = m_Target.transform.position + Vector3.up * 36;
-                    transform.position = Vector3.Lerp(transform.position, camPos, m_Smoothness * Time.fixedDeltaTime);
+                    Vector3 camPos = _target.transform.position + Vector3.up * 36;
+                    transform.position = Vector3.Lerp(transform.position, camPos, _smoothness * Time.fixedDeltaTime);
                     break;
                 }
 
@@ -55,9 +48,9 @@ namespace Gaming
         {
             if (target != null)
             {
-                m_Target = target;
+                _target = target;
                 mState = CamState.OnTarget;
-                transform.position = m_Target.transform.position + Vector3.up * 36;
+                transform.position = _target.transform.position + Vector3.up * 36;
             }
         }
         public void StopLockOn()

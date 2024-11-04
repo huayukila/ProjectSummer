@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
 using Math;
+using Unity.Mathematics;
 
 public interface IItemAffectable
 {
@@ -64,12 +65,23 @@ namespace Character
       private float _returnToFineTimer = 0f;
 
       public Sprite[] silkCountSprites;
+      private DirtPlaneEffect _dirtPlaneEffect;
+      private Camera _camera;
+      private bool _isScreenDirt = false;
+
+      private Vector2[] _dirtUVBuffer;
+
+      private float _washDirtTimeInterval = 1f;
+      private float _washDirtTimeCnt;
+
+      // TODO
+      public Texture DirtTex;
+      [Range(0f,1f)]
+      public float DirtScale;
 
       private void Awake()
       {
-          // ����������
-          Init();
-
+        Init_Impl();     
       }
       private void Start()
       {
@@ -78,9 +90,13 @@ namespace Character
           GetComponent<DropPointControl>()?.Init();
           transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
           mParticleSystemControl.Play();
+
+          _dirtPlaneEffect = new DirtPlaneEffect(_camera, DirtTex, DirtScale, Color.clear);
       }
       private void Update()
       {
+        _dirtPlaneEffect?.Update();
+
           if (_playerState == State.Dead)
               return;
           // �v���C���[���u�ʏ�v��Ԃ���Ȃ��ƌ�قǂ̏��������s���Ȃ�
@@ -195,7 +211,7 @@ namespace Character
       /// <summary>
       /// �v���C���[�̃v���p�e�B������������
       /// </summary>
-      private void Init()
+      private void Init_Impl()
       {
           mRigidbody = GetComponent<Rigidbody>();
           mColorCheck = GetComponent<ColorCheck>();
@@ -222,6 +238,9 @@ namespace Character
           mSilkData.SilkRenderer.transform.parent = mImageSpriteRenderer.transform;
           mSilkData.SilkRenderer.SetActive(false);
           mBoostCoefficient = 1f;
+
+          _isScreenDirt = false;
+          _washDirtTimeCnt = 0f;
 
       }
 
@@ -300,6 +319,10 @@ namespace Character
           mAnim.StartRespawnAnim();
           mParticleSystemControl.Stop();
           SetPowerUpLevel();
+
+          _dirtPlaneEffect.ResetDirt();
+          _isScreenDirt = false;
+          _washDirtTimeCnt = 0f;
       }
 
       /// <summary>
@@ -320,7 +343,7 @@ namespace Character
 
           mSilkData.SilkCount = 0;
 
-          transform.forward = Global.PLAYER_DEFAULT_FORWARD[(mID - 1)];
+          transform.forward = Global.PLAYER_DEFAULT_FORWARD[mID - 1];
 
           DropPointSystem.Instance.ClearDropPoints(mID);
 
@@ -346,6 +369,16 @@ namespace Character
           else if (mColorCheck.isTargetColor(mColor))
           {
               mMoveSpeedCoefficient = Global.SPEED_UP_COEFFICIENT;
+              if (_isScreenDirt)
+              {
+                _washDirtTimeCnt -= Time.deltaTime;
+                if (_washDirtTimeCnt <= 0f)
+                {
+                  _washDirtTimeCnt = 0f;
+                  _isScreenDirt = false;
+                }
+                WashDirt(_washDirtTimeCnt / _washDirtTimeInterval);
+              }
           }
           // �h���Ă��Ȃ��n�ʂɂ�����
           else
@@ -500,11 +533,8 @@ namespace Character
       {
           if(_playerState == State.Fine && ctx.performed)
           {
-              this.UseItem(this);
-              
+              this.UseItem(this);      
           }
-
-
       }
 
       private void ReturnToFineCountDown()
@@ -535,7 +565,6 @@ namespace Character
 
       private void PlaySlipAnimation()
       {
-          //float rotationAngle = (-720f / Global.ON_SLIP_TIME * _returnToFineTimer + 720f) * Time.deltaTime;
           float rotationAngle = 720f / Global.ON_SLIP_TIME * Time.deltaTime;
           mImageSpriteRenderer.transform.Rotate(Vector3.back * rotationAngle);
       }
@@ -551,6 +580,7 @@ namespace Character
       {
           mBoostAction.performed -= OnBoost;
           _itemAction.performed -= OnUseItem;
+          _dirtPlaneEffect.Dispose();
       }
       // �u�[�X�g
       private void OnBoost(InputAction.CallbackContext context)
@@ -581,7 +611,6 @@ namespace Character
                   stopBoostTimer.StartTimer(this);
                   boostCoolDownTimer.StartTimer(this);
               }
-
           }
       }
 
@@ -621,25 +650,10 @@ namespace Character
           }
       }
 
-      private void Slip()
+      public void SetCamera(Camera camera)
       {
-          _playerState = State.Slippy;
-          _returnToFineTimer = Global.ON_SLIP_TIME;
-      }
-
-      private void Stun()
-      {
-          _playerState = State.Stun;
-          mCurrentMoveSpeed = 0f;
-          mRigidbody.velocity = Vector3.zero;
-          _returnToFineTimer = Global.ON_STUN_TIME;
-      }
-
-      private void DirtScreen()
-      {
-        throw new NotImplementedException();  
-      }
-
+        _camera = camera;
+      } 
       void IItemAffectable.OnAffect(BananaPeelController bananaPeel)
       {
         Slip();
@@ -652,10 +666,97 @@ namespace Character
 
       void IItemAffectable.OnAffect(PaintBubbleController paintBubble)
       {
-        DirtScreen();
+        if (paintBubble.OwnerPlayerID == mID)
+        {
+          if (_isScreenDirt)
+          {
+            _dirtPlaneEffect.ResetDirt();
+            _isScreenDirt = false;
+            _washDirtTimeCnt = 0f;
+          }
+          return;
+        }
+        else
+        {
+          DirtScreen(paintBubble.Color);
+        }
       }
 
-        public float ColliderOffset => mColliderOffset;
+      private void Slip()
+      {
+          _playerState = State.Slippy;
+          _returnToFineTimer = Global.ON_SLIP_TIME;
+      }
+
+      private void Stun()
+      {
+        _playerState = State.Stun;
+        mCurrentMoveSpeed = 0f;
+        mRigidbody.velocity = Vector3.zero;
+        _returnToFineTimer = Global.ON_STUN_TIME;
+      }
+
+      private void DirtScreen(Color dirtColor)
+      {
+        if (_dirtPlaneEffect == null)
+        {
+          Debug.LogWarning("dirt plane effect is invalid");
+          return;
+        }
+        else
+        {
+          _washDirtTimeCnt = _washDirtTimeInterval;
+          _dirtPlaneEffect.DirtBrushColor = dirtColor;
+          _dirtPlaneEffect.ResetDirt();
+          DirtScreen_Impl();
+        }
+      }
+
+      private void DirtScreen_Impl()
+      {
+        _isScreenDirt = true;
+        Span<Vector2> dirtUV = stackalloc Vector2[5];
+
+        dirtUV[0].x = 0.25f;
+        dirtUV[0].y = 0.25f;
+        dirtUV[1].x = 0.75f;
+        dirtUV[1].y = 0.25f;
+        dirtUV[2].x = 0.25f;
+        dirtUV[2].y = 0.75f;
+        dirtUV[3].x = 0.75f;
+        dirtUV[3].y = 0.75f;
+        dirtUV[4].x = 0.5f;
+        dirtUV[4].y = 0.5f;
+
+        for(int i = 0; i < 5; ++i)
+        {
+          float randOffsetX = UnityEngine.Random.Range(-0.1f,0.1f);
+          float randOffsetY = UnityEngine.Random.Range(-0.1f,0.1f);
+
+          dirtUV[i].x += randOffsetX;
+          dirtUV[i].y += randOffsetY;
+        }
+
+        _dirtUVBuffer = dirtUV.ToArray();
+        _dirtPlaneEffect.PaintUV(_dirtUVBuffer);
+      }
+
+      private void WashDirt(float washRate)
+      {
+        if (_dirtUVBuffer == null)
+        {
+          return;
+        }
+
+        var dirtColor = _dirtPlaneEffect.DirtBrushColor;
+        dirtColor.a = washRate;
+        _dirtPlaneEffect.DirtBrushColor = dirtColor;
+
+        _dirtPlaneEffect.ResetDirt();
+        _dirtPlaneEffect.PaintUV(_dirtUVBuffer);
+      }
+
+      public float ColliderOffset => mColliderOffset;
       #endregion
   }
 }
