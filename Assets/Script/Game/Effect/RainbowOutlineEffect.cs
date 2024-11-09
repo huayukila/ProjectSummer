@@ -17,7 +17,7 @@ public sealed class RainbowOutlineEffect : System.IDisposable
     UnityEngine.Assertions.Assert.IsNotNull(material);
 
     mat = material;
-    mat.SetColor(OutlineShaderProp.OUTLINE_COL, UnityEngine.Color.white);
+    mat.SetColor(OutlineShaderProp.OUTLINE_COL, UnityEngine.Color.clear);
     mat.SetFloat(OutlineShaderProp.OUTLINE_WIDTH, 10f);
     mat.SetFloat(OutlineShaderProp.OUTLINE_INTENSE, 1f);
     mat.SetFloat(OutlineShaderProp.OUTLINE_ALPHA_THRESHOLD, 1f);
@@ -28,7 +28,7 @@ public sealed class RainbowOutlineEffect : System.IDisposable
   public void UpdateOutline(float deltaTime)
   {
     _timeCnt += deltaTime;
-    mat.SetColor(OutlineShaderProp.OUTLINE_COL, UnityEngine.Color.HSVToRGB(_timeCnt % 1f, 1f, 1f));
+    mat.SetColor(OutlineShaderProp.OUTLINE_COL, UnityEngine.Color.HSVToRGB(_timeCnt * 0.3f % 1f, 0.5f, 0.7f));
   }
 
   public void SetActive(bool value)
