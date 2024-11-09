@@ -101,30 +101,7 @@ Shader "MShaders/OutlineEffect2D"
 
             Blend SrcAlpha OneMinusSrcAlpha
 
-            Stencil
-            {
-                Ref 1
-                Comp Always
-                Pass Replace
-            }
-
             CGPROGRAM
-
-
-     //        half2 SobelUV[9] = { half2(-1,1),half2(0,1),half2(1,1),
-					// half2(-1,0),half2(0,0),half2(1,0),
-					// half2(-1,-1),half2(0,-1),half2(1,-1) };
-     //        half SobelX[9] = { -1,  0,  1,
-					// -2,  0,  2,
-					// -1,  0,  1 };
-     //        half SobelY[9] = { -1, -2, -1,
-					// 0,  0,  0,
-					// 1,  2,  1 };
-
-            // fixed Luminance(fixed4 color)
-            // {
-            //     return color.r * 0.33 + color.g * 0.33 + color.b * 0.34;
-            // }
             
             Output vert (Input input)
             {

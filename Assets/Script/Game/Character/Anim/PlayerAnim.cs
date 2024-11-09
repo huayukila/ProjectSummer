@@ -3,14 +3,18 @@ using Character;
 
 public class PlayerAnim : CharacterAnim
 {
-
-    private GameObject mShadow;                        // ƒvƒŒƒCƒ„[‚ª•œŠˆ‚·‚é‚Ì‰e
-    private SpriteRenderer mShadowSpriteRenderer;      // ƒvƒŒƒCƒ„[‚ª•œŠˆ‚·‚é‚Ì‰e‚ÌSpriteRenderer
-    private GameObject mBigSpider;                      // ƒvƒŒƒCƒ„[‚ª•œŠˆ‚·‚é‚·‚é‚Ì‘å‚«‚¢’wå
-    private LineRenderer mBigSpiderLineRenderer;       // ƒvƒŒƒCƒ„[•œŠˆ‚·‚é‚Ì‹ó’†“Š‰º‚·‚é‚ÉŒq‚ª‚Á‚Ä‚¢‚é…
-    private GameObject mExplosionPrefab;                // ”š”­ƒAƒjƒ[ƒVƒ‡ƒ“ƒvƒŒƒnƒu
+  private readonly static float DARKNESS_RATE = 0.9f;
+    private GameObject mShadow;                        
+    private SpriteRenderer mShadowSpriteRenderer;      
+    private GameObject mBigSpider;                      
+    private LineRenderer mBigSpiderLineRenderer;      
+    private GameObject mExplosionPrefab;               
     private Player mPlayer;
     private float _respawnAnimationTimer;
+    private MPostProcess.MonochromeEffect _deadEffect;
+    private MPostProcess.HideEffect _hideEffect;
+    private float _deadEffectTimeCnt;
+    private readonly float _deadEffectTimeInterval = 1f;
 
     private void Awake()
     {
@@ -24,109 +28,140 @@ public class PlayerAnim : CharacterAnim
         mBigSpiderLineRenderer.startWidth = 0.2f;
         mBigSpiderLineRenderer.endWidth = 0.2f;
 
-        // •œŠˆ‚·‚é‚Æ‚«Œ»‚ê‚é‰e‚ÌƒvƒŒƒnƒu‚ğƒCƒ“ƒXƒ^ƒ“ƒX‰»‚·‚é
+        
         mShadow = Instantiate(GameResourceSystem.Instance.GetPrefabResource("PlayerShadow"), Vector3.zero, Quaternion.identity);
         mShadow.transform.localScale = Vector3.zero;
-        //TODO ‰e‚Ì•ûŒü‚ğ•Ï‚¦‚é
+
         mShadow.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
 
-        // ‰e‚ğ“§–¾‚É‚·‚é
         mShadowSpriteRenderer = mShadow.GetComponent<SpriteRenderer>();
         mShadowSpriteRenderer.color = Color.clear;
 
         mPlayer = GetComponent<Player>();
         _respawnAnimationTimer = Global.RESPAWN_TIME;
 
-    }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+        _deadEffectTimeCnt = 0f;
 
+    }
     // Update is called once per frame
     void Update()
     {
-        switch(mType)
+      switch(mType)
+      {
+        case AnimType.None:
+        break;
+        case AnimType.Respawn:
         {
-            case AnimType.None:
-                break;
-            case AnimType.Respawn:
-                {
-                    UpdateRespawnAnimation();
-                }
-                break;
+          UpdateRespawnAnimation();
         }
+        break;
+      }
+    }
 
+    private void OnDestroy()
+    {
+      _deadEffect?.Dispose();
     }
 
     /// <summary>
-    /// •œŠˆƒAƒjƒ[ƒVƒ‡ƒ“‚ğƒŠƒZƒbƒg‚·‚é
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½gï¿½ï¿½ï¿½ï¿½
     /// </summary>
     private void ResetRespawnAnimation()
     {
-
-        mBigSpider.transform.position = Global.GAMEOBJECT_STACK_POS;
-        mBigSpiderLineRenderer.positionCount = 0;
-        mShadow.transform.localScale = Vector3.zero;
-        mShadowSpriteRenderer.color = Color.clear;
+      mBigSpider.transform.position = Global.GAMEOBJECT_STACK_POS;
+      mBigSpiderLineRenderer.positionCount = 0;
+      mShadow.transform.localScale = Vector3.zero;
+      mShadowSpriteRenderer.color = Color.clear;
     }
 
     /// <summary>
-    /// •œŠˆƒAƒjƒ[ƒVƒ‡ƒ“‚ğXV‚·‚éŠÖ”
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½ï¿½Öï¿½
     /// </summary>
-    //TODO ƒJƒƒ‰‚ğ“ñ‚Â‚É‚·‚é‚É•ÏX‚·‚é—\’è
+    //TODO ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â‚É‚ï¿½ï¿½éï¿½É•ÏXï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½
     private void UpdateRespawnAnimation()
     {
-        _respawnAnimationTimer -= Time.deltaTime;
-        // •œŠˆƒAƒjƒ[ƒVƒ‡ƒ“‘O”¼•”•ª‚Ìˆ—
-        if (_respawnAnimationTimer >= Global.RESPAWN_TIME / 2.0f)
+
+      _respawnAnimationTimer -= Time.deltaTime;
+      if (_respawnAnimationTimer >= Global.RESPAWN_TIME / 2.0f)
+      {
+        mBigSpider.transform.Translate(new Vector3(0.0f, 0.0f, -20.0f * Time.deltaTime), Space.World);
+        transform.position = mBigSpider.transform.position + new Vector3(0.0f, 0.5f, 0.0f);
+
+        _deadEffectTimeCnt += Time.deltaTime;
+        if (_deadEffectTimeCnt >= _deadEffectTimeInterval)
         {
-            mBigSpider.transform.Translate(new Vector3(0.0f, 0.0f, -20.0f * Time.deltaTime), Space.World);
-            transform.position = mBigSpider.transform.position + new Vector3(0.0f, 0.5f, 0.0f);
+          _deadEffectTimeCnt = 1f;
         }
-        // •œŠˆƒAƒjƒ[ƒVƒ‡ƒ“Œã”¼•”•ª‚Ìˆ—
-        else
+
+        _deadEffect?.SetRate(_deadEffectTimeCnt / _deadEffectTimeInterval);
+        _hideEffect?.SetFogDense(_deadEffectTimeCnt / _deadEffectTimeInterval * DARKNESS_RATE);
+      }
+      else
+      {
+        //TODO
+        transform.Translate(-(mBigSpider.transform.position - Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1]) * 0.4f * Time.deltaTime, Space.World);
+        transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
+        mShadowSpriteRenderer.color += Color.white * 0.4f * Time.deltaTime;
+        mShadow.transform.localScale += Vector3.one * 0.4f * Time.deltaTime * 0.8f;
+        Vector3[] spiderThread = new Vector3[2];
+        spiderThread[0] = mBigSpider.transform.position;
+        spiderThread[1] = transform.position + new Vector3(0.0f, -0.5f, 0.0f);
+        mBigSpiderLineRenderer.SetPositions(spiderThread);
+
+        if (_deadEffect != null && _deadEffect.IsActive)
         {
-            //TODO
-            transform.Translate(-(mBigSpider.transform.position - Global.PLAYER_START_POSITIONS[mPlayer.GetID() - 1]) * 0.4f * Time.deltaTime, Space.World);
-            transform.localScale -= new Vector3(0.5f, 0.0f, 0.5f) * 0.4f * Time.deltaTime;
-            mShadowSpriteRenderer.color += Color.white * 0.4f * Time.deltaTime;
-            mShadow.transform.localScale += Vector3.one * 0.4f * Time.deltaTime * 0.8f;
-            Vector3[] spiderThread = new Vector3[2];
-            spiderThread[0] = mBigSpider.transform.position;
-            spiderThread[1] = transform.position + new Vector3(0.0f, -0.5f, 0.0f);
-            mBigSpiderLineRenderer.SetPositions(spiderThread);
+          _deadEffectTimeCnt -= Time.deltaTime;
+          if (_deadEffectTimeCnt <= 0f)
+          {
+            _deadEffectTimeCnt = 0f;
+            _deadEffect.SetActive(false);
+            _hideEffect?.SetActive(false);
+          }
+
+          _deadEffect.SetRate(_deadEffectTimeCnt / _deadEffectTimeInterval);
         }
+
+        _hideEffect?.SetFogDense(_deadEffectTimeCnt / _deadEffectTimeInterval * DARKNESS_RATE);
+      }
     }
 
     public void StartRespawnAnim()
     {
-        mType = AnimType.Respawn;
-        int index = mPlayer.GetID() - 1;
-        mBigSpider.transform.position = Global.PLAYER_START_POSITIONS[index] + new Vector3(0.0f, 0.0f, 100.0f);
-        mShadow.transform.position = Global.PLAYER_START_POSITIONS[index];
-        // •œŠˆƒAƒjƒ[ƒVƒ‡ƒ“‚ğ‰Šú‰»‚·‚é
-        transform.position = mBigSpider.transform.position;
-        mBigSpiderLineRenderer.positionCount = 2;
-        Timer respawnAnimationTimer = new Timer(Time.time,Global.RESPAWN_TIME,
-            () =>
-            {
-                ResetRespawnAnimation();
-                isStopped = true;
-                mType = AnimType.None;
-                _respawnAnimationTimer = Global.RESPAWN_TIME;
-            }
-            );
-        respawnAnimationTimer.StartTimer(this);
-        isStopped = false;
+      mType = AnimType.Respawn;
+      int index = mPlayer.GetID() - 1;
+      mBigSpider.transform.position = Global.PLAYER_START_POSITIONS[index] + new Vector3(0.0f, 0.0f, 100.0f);
+      mShadow.transform.position = Global.PLAYER_START_POSITIONS[index];
+      transform.position = mBigSpider.transform.position;
+      mBigSpiderLineRenderer.positionCount = 2;
+      Timer respawnAnimationTimer = new Timer(Time.time,Global.RESPAWN_TIME,
+        () =>
+        {
+          ResetRespawnAnimation();
+          isStopped = true;
+          mType = AnimType.None;
+          _respawnAnimationTimer = Global.RESPAWN_TIME;
+        }
+        );
+      respawnAnimationTimer.StartTimer(this);
+      isStopped = false;
+
+      _deadEffect?.SetActive(true);
+      _deadEffectTimeCnt = 0f;
+
+      _hideEffect?.SetActive(true);
+      _hideEffect?.SetFogDense(0f);
     }
 
     public void StartExplosionAnim()
     {
-        GameObject explosion = Instantiate(mExplosionPrefab, transform.position, Quaternion.identity);
-        explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
-        // ”š”­‚ÌŒø‰Ê‰¹‚ğ—¬‚·
-        AudioManager.Instance.PlayFX("BoomFX", 0.7f);
+      GameObject explosion = Instantiate(mExplosionPrefab, transform.position, Quaternion.identity);
+      explosion.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.up);
+      AudioManager.Instance.PlayFX("BoomFX", 0.7f);
+    }
+
+    public void SetDeadEffect(MPostProcess.MonochromeEffect effect, MPostProcess.HideEffect hideEffect)
+    {
+      _deadEffect = effect;
+      _hideEffect = hideEffect;
     }
 }
