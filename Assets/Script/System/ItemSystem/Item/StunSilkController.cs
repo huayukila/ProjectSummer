@@ -7,40 +7,64 @@ using UnityEngine;
 public class StunSilkController : MonoBehaviour
 {
     private Rigidbody _rigidBody;
+    private Animator _animator;
     private void Awake()
     {
         if(!gameObject.TryGetComponent(out _rigidBody))
         {
             _rigidBody = gameObject.AddComponent<Rigidbody>();
         }
+
+        _rigidBody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        _rigidBody.useGravity = false;
         _rigidBody.velocity = transform.forward * Global.STUN_SILK_SPEED;
+
+        _animator = GetComponentInChildren<Animator>();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.LogWarning(other.gameObject.name);
-        if (other.CompareTag("Player"))
+        bool isHit = false;
+        if(other.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
-            other.gameObject.GetComponent<Player>().OnEffect("Stun");
-            Destroy(gameObject);
+            StartCoroutine(OnHit());
+            isHit = true;
         }
-        if(other.CompareTag("Wall"))
+
+        if (other.TryGetComponent(out IItemAffectable itemAffectable))
         {
-            Destroy(gameObject);
+            itemAffectable.OnAffect(this);
+            StartCoroutine(OnHit(2f));
+            isHit = true;
+        }
+
+        if (isHit)
+        {
+            _rigidBody.velocity = Vector3.zero;
+            var collider = GetComponent<Collider>();
+            collider.enabled = false;
         }
     }
-}
 
-public static class StringExtensions
-{
-    public static string ToTitleCast(this string s)
+    private IEnumerator OnHit(float time = 0f)
     {
-        if(String.IsNullOrEmpty(s))
-        {
-            throw new ArgumentException("String is null or empty");
-        }
-        string titleCastStr = s[0].ToString().ToUpper() + s.Substring(1).ToLower();
+        _animator.Play("Hit");
 
-        return titleCastStr;
+        yield return new WaitForSeconds(0.1f);
+
+        if (time <= 0f)
+        {
+            while(_animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+            {
+                yield return null;
+            }
+        }
+        else
+        {
+            yield return new WaitForSeconds(time);
+        }
+
+        Destroy(gameObject);
+        yield break;
     }
 }

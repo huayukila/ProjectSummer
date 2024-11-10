@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Player2Image
   m_EditorClassIdentifier: 
   Name: Player2
-  CharacterSprite: {fileID: 21300000, guid: fd3479f59107b87479791fdb57556c92, type: 3}
+  CharacterSprite: {fileID: 21300000, guid: 94ab0b8b942bd5848913732c3e0087b9, type: 3}

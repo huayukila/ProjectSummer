@@ -4,28 +4,44 @@ using UnityEngine;
 
 public class ItemBoxController : MonoBehaviour
 {
-    private Vector3 _defaultPos;
-    // Start is called before the first frame update
-    void Start()
-    {
-        _defaultPos = transform.position;
-    }
+  private Vector3 _defaultPos;
+  private RainbowOutlineEffect _outlineEffect;
+  public bool IsInactive => _defaultPos != transform.position;
 
-    public void SetInactive()
-    {
-        transform.position = Global.GAMEOBJECT_STACK_POS;
-        SetRespawnTimer();
-    }
+  // Start is called before the first frame update
+  void Start()
+  {
+    _defaultPos = transform.position;
+    var mat = GetComponentInChildren<Renderer>().material;
+    _outlineEffect = new RainbowOutlineEffect(mat);
+  }
 
-    private void SetRespawnTimer()
-    {
-        Timer respawnTimer = new Timer(Time.time,Global.ITEM_BOX_SPAWN_TIME,
-        () =>
-        {
-            transform.position = _defaultPos;
-        });
-        respawnTimer.StartTimer(this);
-    }
+  private void Update()
+  {
+    _outlineEffect?.UpdateOutline(Time.deltaTime);
+  }
 
-    public bool IsInactive => _defaultPos != transform.position;
+  public void SetInactive()
+  {
+    transform.position = Global.GAMEOBJECT_STACK_POS;
+    SetRespawnTimer();
+    _outlineEffect?.SetActive(false);
+  }
+
+  private void SetRespawnTimer()
+  {
+    Timer respawnTimer = new Timer(Time.time,Global.ITEM_BOX_SPAWN_TIME,
+    () =>
+    {
+      transform.position = _defaultPos;
+      _outlineEffect?.SetActive(true);
+    });
+    respawnTimer.StartTimer(this);
+  }
+
+  private void OnDestroy()
+  {
+    _outlineEffect?.Dispose();
+  }
+ 
 }
