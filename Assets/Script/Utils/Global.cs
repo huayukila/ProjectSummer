@@ -3,12 +3,14 @@ using UnityEngine;
 public static class Global
 {
     #region Player
-
-    public struct PowerUp
+    
+    internal struct PowerUp
     {
         public float SpeedUp;
         public float RotateUp;
     }
+
+    public static int PLAYER_MAX_COUNT = 2;
 
     public static readonly Vector3[] PLAYER_START_POSITIONS =
     {
@@ -33,21 +35,21 @@ public static class Global
         new Color(0, 152/255f, 253/255f, 1)
     };
 
-    public static readonly float RESPAWN_TIME = 5.0f; // プレイヤーが死んでから復活までの時間間隔
+    public static readonly float RESPAWN_TIME = 5.0f; // ?v???C???[?????????畜??????????u
 
     #region PlayerStatus
 
-    public static readonly float SPEED_DOWN_COEFFICIENT = 0.8f; // 他のプレイヤーの領域上にいる時のスビート係数
-    public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // 自分のプレイヤーの領域上にいる時のスビート係数
+    public static readonly float SPEED_DOWN_COEFFICIENT = 0.8f; // ????v???C???[???????????X?r?[?g?W??
+    public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // ??????v???C???[???????????X?r?[?g?W??
 
-    public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // プレイヤーの最大速度
-    public static readonly float PLAYER_ACCELERATION = 15.0f; // プレイヤーの加速度
-    public static readonly float PLAYER_ROTATION_SPEED = 4.0f; // プレイヤーの回転速度
+    public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // ?v???C???[?????x
+    public static readonly float PLAYER_ACCELERATION = 15.0f; // ?v???C???[??????x
+    public static readonly float PLAYER_ROTATION_SPEED = 4.0f; // ?v???C???[???]???x
 
     public static readonly float BOOST_DURATION_TIME = 1.0f;
     public static readonly float BOOST_COOLDOWN_TIME = 6.0f;
 
-    public static readonly PowerUp[] POWER_UP_PARAMETER =
+    internal static readonly PowerUp[] POWER_UP_PARAMETER =
     {
         new PowerUp() { SpeedUp = 6f, RotateUp = -0.5f },
         new PowerUp() { SpeedUp = 12f, RotateUp = -0.8f },
@@ -60,8 +62,8 @@ public static class Global
 
     #region DropPoint
 
-    public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPointをインスタンス化する時間間隔
-    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPointの存在している時間
+    public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPoint???C???X?^???X?????????u
+    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPoint?????????????
 
     #endregion
 
@@ -88,17 +90,18 @@ public static class Global
 
     #endregion
 
-    public static readonly float SET_GAME_TIME = 180f; //ゲーム時間
+    public static readonly float SET_GAME_TIME = 180f; //?Q?[??????
 
-    public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //ゲーム操作方法紹介画面 PRESS無効の時間
-    public static readonly float CREDITS_SCENE_TIME = 1.5f; //ゲーム終了後の感謝画面 PRESS無効の時間
+    public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //?Q?[????????@????? PRESS?????????
+    public static readonly float CREDITS_SCENE_TIME = 1.5f; //?Q?[???I?????????? PRESS?????????
 
-    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(10000f, 0, 0); //生成されたオブジェクトの保存座標
+    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(10000f, 0, 0); //?????????I?u?W?F?N?g???????W
 
     #region Map
+    
+    public static readonly float MAP_SIZE_WIDTH = 3; //?}?b?v?????
+    public static readonly float MAP_SIZE_HEIGHT = 1.6875f; //?}?b?v?????
 
-    public static readonly float MAP_SIZE_WIDTH = 3; //マップの長さ
-    public static readonly float MAP_SIZE_HEIGHT = 1.6875f; //マップの高さ
     public static readonly float STAGE_WIDTH = MAP_SIZE_WIDTH * 100f;
     public static readonly float STAGE_HEIGHT = MAP_SIZE_HEIGHT * 100f;
 

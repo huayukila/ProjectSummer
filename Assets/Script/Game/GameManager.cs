@@ -14,7 +14,7 @@ public class GameManager : Singleton<GameManager>
         public GameObject camera;
     }
 
-    private static readonly int maxPlayerCount = 2;
+    private static readonly int maxPlayerCount = Global.PLAYER_MAX_COUNT;
     private Dictionary<int, SpiderPlayer> spiderPlayers;
     private ItemSystem itemSystem;
     private GameResourceSystem gameResourceSystem;
@@ -23,7 +23,7 @@ public class GameManager : Singleton<GameManager>
     protected override void Awake()
     {
         base.Awake();
-        //ŠeƒVƒXƒeƒ€‚ÌÀ—á‰»‚Æ‰Šú‰»
+        //ï¿½eï¿½Vï¿½Xï¿½eï¿½ï¿½ï¿½Ìï¿½ï¿½á‰»ï¿½Æï¿½ï¿½ï¿½ï¿½ï¿½
         {
             itemSystem = ItemSystem.Instance;
             itemSystem.Init();
@@ -39,7 +39,7 @@ public class GameManager : Singleton<GameManager>
             dropPointSystem.Init();
         }
 
-        //ƒV[ƒ“‚ÌˆÚs–½—ß‚ğó‚¯
+        //ï¿½Vï¿½[ï¿½ï¿½ï¿½ÌˆÚsï¿½ï¿½ï¿½ß‚ï¿½ï¿½ï¿½
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
         TypeEventSystem.Instance.Register<MenuSceneSwitch>(e => { MenuSceneSwitch(); });
         TypeEventSystem.Instance.Register<GamingSceneSwitch>(e => { GamingSceneSwitch(); });
@@ -110,12 +110,12 @@ public class GameManager : Singleton<GameManager>
 
     private void Update()
     {
-        //ŠeƒVƒXƒeƒ€‚Ìupdate
-        //ƒV[ƒ“‚ÌˆÚs‚È‚Ç
+        //ï¿½eï¿½Vï¿½Xï¿½eï¿½ï¿½ï¿½ï¿½update
+        //ï¿½Vï¿½[ï¿½ï¿½ï¿½ÌˆÚsï¿½È‚ï¿½
         // gaming scene process
     }
 
-    //ƒV[ƒ“‚ÌˆÚs
+    //ï¿½Vï¿½[ï¿½ï¿½ï¿½ÌˆÚs
     void TitleSceneSwitch()
     {
         SceneManager.LoadScene("Title");
@@ -165,18 +165,24 @@ public class GameManager : Singleton<GameManager>
         {
             if (!spiderPlayers.ContainsKey(ID))
             {
-                GameObject player = Instantiate(playerPrefab, Global.PLAYER_START_POSITIONS[ID - 1],
-                    Quaternion.identity);
-                player.GetComponent<Player>()?.SetProperties(ID, Global.PLAYER_TRACE_COLORS[ID - 1]);
+                GameObject player = Instantiate( 
+                                                 playerPrefab,
+                                                 Global.PLAYER_START_POSITIONS[ID - 1],
+                                                 Quaternion.identity
+                                               );
+                var playerComp = player.GetComponent<Player>();
+                playerComp.SetProperties(ID, Global.PLAYER_TRACE_COLORS[ID - 1]);
+
                 SpriteRenderer playerImage = player.GetComponentInChildren<SpriteRenderer>();
                 playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + ID.ToString());
 
                 GameObject camera = new GameObject("Player" + (ID).ToString() + "Camera");
                 camera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
                 Camera cam = camera.AddComponent<Camera>();
-                cam.rect = new Rect((float)(ID - 1) / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
-                cam.orthographic = true;
-                cam.orthographicSize = 54.0f;
+                // cam.rect = new Rect((float)(ID - 1) / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
+                cam.targetDisplay = ID - 1;
+                cam.orthographic = false;
+                cam.fieldOfView = 100f;
                 cam.depth = 1.0f;
                 cam.backgroundColor = Color.gray;
                 CameraControl camCtrl = camera.AddComponent<CameraControl>();
@@ -188,6 +194,8 @@ public class GameManager : Singleton<GameManager>
                 };
                 spiderPlayers.Add(ID, spiderPlayer);
                 dropPointSystem.InitPlayerDropPointGroup(ID);
+
+                playerComp.SetCamera(cam);
             }
         }
         else
@@ -236,10 +244,10 @@ public class GameManager : Singleton<GameManager>
     #region interface
 
     /// <summary>
-    /// ƒvƒŒƒCƒ„[‚ÌÀ•W‚ğæ“¾‚·‚éŠÖ”
+    /// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½Wï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½Öï¿½
     /// </summary>
-    /// <param name="ID">ƒvƒŒƒCƒ„[‚ÌID</param>
-    /// <returns>ƒvƒŒƒCƒ„[‚ª‘¶İ‚µ‚½‚çƒ[ƒ‹ƒhÀ•W‚ğ•Ô‚µA‘¶İ‚µ‚È‚¢ê‡‚Íí‚ÉVector3.zero‚ğ•Ô‚·</returns>
+    /// <param name="ID">ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ID</param>
+    /// <returns>ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½İ‚ï¿½ï¿½ï¿½ï¿½çƒï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½ï¿½Ô‚ï¿½ï¿½Aï¿½ï¿½ï¿½İ‚ï¿½ï¿½È‚ï¿½ï¿½ê‡ï¿½Íï¿½ï¿½Vector3.zeroï¿½ï¿½Ô‚ï¿½</returns>
     public Vector3 GetPlayerPos(int ID)
     {
         Vector3 ret = Vector3.zero;
@@ -256,7 +264,7 @@ public class GameManager : Singleton<GameManager>
         bool ret = true;
         if (spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
         {
-            //TODO ƒCƒ“ƒ^[ƒtƒF[ƒX‚Å‚â‚é
+            //TODO ï¿½Cï¿½ï¿½ï¿½^ï¿½[ï¿½tï¿½Fï¿½[ï¿½Xï¿½Å‚ï¿½ï¿½
             ret = value.player.GetComponent<Player>().IsDead();
         }
 

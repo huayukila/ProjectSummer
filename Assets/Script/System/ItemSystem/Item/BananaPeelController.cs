@@ -5,13 +5,36 @@ using Character;
 
 public class BananaPeelController : MonoBehaviour
 {
+    private Animator _animator;
 
+    private void Awake()
+    {
+        _animator = GetComponentInChildren<Animator>();
+    }
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Player"))
+        if(other.TryGetComponent(out IItemAffectable itemAffectable))
         {           
-            other.gameObject.GetComponent<Player>().OnEffect("Slip");
-            Destroy(gameObject);
+            itemAffectable.OnAffect(this);
+            var collider = GetComponent<Collider>();
+            collider.enabled = false;
+
+            StartCoroutine(OnHit());
         }
+    }
+
+    private IEnumerator OnHit()
+    {
+        _animator.Play("Used");
+
+        yield return new WaitForSecondsRealtime(0.1f);
+
+        while(_animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+        {
+            yield return null;
+        }
+
+        Destroy(gameObject);
+        yield break;
     }
 }
