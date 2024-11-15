@@ -97,8 +97,8 @@ public static class Global
 
     #region Map
 
-    public static readonly int MAP_SIZE_WIDTH = 2; //マップの長さ
-    public static readonly int MAP_SIZE_HEIGHT = 2; //マップの高さ
+    public static readonly float MAP_SIZE_WIDTH = 3; //マップの長さ
+    public static readonly float MAP_SIZE_HEIGHT = 1.6875f; //マップの高さ
     public static readonly float STAGE_WIDTH = MAP_SIZE_WIDTH * 100f;
     public static readonly float STAGE_HEIGHT = MAP_SIZE_HEIGHT * 100f;
 

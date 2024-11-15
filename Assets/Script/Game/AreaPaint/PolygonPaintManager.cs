@@ -59,7 +59,7 @@ public class PolygonPaintManager : Singleton<PolygonPaintManager>
     }
 
 
-    private int m_MixVariant = Global.MAP_SIZE_WIDTH * Global.MAP_SIZE_HEIGHT * 10000;//計算負担軽減するため、プリ計算
+    private int m_MixVariant = (int)(Global.MAP_SIZE_WIDTH * Global.MAP_SIZE_HEIGHT * 10000);//計算負担軽減するため、プリ計算
     /// <summary>
     /// プレイヤーのマップ占有率
     /// </summary>

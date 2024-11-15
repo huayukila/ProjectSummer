@@ -9,8 +9,8 @@ public class Paintable : MonoBehaviour
     public RenderTexture GetAreaMask() => areaMaskTexture;
     public RenderTexture GetAreaCopy() => areaCopyTexture;
 
-    private int textureSize_x = Global.MAP_SIZE_WIDTH * 1000;
-    private int textureSize_y = Global.MAP_SIZE_HEIGHT * 1000;
+    private int textureSize_x = (int)Global.MAP_SIZE_WIDTH * 1000;
+    private int textureSize_y = (int)Global.MAP_SIZE_HEIGHT * 1000;
     private Renderer rend;
     private RenderTexture maskTexture;
     private RenderTexture copyTexture;
