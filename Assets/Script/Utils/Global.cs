@@ -35,16 +35,16 @@ public static class Global
         new Color(0, 152/255f, 253/255f, 1)
     };
 
-    public static readonly float RESPAWN_TIME = 5.0f; // �v���C���[������ł��畜���܂ł̎��ԊԊu
+    public static readonly float RESPAWN_TIME = 5.0f; // ?v???C???[?????????�{??????????u
 
     #region PlayerStatus
 
-    public static readonly float SPEED_DOWN_COEFFICIENT = 0.8f; // ���̃v���C���[�̗̈��ɂ��鎞�̃X�r�[�g�W��
-    public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // �����̃v���C���[�̗̈��ɂ��鎞�̃X�r�[�g�W��
+    public static readonly float SPEED_DOWN_COEFFICIENT = 0.8f; // ????v???C???[???????????X?r?[?g?W??
+    public static readonly float SPEED_UP_COEFFICIENT = 1.25f; // ??????v???C???[???????????X?r?[?g?W??
 
-    public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // �v���C���[�̍ő呬�x
-    public static readonly float PLAYER_ACCELERATION = 15.0f; // �v���C���[�̉����x
-    public static readonly float PLAYER_ROTATION_SPEED = 4.0f; // �v���C���[�̉�]���x
+    public static readonly float PLAYER_MAX_MOVE_SPEED = 48.0f; // ?v???C???[?????x
+    public static readonly float PLAYER_ACCELERATION = 15.0f; // ?v???C???[??????x
+    public static readonly float PLAYER_ROTATION_SPEED = 4.0f; // ?v???C???[???]???x
 
     public static readonly float BOOST_DURATION_TIME = 1.0f;
     public static readonly float BOOST_COOLDOWN_TIME = 6.0f;
@@ -62,8 +62,8 @@ public static class Global
 
     #region DropPoint
 
-    public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPoint���C���X�^���X�����鎞�ԊԊu
-    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPoint�̑��݂��Ă��鎞��
+    public static readonly float DROP_POINT_INTERVAL = 0.05f; // DropPoint???C???X?^???X?????????u
+    public static readonly float DROP_POINT_ALIVE_TIME = 2.0f; // DropPoint?????????????
 
     #endregion
 
@@ -90,17 +90,18 @@ public static class Global
 
     #endregion
 
-    public static readonly float SET_GAME_TIME = 180f; //�Q�[������
+    public static readonly float SET_GAME_TIME = 180f; //?Q?[??????
 
-    public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //�Q�[��������@�Љ��� PRESS�����̎���
-    public static readonly float CREDITS_SCENE_TIME = 1.5f; //�Q�[���I����̊��Ӊ�� PRESS�����̎���
+    public static readonly float INTSTRUCTON_SCENE_TIME = 1.5f; //?Q?[????????@????? PRESS?????????
+    public static readonly float CREDITS_SCENE_TIME = 1.5f; //?Q?[???I?????????? PRESS?????????
 
-    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(10000f, 0, 0); //�������ꂽ�I�u�W�F�N�g�̕ۑ����W
+    public static readonly Vector3 GAMEOBJECT_STACK_POS = new Vector3(10000f, 0, 0); //?????????I?u?W?F?N?g???????W
 
     #region Map
+    
+    public static readonly float MAP_SIZE_WIDTH = 3; //?}?b?v?????
+    public static readonly float MAP_SIZE_HEIGHT = 1.6875f; //?}?b?v?????
 
-    public static readonly int MAP_SIZE_WIDTH = 2; //�}�b�v�̒���
-    public static readonly int MAP_SIZE_HEIGHT = 2; //�}�b�v�̍���
     public static readonly float STAGE_WIDTH = MAP_SIZE_WIDTH * 100f;
     public static readonly float STAGE_HEIGHT = MAP_SIZE_HEIGHT * 100f;
 
