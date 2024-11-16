@@ -20,10 +20,13 @@ public class GameManager : Singleton<GameManager>
     private GameResourceSystem gameResourceSystem;
     private IDropPointSystem dropPointSystem;
 
+
+    public bool isMultipleScreen { get; private set; }
+
     protected override void Awake()
     {
         base.Awake();
-        //�e�V�X�e���̎��ቻ�Ə�����
+        //?e?V?X?e??????????????
         {
             itemSystem = ItemSystem.Instance;
             itemSystem.Init();
@@ -39,7 +42,7 @@ public class GameManager : Singleton<GameManager>
             dropPointSystem.Init();
         }
 
-        //�V�[���̈ڍs���߂���
+        //?V?[?????s???????
         TypeEventSystem.Instance.Register<TitleSceneSwitch>(e => { TitleSceneSwitch(); });
         TypeEventSystem.Instance.Register<MenuSceneSwitch>(e => { MenuSceneSwitch(); });
         TypeEventSystem.Instance.Register<GamingSceneSwitch>(e => { GamingSceneSwitch(); });
@@ -95,9 +98,6 @@ public class GameManager : Singleton<GameManager>
                     break;
             }
         };
-
-        OpenMultScreen();
-
         Cursor.lockState = CursorLockMode.Locked;
 
         SceneManager.LoadScene("Title");
@@ -110,12 +110,13 @@ public class GameManager : Singleton<GameManager>
 
     private void Update()
     {
-        //�e�V�X�e����update
-        //�V�[���̈ڍs�Ȃ�
-        // gaming scene process
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isMultipleScreen)
+        {
+            OpenMultScreen();
+        }
     }
 
-    //�V�[���̈ڍs
+    //?V?[?????s
     void TitleSceneSwitch()
     {
         SceneManager.LoadScene("Title");
@@ -165,11 +166,11 @@ public class GameManager : Singleton<GameManager>
         {
             if (!spiderPlayers.ContainsKey(ID))
             {
-                GameObject player = Instantiate( 
-                                                 playerPrefab,
-                                                 Global.PLAYER_START_POSITIONS[ID - 1],
-                                                 Quaternion.identity
-                                               );
+                GameObject player = Instantiate(
+                    playerPrefab,
+                    Global.PLAYER_START_POSITIONS[ID - 1],
+                    Quaternion.identity
+                );
                 var playerComp = player.GetComponent<Player>();
                 playerComp.SetProperties(ID, Global.PLAYER_TRACE_COLORS[ID - 1]);
 
@@ -235,6 +236,7 @@ public class GameManager : Singleton<GameManager>
 
     void OpenMultScreen()
     {
+        isMultipleScreen = true;
         for (int i = 0; i < Display.displays.Length; i++)
         {
             Display.displays[i].Activate();
@@ -244,10 +246,10 @@ public class GameManager : Singleton<GameManager>
     #region interface
 
     /// <summary>
-    /// �v���C���[�̍��W���擾����֐�
+    /// ?v???C???[????W???擾??????
     /// </summary>
-    /// <param name="ID">�v���C���[��ID</param>
-    /// <returns>�v���C���[�����݂����烏�[���h���W��Ԃ��A���݂��Ȃ��ꍇ�͏��Vector3.zero��Ԃ�</returns>
+    /// <param name="ID">?v???C???[??ID</param>
+    /// <returns>?v???C???[??????????烏?[???h???W?????A??????????????Vector3.zero????</returns>
     public Vector3 GetPlayerPos(int ID)
     {
         Vector3 ret = Vector3.zero;
@@ -264,7 +266,7 @@ public class GameManager : Singleton<GameManager>
         bool ret = true;
         if (spiderPlayers.TryGetValue(ID, out SpiderPlayer value) == true)
         {
-            //TODO �C���^�[�t�F�[�X�ł��
+            //TODO ?C???^?[?t?F?[?X????
             ret = value.player.GetComponent<Player>().IsDead();
         }
 
