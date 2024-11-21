@@ -11,28 +11,39 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
     private float _explodeRadius = 0f;
     private int _ownerPlayerID = -1;
     private Material _material;
-    private MeshRenderer _meshRenderer;
+    private SpriteRenderer _imageRenderer;
     private Collider[] _explodeTargetColliders;
+    private Animator _animator;
+    private Coroutine _explodeCoroutine;
     public Color Color => _bubbleColor;
     public int OwnerPlayerID => _ownerPlayerID;
+
 
     private void Awake()
     {
         Timer explodeTimer = new Timer(Time.time,_waitForExplodeTime,ExplodeBubble);
         explodeTimer.StartTimer(this);
-        _meshRenderer = GetComponent<MeshRenderer>();
+        _imageRenderer = GetComponentInChildren<SpriteRenderer>();
         
         _explodeTargetColliders = new Collider[Global.PLAYER_MAX_COUNT];
+
+        _animator = GetComponent<Animator>();
+        _explodeCoroutine = null;
     }
     private void Start()
     {
-        _material = new Material(_meshRenderer.sharedMaterial) { hideFlags = HideFlags.DontSave};
+        _material = _imageRenderer.material;
         _material.color = _bubbleColor;
-        _meshRenderer.sharedMaterial = _material;
+        _imageRenderer.material = _material;
     }
 
     private void Update()
     {
+        if (_explodeCoroutine != null)
+        {
+            return;
+        }
+
         _waitForExplodeTime -= Time.deltaTime;
         if (_waitForExplodeTime <= 0f)
         {
@@ -49,6 +60,7 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
 
     private void OnDestroy()
     {
+        _explodeCoroutine = null;
         if (_material != null)
         {
             Destroy(_material);
@@ -57,7 +69,7 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
     private void ExplodeBubble()
     {
         PaintExplodeArea();
-        Destroy(gameObject);
+        _explodeCoroutine ??= StartCoroutine(PlayExplodeAnimAndDestroy());
     }
 
     private void PaintExplodeArea()
@@ -90,6 +102,23 @@ public class PaintBubbleController : MonoBehaviour,IExplodable,IItemAffectable
         }
 
         PolygonPaintManager.Instance.Paint(explodeAreaVertexes.ToArray(), _ownerPlayerID, _bubbleColor);
+    }
+
+    private IEnumerator PlayExplodeAnimAndDestroy()
+    {
+        _material.color = Color.white;
+        _animator.Play("Explode");
+
+        // wait one frame(Unity need to reset animator.GetCurrentAnimatorStateInfo(0).normalizedTime)
+        yield return null;
+
+        // TODO need change explode anim size
+        gameObject.transform.localScale *= 5f;
+
+        yield return new WaitUntil(() => _animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1.0f);
+        
+        Destroy(gameObject);
+        yield break;
     }
 
     void IItemAffectable.OnAffect(StunSilkController stunSilk)

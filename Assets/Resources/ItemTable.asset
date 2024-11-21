@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: ItemTable
   m_EditorClassIdentifier: 
   powerItemList:
-  - {fileID: 11400000, guid: e61910f405c69a143895e3899458f54b, type: 2}
+  - {fileID: 11400000, guid: 19af53528f2dede4d9fed8a6807ba180, type: 2}
   normalItemList:
-  - {fileID: 11400000, guid: e61910f405c69a143895e3899458f54b, type: 2}
+  - {fileID: 11400000, guid: 19af53528f2dede4d9fed8a6807ba180, type: 2}
   weakItemList:
-  - {fileID: 11400000, guid: e61910f405c69a143895e3899458f54b, type: 2}
+  - {fileID: 11400000, guid: 19af53528f2dede4d9fed8a6807ba180, type: 2}

@@ -177,7 +177,7 @@ public class GameManager : Singleton<GameManager>
                 SpriteRenderer playerImage = player.GetComponentInChildren<SpriteRenderer>();
                 playerImage.sprite = GameResourceSystem.Instance.GetCharacterImage("Player" + ID.ToString());
 
-                GameObject camera = new GameObject("Player" + (ID).ToString() + "Camera");
+                GameObject camera = new GameObject($"Player{ID}Camera");
                 camera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
                 Camera cam = camera.AddComponent<Camera>();
                 // cam.rect = new Rect((float)(ID - 1) / (float)maxPlayerCount, 0.0f, 1.0f / maxPlayerCount, 1.0f);
