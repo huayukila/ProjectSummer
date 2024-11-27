@@ -136,7 +136,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: UI_chara_1310_1200_0
+      name: RightBG
       rect:
         serializedVersion: 2
         x: 0
@@ -144,20 +144,20 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 00cccd34b09fd7c42a675f815ca44048
-      internalID: -1351972212
+      spriteID: 62ee45816bca3834da526fd9dbd3bc78
+      internalID: 1099741932
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_chara_1310_1200_1
+      name: RightAnim1
       rect:
         serializedVersion: 2
         x: 1310
@@ -165,20 +165,20 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 57f4b779d71751f41a79db5299f9712b
-      internalID: 528511232
+      spriteID: da04200c1cd5e944b8155ca47478182a
+      internalID: 1374189760
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_chara_1310_1200_2
+      name: RightAnim2
       rect:
         serializedVersion: 2
         x: 2620
@@ -186,20 +186,20 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1205cea11cb0a604493b4b403134f3ef
-      internalID: -711308197
+      spriteID: 32a2d01552acd234a9843bcf336f741c
+      internalID: 714948563
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_chara_1310_1200_3
+      name: RightDot
       rect:
         serializedVersion: 2
         x: 3930
@@ -207,20 +207,20 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 60a477244b5e39b49aa6f6b304f2ccea
-      internalID: 962523039
+      spriteID: 436503db7721f5c44a1eb0e8c9879cb7
+      internalID: -1526852245
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_chara_1310_1200_4
+      name: LeftBG
       rect:
         serializedVersion: 2
         x: 0
@@ -228,20 +228,20 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c85852b55eb8a004ea4ad84d54ca2be5
-      internalID: 70892234
+      spriteID: 649aaa19c37b161408026a2b4d9080c4
+      internalID: 2060659158
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_chara_1310_1200_5
+      name: LeftAnim1
       rect:
         serializedVersion: 2
         x: 1310
@@ -249,20 +249,20 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e68c3cd8d20b5554bad980f3faa73f80
-      internalID: -2139739413
+      spriteID: ebc57f7d0e89aa64f8594401538348ee
+      internalID: -862373704
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_chara_1310_1200_6
+      name: LeftAnim2
       rect:
         serializedVersion: 2
         x: 2620
@@ -270,20 +270,20 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fef63a5f0384ee74fbe1026c519d9849
-      internalID: -516501315
+      spriteID: abcf3a7fff5d3a948b75dfd93e8a45ab
+      internalID: 14731966
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_chara_1310_1200_7
+      name: LeftDot
       rect:
         serializedVersion: 2
         x: 3930
@@ -291,14 +291,14 @@ TextureImporter:
         width: 1310
         height: 1200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e985a1a87fefee04781438ee0944d8ba
-      internalID: -1378195870
+      spriteID: 99d78f4dc579e834e8cbbe3136dcea59
+      internalID: 701082156
       vertices: []
       indices: 
       edges: []
@@ -314,14 +314,14 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      UI_chara_1310_1200_0: -1351972212
-      UI_chara_1310_1200_1: 528511232
-      UI_chara_1310_1200_2: -711308197
-      UI_chara_1310_1200_3: 962523039
-      UI_chara_1310_1200_4: 70892234
-      UI_chara_1310_1200_5: -2139739413
-      UI_chara_1310_1200_6: -516501315
-      UI_chara_1310_1200_7: -1378195870
+      LeftAnim1: -862373704
+      LeftAnim2: 14731966
+      LeftBG: 2060659158
+      LeftDot: 701082156
+      RightAnim1: 1374189760
+      RightAnim2: 714948563
+      RightBG: 1099741932
+      RightDot: -1526852245
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
