@@ -66,16 +66,10 @@ public class ItemSystem : SingletonBase<ItemSystem>, IItemSystem
     //道具抽選
     private ItemBase LotteryItem(IPlayer2ItemSystem player)
     {
-        if (player.HadSilk)
-        {
-            return weakItemArray[rand.Next(0, weakItemArray.Count())];
-        }
-
-        //if (!player.HadSilk)
-        //{
-
-        //}
-
+        // if (player.HadSilk)
+        // {
+        //     return weakItemArray[rand.Next(0, weakItemArray.Count())];
+        // }
         //普通の場合獲得できるのアイテム
         return normalItemArray[rand.Next(0, normalItemArray.Count())];
     }
