@@ -12,6 +12,8 @@ public class PlayerInfoPanel : MonoBehaviour
         Right,
     }
 
+    public Sprite[] ItemImageArray;
+
     public PlayerID id;
     public Image ChargeBar;
     public Image ItemImg;
@@ -21,6 +23,7 @@ public class PlayerInfoPanel : MonoBehaviour
 // Start is called before the first frame update
     void Start()
     {
+        ToggleItemImage();
         ItemImg.gameObject.SetActive(false);
         TypeEventSystem.Instance.Register<BoostStart>(e =>
             {
@@ -30,6 +33,22 @@ public class PlayerInfoPanel : MonoBehaviour
                 }
             })
             .UnregisterWhenGameObjectDestroyed(gameObject);
+
+        TypeEventSystem.Instance.Register<ShowItemInUI>(e =>
+        {
+            if (e.PlayerID == (int)id)
+            {
+                ShowItem(e.ItemID);
+            }
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
+
+        TypeEventSystem.Instance.Register<PlayerUsedItem>(e =>
+        {
+            if (e.ID == (int)id)
+            {
+                ToggleItemImage();
+            }
+        }).UnregisterWhenGameObjectDestroyed(gameObject);
     }
 
 // Update is called once per frame
@@ -39,5 +58,17 @@ public class PlayerInfoPanel : MonoBehaviour
         {
             ChargeBar.DOFillAmount(0.4f, Global.BOOST_COOLDOWN_TIME);
         }
+    }
+
+
+    void ShowItem(int id)
+    {
+        ItemImg.gameObject.SetActive(true);
+        ItemImg.sprite = ItemImageArray[id];
+    }
+
+    void ToggleItemImage()
+    {
+        ItemImg.gameObject.SetActive(false);
     }
 }
