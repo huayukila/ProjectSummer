@@ -28,9 +28,6 @@ public class AreaController : MonoBehaviour
             float[] values = PolygonPaintManager.Instance.GetPlayersAreaPercent();
             redPrecent = values[0];
             bluePrecent = values[1];
-
-            Debug.Log(redPrecent);
-            Debug.Log(bluePrecent);
             TryChange();
         }).UnregisterWhenGameObjectDestroyed(gameObject);
     }

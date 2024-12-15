@@ -297,11 +297,11 @@ MonoBehaviour:
   noLightSprite: {fileID: 21300000, guid: 882aff4eb06cf904e96545a2a8876a96, type: 3}
   lightOnSprite: {fileID: 21300000, guid: 7f12f1d9d2269de4894fb011b27fbb3a, type: 3}
   minHoldTime: 1
-  maxHoldTime: 5
-  minFlickerCount: 2
-  maxFlickerCount: 5
-  minFlickerInterval: 0.05
-  maxFlickerInterval: 0.2
+  maxHoldTime: 3
+  minFlickerCount: 3
+  maxFlickerCount: 6
+  minFlickerInterval: 0.07
+  maxFlickerInterval: 0.3
 --- !u!1 &740140390
 GameObject:
   m_ObjectHideFlags: 0
